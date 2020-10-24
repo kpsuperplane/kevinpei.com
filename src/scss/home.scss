@@ -1,0 +1,47 @@
+@import "common";
+
+#home-title {
+  align-items: center;
+  margin-top: 20vh;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  #home-title-container {
+    flex: 0 0 100%;
+    max-width: 400px;
+    position: relative;
+    overflow: hidden;
+    #hello {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 2% 15% 3% 15%;
+      background: url("/img/hello_background.png");
+      background-size: auto 100%;
+      background-position: center center;
+      background-repeat: no-repeat;
+    }
+    h1 {
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: transparent;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+  }
+}
+
+#home-links {
+  margin: 2em 0 5em 0;
+  a {
+    color: black;
+    font-size: 1.3em;
+    margin: 0 0.3em;
+  }
+}
+
+body {
+  opacity: 0;
+  transition: opacity 2s;
+}

@@ -1,0 +1,52 @@
+$theme: #2ac648;
+$theme-active: darken($theme, 10%);
+.ft-body {
+  font-family: "Muli", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+.ft-head {
+  font-family: "Trispace", "Trebuchet MS", "Lucida Sans Unicode",
+    "Lucida Grande", "Lucida Sans", Arial, sans-serif;
+}
+.ft-code {
+  font-family: "Source Code Pro", sans-serif;
+}
+.ft-thin {
+  font-weight: 300;
+}
+.ft-bold {
+  font-weight: 700;
+}
+.ft-center {
+  text-align: center;
+}
+.ft-large, h1 {
+  font-size: 3em;
+}
+.ft-medium, h2 {
+  font-size: 2em;
+}
+.ft-small, h3 {
+  font-size: 1em;
+}
+
+
+.mg-hor-small {
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 
+    [full-start] 
+      minmax(1em, 1fr) 
+        [main-start] 
+          minmax(0, 860px) 
+        [main-end] 
+      minmax(1em, 1fr) 
+    [full-end];
+  > * {
+    grid-column: main;
+  }
+}
