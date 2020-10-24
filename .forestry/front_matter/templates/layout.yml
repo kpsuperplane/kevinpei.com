@@ -1,0 +1,16 @@
+---
+label: Layout
+hide_body: false
+fields:
+- type: text
+  name: layout
+  label: layout
+- type: textarea
+  name: description
+  label: description
+- type: text
+  name: title
+  label: title
+- type: file
+  name: image
+  label: image
