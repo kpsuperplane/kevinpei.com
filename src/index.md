@@ -1,6 +1,8 @@
 ---
 layout: layout
+description: Coder, Skier, Human. Living a life of inspiration and debugging. Let's work on something awesome. Wolves are cute.
 title: Kevin Pei
+image: kevinpei.jpg
 ---
 
 <div id="home-title">
