@@ -12,18 +12,32 @@ const Cover = styled(motion.div)`
   position: relative;
   display: grid;
   justify-content: center;
-  align-content: center;
-  grid-template-columns: 1fr min(400px, 100vw/2) 50%;
+  align-content: stretch;
+  grid-template-columns: 60% 40%;
+`;
+
+const LeftRail = styled.div`
+  clip-path: ellipse(50% 100% at 40% 50%);
+  padding-right: 10vw;
+  background: white;
+  position: relative;
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
 `;
 
 const Content = styled.div`
-  position: relative;
   padding: 2rem;
-  grid-column: 2;
+  flex: 0;
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
 `;
 
 const Title = styled(motion.h1)`
-  color: white;
+  color: black;
   font-weight: 400;
   font-size: 2rem;
 `;
@@ -80,44 +94,46 @@ const Home: NextPage = () => {
           objectFit="cover"
           objectPosition="center"
         />
-        <Content>
-          <Title>
-            <AnimatedTitle
-              animate={
-                loaded
-                  ? {
-                      clipPath: "inset(0% 0% 0% 0%)",
-                      y: "0rem",
-                    }
-                  : {
-                      clipPath: "inset(0% 0% 100% 0%)",
-                      y: "2rem",
-                    }
-              }
-              initial={false}
-              transition={{ delay: 0.4, duration: 0.5, ease: "circOut" }}
-            >
-              Hey there, I&rsquo;m
-            </AnimatedTitle>
-            <Name
-              animate={
-                loaded
-                  ? {
-                      clipPath: "inset(0% 0% 0% 0%)",
-                      y: "0rem",
-                    }
-                  : {
-                      clipPath: "inset(0% 0% 100% 0%)",
-                      y: "5rem",
-                    }
-              }
-              initial={false}
-              transition={{ delay: 0.5, duration: 0.5, ease: "circOut" }}
-            >
-              Kevin
-            </Name>
-          </Title>
-        </Content>
+        <LeftRail>
+          <Content>
+            <Title>
+              <AnimatedTitle
+                animate={
+                  loaded
+                    ? {
+                        clipPath: "inset(0% 0% 0% 0%)",
+                        y: "0rem",
+                      }
+                    : {
+                        clipPath: "inset(0% 0% 100% 0%)",
+                        y: "2rem",
+                      }
+                }
+                initial={false}
+                transition={{ delay: 0.4, duration: 0.5, ease: "circOut" }}
+              >
+                Hey there, I&rsquo;m
+              </AnimatedTitle>
+              <Name
+                animate={
+                  loaded
+                    ? {
+                        clipPath: "inset(0% 0% 0% 0%)",
+                        y: "0rem",
+                      }
+                    : {
+                        clipPath: "inset(0% 0% 100% 0%)",
+                        y: "5rem",
+                      }
+                }
+                initial={false}
+                transition={{ delay: 0.5, duration: 0.5, ease: "circOut" }}
+              >
+                Kevin
+              </Name>
+            </Title>
+          </Content>
+        </LeftRail>
       </Cover>
     </>
   );
