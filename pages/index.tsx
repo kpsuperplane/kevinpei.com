@@ -6,7 +6,7 @@ import coverImage from "../assets/cover.jpg";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
-const Cover = styled(motion.div)`
+const Cover = styled.div`
   width: 100vw;
   height: 100vh;
   position: relative;
@@ -32,7 +32,7 @@ const Content = styled.div`
   padding: 2rem;
   flex: 0;
   width: 100%;
-  max-width: 400px;
+  max-width: calc(400px + 1rem);
   box-sizing: border-box;
 `;
 
@@ -77,15 +77,7 @@ const Home: NextPage = () => {
         <meta name="description" content="Learning to adult." />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Cover
-        animate={{
-          clipPath: loaded
-            ? "circle(100% at 50% 50%)"
-            : "circle(0% at 50% 50%)",
-        }}
-        initial={false}
-        transition={{ duration: 0.8 }}
-      >
+      <Cover>
         <Image
           src={coverImage}
           layout="fill"
@@ -110,7 +102,7 @@ const Home: NextPage = () => {
                       }
                 }
                 initial={false}
-                transition={{ delay: 0.4, duration: 0.5, ease: "circOut" }}
+                transition={{ delay: 0.1, duration: 0.5, ease: "circOut" }}
               >
                 Hey there, I&rsquo;m
               </AnimatedTitle>
@@ -127,7 +119,7 @@ const Home: NextPage = () => {
                       }
                 }
                 initial={false}
-                transition={{ delay: 0.5, duration: 0.5, ease: "circOut" }}
+                transition={{ delay: 0.2, duration: 0.5, ease: "circOut" }}
               >
                 Kevin
               </Name>

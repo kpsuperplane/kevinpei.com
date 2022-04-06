@@ -1,5 +1,6 @@
 import type { AppProps } from "next/app";
 import { createGlobalStyle } from "styled-components";
+import Nav from "../components/Nav";
 
 const GlobalStyle = createGlobalStyle`
   body, html {
@@ -16,6 +17,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
       <GlobalStyle />
+      <Nav />
       <Component {...pageProps} />
     </>
   );
