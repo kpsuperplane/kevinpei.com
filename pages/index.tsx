@@ -5,6 +5,8 @@ import styled from "styled-components";
 import coverImage from "../assets/cover.jpg";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import Link from "../components/Link";
+import Middot from "../components/Middot";
 
 const Cover = styled.div`
   width: 100vw;
@@ -47,10 +49,14 @@ const AnimatedTitle = styled(motion.span)`
 `;
 
 const Name = styled(AnimatedTitle)`
-  font-size: 5rem;
+  font-size: 4rem;
   font-weight: 900;
   font-family: Muli, sans-serif;
   display: block;
+`;
+
+const Links = styled(motion.div)`
+  color: #999;
 `;
 
 const Home: NextPage = () => {
@@ -102,7 +108,7 @@ const Home: NextPage = () => {
                       }
                 }
                 initial={false}
-                transition={{ delay: 0.1, duration: 0.5, ease: "circOut" }}
+                transition={{ delay: 0.2, duration: 0.5, ease: "circOut" }}
               >
                 Hey there, I&rsquo;m
               </AnimatedTitle>
@@ -119,11 +125,22 @@ const Home: NextPage = () => {
                       }
                 }
                 initial={false}
-                transition={{ delay: 0.2, duration: 0.5, ease: "circOut" }}
+                transition={{ delay: 0.4, duration: 0.5, ease: "circOut" }}
               >
                 Kevin
               </Name>
             </Title>
+            <Links
+              animate={loaded ? { opacity: 1 } : { opacity: 0 }}
+              initial={false}
+              transition={{ delay: 0.7, duration: 0.5 }}
+            >
+              <Link href="https://github.com/kpsuperplane">Github</Link>
+              <Middot />
+              <Link href="https://linkedin.com/in/kpsuperplane">LinkedIn</Link>
+              <Middot />
+              <Link href="https://kevinpei.com/resume.pdf">Resume</Link>
+            </Links>
           </Content>
         </LeftRail>
       </Cover>
