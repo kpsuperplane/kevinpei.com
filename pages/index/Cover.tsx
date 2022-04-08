@@ -51,7 +51,7 @@ const AnimatedTitle = styled(motion.span)`
   display: inline-block;
   padding-right: 0.5rem;
   line-height: 1.2em;
-  vertical-align: baseline;
+  vertical-align: text-top;
   opacity: 0;
 `;
 
