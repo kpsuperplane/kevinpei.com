@@ -76,7 +76,7 @@ function easeInSine(p: number) {
   return 1 - Math.cos((p * Math.PI) / 2);
 }
 
-const isWindows = navigator?.appVersion?.indexOf?.("Win") != -1;
+const isWindows = window?.navigator?.appVersion?.indexOf?.("Win") != -1;
 
 export default function Cover({
   loaded,
