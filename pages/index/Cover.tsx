@@ -13,7 +13,6 @@ import useOnScroll from "../../components/useOnScroll";
 import useOnResize from "../../components/useOnResize";
 
 const Wrapper = styled.div`
-  width: 100vw;
   height: 100vh;
   position: relative;
   display: flex;
@@ -99,7 +98,8 @@ export default function Cover({
     const offsetTop = 10 + height - (firstLineRect?.top ?? 0);
 
     const secondOffsetLeft = firstLineRect?.width ?? 0;
-    const secondOffsetTop = -(firstLineRect?.height ?? 0) - 1;
+    const secondOffsetTop =
+      (firstLineRect?.top ?? 0) - (secondLineRect?.top ?? 0);
 
     if (innerWrapperRef.current != null) {
       innerWrapperRef.current.style.clipPath = `ellipse(100% 200% at ${
@@ -119,11 +119,13 @@ export default function Cover({
       `;
     }
     if (linksRef.current != null) {
-      linksRef.current.style.opacity = `${1 - Math.min(1, percent * 10)}`;
+      const linksPercent = Math.min(1, percent * 10);
+      linksRef.current.style.opacity = `${1 - linksPercent}`;
       linksRef.current.style.transform = `translateY(${
-        Math.min(1, percent * 10) *
+        linksPercent *
         (firstLineRect?.height ?? 0 + (secondLineRect?.height ?? 0))
       }px)`;
+      linksRef.current.style.pointerEvents = linksPercent === 1 ? "none" : "";
     }
   }, [
     firstLineRect?.height,
