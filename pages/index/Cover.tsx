@@ -76,8 +76,6 @@ function easeInSine(p: number) {
   return 1 - Math.cos((p * Math.PI) / 2);
 }
 
-const isWindows = window?.navigator?.appVersion?.indexOf?.("Win") != -1;
-
 export default function Cover({
   loaded,
   setLoaded,
@@ -122,7 +120,7 @@ export default function Cover({
         easeInSine(percent) * secondOffsetTop
       }px) scale(${1 - percent * 0.5})
       `;
-      if (isWindows) {
+      if (navigator.appVersion.indexOf("Win") != -1) {
         secondLineRef.style.paddingTop = "0.15em";
       }
     }
