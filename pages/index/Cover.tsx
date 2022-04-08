@@ -5,7 +5,6 @@ import coverImage from "../../assets/cover.jpg";
 import { motion } from "framer-motion";
 import Link from "../../components/Link";
 import Middot from "../../components/Middot";
-import useScrollPosition from "../../components/useOnScroll";
 
 import { useWindowSize } from "@react-hook/window-size";
 import useStaticRect from "../../components/useStaticRect";
@@ -134,6 +133,7 @@ export default function Cover({
     firstLineRect?.width,
     height,
     secondLineRect?.height,
+    secondLineRect?.top,
     secondLineRect?.width,
     secondLineRef,
     width,
