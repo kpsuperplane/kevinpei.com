@@ -81,7 +81,7 @@ export default function Cover({
 }) {
   const [width, height] = useWindowSize();
 
-  const [firstLineRefCb, firstLineRect, firstLineRef] = useStaticRect();
+  const [firstLineRefCb, firstLineRect] = useStaticRect();
   const [secondLineRefCb, secondLineRect, secondLineRef] = useStaticRect();
 
   const innerWrapperRef = useRef<HTMLDivElement | null>(null);

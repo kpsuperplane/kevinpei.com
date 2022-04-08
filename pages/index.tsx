@@ -1,6 +1,7 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import useOnLoad from "../components/useOnLoad";
 import Content from "./index/Content";
 import Cover from "./index/Cover";
 
@@ -8,16 +9,8 @@ const Home: NextPage = () => {
   const [pageLoaded, setPageLoaded] = useState(false);
   const [coverLoaded, setCoverLoaded] = useState(false);
 
-  useEffect(() => {
-    const onLoad = () => setPageLoaded(true);
-    window.addEventListener("load", onLoad);
-    if (document.readyState === "complete") {
-      setPageLoaded(true);
-    }
-    return () => {
-      window.removeEventListener("load", onLoad);
-    };
-  }, []);
+  const onLoad = useCallback(() => setPageLoaded(true), []);
+  useOnLoad(onLoad);
 
   const loaded = pageLoaded && coverLoaded;
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import useOnLoad from "./useOnLoad";
 
 type Rect = {
   top: number;
@@ -37,6 +38,6 @@ export default function useStaticRect(): [
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, [computeRef]);
-  useEffect(computeRef, [computeRef]);
+  useOnLoad(computeRef);
   return [cb, rect, ref];
 }
