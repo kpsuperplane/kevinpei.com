@@ -68,14 +68,6 @@ const Links = styled(motion.div)`
   opacity: 0;
 `;
 
-function easeOutSin(p: number) {
-  return Math.sin((p * Math.PI) / 2);
-}
-
-function easeInSine(p: number) {
-  return 1 - Math.cos((p * Math.PI) / 2);
-}
-
 export default function Cover({
   loaded,
   setLoaded,
@@ -94,15 +86,16 @@ export default function Cover({
 
   const scrollCallback = useCallback(() => {
     const percent = Math.min(1, window.scrollY / (height * 0.9 || 1));
+    if (percent > 1) return;
     const offsetLeft =
       width / 2 -
-      (firstLineRect?.width ?? 0 + (secondLineRect?.width ?? 0) / 2) / 2 -
+      (firstLineRect?.width ?? 0 / 2) / 2 -
       (firstLineRect?.left ?? 0);
     const offsetTop = 10 + height - (firstLineRect?.top ?? 0);
 
-    const secondOffsetLeft = firstLineRect?.width ?? 0;
-    const secondOffsetTop =
-      (firstLineRect?.top ?? 0) - (secondLineRect?.top ?? 0);
+    const secondOffsetLeft =
+      (firstLineRect?.width ?? 0) / 2 -
+      ((secondLineRect?.width ?? 0) * 1.5) / 2;
 
     if (innerWrapperRef.current != null) {
       innerWrapperRef.current.style.clipPath = `ellipse(100% 200% at ${
@@ -116,13 +109,10 @@ export default function Cover({
     }
     if (secondLineRef != null) {
       secondLineRef.style.transform = `
-        translate(${easeOutSin(percent) * secondOffsetLeft}px, ${
-        easeInSine(percent) * secondOffsetTop
-      }px) scale(${1 - percent * 0.5})
+        translate(${percent * secondOffsetLeft}px, ${
+        percent * (secondLineRect?.height ?? 0) * 2
+      }px) scale(${1 + percent * 0.5})
       `;
-      if (navigator.appVersion.indexOf("Win") != -1) {
-        secondLineRef.style.paddingTop = "0.15em";
-      }
     }
     if (linksRef.current != null) {
       const linksPercent = Math.min(1, percent * 10);
@@ -140,7 +130,6 @@ export default function Cover({
     firstLineRect?.width,
     height,
     secondLineRect?.height,
-    secondLineRect?.top,
     secondLineRect?.width,
     secondLineRef,
     width,
