@@ -50,6 +50,7 @@ const Title = styled(motion.h1)`
 const AnimatedTitle = styled(motion.span)`
   display: inline-block;
   padding-right: 0.5rem;
+  opacity: 0;
 `;
 
 const Name = styled(AnimatedTitle)`
@@ -62,6 +63,7 @@ const Name = styled(AnimatedTitle)`
 
 const Links = styled(motion.div)`
   color: #999;
+  opacity: 0;
 `;
 
 function easeOutSin(p: number) {
@@ -163,10 +165,12 @@ export default function Cover({
                     ? {
                         clipPath: "inset(0% 0% 0% 0%)",
                         y: "0rem",
+                        opacity: 1,
                       }
                     : {
                         clipPath: "inset(0% 0% 100% 0%)",
                         y: "2rem",
+                        opacity: 1,
                       }
                 }
                 initial={false}
@@ -181,12 +185,12 @@ export default function Cover({
                     ? {
                         clipPath: "inset(0% 0% 0% 0%)",
                         y: "0rem",
+                        opacity: 1,
                       }
                     : {
                         clipPath: "inset(0% 0% 100% 0%)",
                         y: "5rem",
-                        // x: "0rem",
-                        // scale: 1,
+                        opacity: 1,
                       }
                 }
                 initial={false}
