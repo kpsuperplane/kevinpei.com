@@ -64,6 +64,11 @@ const Content = styled.div`
   }
 `;
 
+const AnimSpan = styled.span`
+  display: inline-block;
+  transform-origin: top left;
+`;
+
 const Title = styled(motion.h1)`
   color: black;
   font-weight: 400;
@@ -87,7 +92,6 @@ const Name = styled(AnimatedTitle)`
   font-size: 4rem;
   font-weight: 900;
   font-family: Muli, sans-serif;
-  transform-origin: top left;
   padding-right: 0;
 `;
 
@@ -116,16 +120,10 @@ export default function Cover({
   const titleRef = useRef<HTMLDivElement | null>(null);
   const linksRef = useRef<HTMLDivElement | null>(null);
 
-  const [animActive, setAnimActive] = useState(false);
-
   const scrollCallback = useCallback(() => {
     const percent = easeInOutSine(
       Math.min(1, window.scrollY / (height * 0.9 || 1))
     );
-    const active = percent > 0;
-    if (active !== animActive) {
-      setAnimActive(active);
-    }
     if (percent > 1) return;
     const offsetLeft =
       width / 2 -
@@ -138,6 +136,8 @@ export default function Cover({
       (firstLineRect?.width ?? 0) / 2 -
       ((secondLineRect?.width ?? 0) * 1.5) / 2 -
       (secondLineRect?.left ?? 0);
+
+    console.log(firstLineRect, secondLineRect, secondOffsetLeft);
 
     if (innerWrapperRef.current != null) {
       innerWrapperRef.current.style.clipPath = `ellipse(100% 200% at ${
@@ -166,7 +166,6 @@ export default function Cover({
       linksRef.current.style.pointerEvents = linksPercent === 1 ? "none" : "";
     }
   }, [
-    animActive,
     firstLineRect?.height,
     firstLineRect?.left,
     firstLineRect?.top,
@@ -198,72 +197,71 @@ export default function Cover({
         <LeftRail>
           <Content>
             <Title ref={titleRef}>
-              <AnimatedTitle
-                animate={
-                  animActive
-                    ? undefined
-                    : loaded
-                    ? {
-                        clipPath: "inset(0% 0% 0% 0%)",
-                        y: "0rem",
-                        opacity: 1,
-                      }
-                    : {
-                        clipPath: "inset(0% 0% 100% 0%)",
-                        y: "2rem",
-                        opacity: 1,
-                      }
-                }
-                initial={false}
-                ref={firstLineRefCb}
-                transition={{ delay: 0.2, duration: 0.5, ease: "circOut" }}
-              >
-                Hey there, I&rsquo;m
-              </AnimatedTitle>
+              <AnimSpan ref={firstLineRefCb}>
+                <AnimatedTitle
+                  animate={
+                    loaded
+                      ? {
+                          clipPath: "inset(0% 0% 0% 0%)",
+                          y: "0rem",
+                          opacity: 1,
+                        }
+                      : {
+                          clipPath: "inset(0% 0% 100% 0%)",
+                          y: "2rem",
+                          opacity: 1,
+                        }
+                  }
+                  initial={false}
+                  transition={{ delay: 0.2, duration: 0.5, ease: "circOut" }}
+                >
+                  Hey there, I&rsquo;m
+                </AnimatedTitle>
+              </AnimSpan>
               <br />
-              <Name
+              <AnimSpan ref={secondLineRefCb}>
+                <Name
+                  animate={
+                    loaded
+                      ? {
+                          clipPath: "inset(0% 0% 0% 0%)",
+                          y: "0rem",
+                          opacity: 1,
+                        }
+                      : {
+                          clipPath: "inset(0% 0% 100% 0%)",
+                          y: "5rem",
+                          opacity: 1,
+                        }
+                  }
+                  initial={false}
+                  transition={{ delay: 0.4, duration: 0.5, ease: "circOut" }}
+                >
+                  Kevin
+                </Name>
+              </AnimSpan>
+            </Title>
+            <div ref={linksRef}>
+              <Links
                 animate={
-                  animActive
-                    ? undefined
-                    : loaded
+                  loaded
                     ? {
-                        clipPath: "inset(0% 0% 0% 0%)",
-                        y: "0rem",
                         opacity: 1,
                       }
-                    : {
-                        clipPath: "inset(0% 0% 100% 0%)",
-                        y: "5rem",
-                        opacity: 1,
-                      }
+                    : { opacity: 0 }
                 }
                 initial={false}
-                ref={secondLineRefCb}
-                transition={{ delay: 0.4, duration: 0.5, ease: "circOut" }}
+                transition={{ delay: 0.7, duration: 0.5 }}
               >
-                Kevin
-              </Name>
-            </Title>
-            <Links
-              animate={
-                animActive
-                  ? undefined
-                  : loaded
-                  ? {
-                      opacity: 1,
-                    }
-                  : { opacity: 0 }
-              }
-              initial={false}
-              ref={linksRef}
-              transition={{ delay: 0.7, duration: 0.5 }}
-            >
-              <Link href="https://github.com/kpsuperplane">Github</Link>
-              <Middot />
-              <Link href="https://linkedin.com/in/kpsuperplane">LinkedIn</Link>
-              <Middot />
-              <Link href="https://kevinpei.com/resume.pdf">Resume</Link>
-            </Links>
+                <Link href="https://github.com/kpsuperplane">Github</Link>
+                <Middot />
+                <Link href="https://linkedin.com/in/kpsuperplane">
+                  LinkedIn
+                </Link>
+                <Middot />
+                <Link href="https://kevinpei.com/resume.pdf">Resume</Link>
+              </Links>
+            </div>
           </Content>
         </LeftRail>
       </WrapperInner>
