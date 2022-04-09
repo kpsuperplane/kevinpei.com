@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import Image from "next/image";
 import styled from "styled-components";
-import coverImage from "../../assets/cover.jpg";
+import { useWindowSize } from "@react-hook/window-size";
 import { motion } from "framer-motion";
+
+import coverImage from "../../assets/cover.jpg";
 import Link from "../../components/Link";
 import Middot from "../../components/Middot";
 
-import { useWindowSize } from "@react-hook/window-size";
 import useStaticRect from "../../components/useStaticRect";
 import useOnScroll from "../../components/useOnScroll";
 import useOnResize from "../../components/useOnResize";
@@ -21,6 +22,11 @@ const WrapperInner = styled.div`
   flex: 1;
   display: flex;
   background: white;
+  @media (max-width: 560px) {
+    flex-direction: column-reverse;
+    background: transparent;
+    clip-path: none !important;
+  }
 `;
 
 const LeftRail = styled.div`
@@ -31,6 +37,10 @@ const LeftRail = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: flex-end;
+  @media (max-width: 560px) {
+    background: white;
+    flex: 0;
+  }
 `;
 
 const Content = styled.div`
@@ -39,12 +49,23 @@ const Content = styled.div`
   width: 100%;
   max-width: calc(400px + 1rem);
   box-sizing: border-box;
+  @media (max-width: 560px) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: none;
+    padding: 4rem 2rem;
+  }
 `;
 
 const Title = styled(motion.h1)`
   color: black;
   font-weight: 400;
-  font-size: 2rem;
+  font-size: 2.5rem;
+  margin-top: 0;
+  @media (max-width: 560px) {
+    text-align: center;
+  }
 `;
 
 const AnimatedTitle = styled(motion.span)`
@@ -53,6 +74,7 @@ const AnimatedTitle = styled(motion.span)`
   line-height: 1.2em;
   vertical-align: text-bottom;
   opacity: 0;
+  flex: 0;
 `;
 
 const Name = styled(AnimatedTitle)`
@@ -67,6 +89,10 @@ const Links = styled(motion.div)`
   color: #999;
   opacity: 0;
 `;
+
+function easeInOutSine(x: number) {
+  return -(Math.cos(Math.PI * x) - 1) / 2;
+}
 
 export default function Cover({
   loaded,
@@ -85,7 +111,9 @@ export default function Cover({
   const linksRef = useRef<HTMLDivElement | null>(null);
 
   const scrollCallback = useCallback(() => {
-    const percent = Math.min(1, window.scrollY / (height * 0.9 || 1));
+    const percent = easeInOutSine(
+      Math.min(1, window.scrollY / (height * 0.9 || 1))
+    );
     if (percent > 1) return;
     const offsetLeft =
       width / 2 -
@@ -94,8 +122,10 @@ export default function Cover({
     const offsetTop = 10 + height - (firstLineRect?.top ?? 0);
 
     const secondOffsetLeft =
+      (firstLineRect?.left ?? 0) +
       (firstLineRect?.width ?? 0) / 2 -
-      ((secondLineRect?.width ?? 0) * 1.5) / 2;
+      ((secondLineRect?.width ?? 0) * 1.5) / 2 -
+      (secondLineRect?.left ?? 0);
 
     if (innerWrapperRef.current != null) {
       innerWrapperRef.current.style.clipPath = `ellipse(100% 200% at ${
@@ -109,9 +139,9 @@ export default function Cover({
     }
     if (secondLineRef != null) {
       secondLineRef.style.transform = `
-        translate(${percent * secondOffsetLeft}px, ${
-        percent * (secondLineRect?.height ?? 0) * 2
-      }px) scale(${1 + percent * 0.5})
+        translate(${percent * secondOffsetLeft}px, ${percent * 170}px) scale(${
+        1 + percent * 0.5
+      })
       `;
     }
     if (linksRef.current != null) {
@@ -173,6 +203,7 @@ export default function Cover({
               >
                 Hey there, I&rsquo;m
               </AnimatedTitle>
+              <br />
               <Name
                 animate={
                   loaded
