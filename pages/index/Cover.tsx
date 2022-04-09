@@ -122,7 +122,7 @@ export default function Cover({
     const percent = easeInOutSine(
       Math.min(1, window.scrollY / (height * 0.9 || 1))
     );
-    const active = percent === 0;
+    const active = percent > 0;
     if (active !== animActive) {
       setAnimActive(active);
     }
