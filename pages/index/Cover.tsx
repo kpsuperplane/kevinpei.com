@@ -14,15 +14,21 @@ import useOnResize from "../../components/useOnResize";
 
 const Wrapper = styled.div`
   height: 100vh;
+  height: -webkit-fill-available;
   position: relative;
   display: flex;
+  .image {
+    @media (max-width: 600px) {
+      object-position: 70% 50% !important;
+    }
+  }
 `;
 
 const WrapperInner = styled.div`
   flex: 1;
   display: flex;
   background: white;
-  @media (max-width: 560px) {
+  @media (max-width: 600px) {
     flex-direction: column-reverse;
     background: transparent;
     clip-path: none !important;
@@ -37,7 +43,7 @@ const LeftRail = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: flex-end;
-  @media (max-width: 560px) {
+  @media (max-width: 600px) {
     background: white;
     flex: 0;
   }
@@ -49,7 +55,7 @@ const Content = styled.div`
   width: 100%;
   max-width: calc(400px + 1rem);
   box-sizing: border-box;
-  @media (max-width: 560px) {
+  @media (max-width: 600px) {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -63,7 +69,7 @@ const Title = styled(motion.h1)`
   font-weight: 400;
   font-size: 2.5rem;
   margin-top: 0;
-  @media (max-width: 560px) {
+  @media (max-width: 600px) {
     text-align: center;
   }
 `;
@@ -160,6 +166,7 @@ export default function Cover({
     firstLineRect?.width,
     height,
     secondLineRect?.height,
+    secondLineRect?.left,
     secondLineRect?.width,
     secondLineRef,
     width,
@@ -172,6 +179,7 @@ export default function Cover({
   return (
     <Wrapper>
       <Image
+        className="image"
         src={coverImage}
         layout="fill"
         alt=""
