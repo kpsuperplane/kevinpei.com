@@ -16,6 +16,9 @@ const Wrapper = styled.div`
   height: 100vh;
   position: relative;
   display: flex;
+  box-sizing: border-box;
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
   .image {
     @media (max-width: 600px) {
       object-position: 70% 50% !important;
@@ -59,7 +62,7 @@ const Content = styled.div`
     flex-direction: column;
     align-items: center;
     max-width: none;
-    padding: 4rem 2rem calc(4rem + env(safe-area-inset-bottom)) 2rem;
+    padding: 4rem 2rem 4rem 2rem;
   }
 `;
 
