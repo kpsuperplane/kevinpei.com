@@ -14,7 +14,6 @@ import useOnResize from "../../components/useOnResize";
 
 const Wrapper = styled.div`
   height: 100vh;
-  height: -webkit-fill-available;
   position: relative;
   display: flex;
   .image {
@@ -60,7 +59,7 @@ const Content = styled.div`
     flex-direction: column;
     align-items: center;
     max-width: none;
-    padding: 4rem 2rem;
+    padding: 4rem 2rem calc(4rem + env(safe-area-inset-bottom)) 2rem;
   }
 `;
 
