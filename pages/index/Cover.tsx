@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import styled from "styled-components";
 import { useWindowSize } from "@react-hook/window-size";
@@ -116,10 +116,16 @@ export default function Cover({
   const titleRef = useRef<HTMLDivElement | null>(null);
   const linksRef = useRef<HTMLDivElement | null>(null);
 
+  const [animActive, setAnimActive] = useState(false);
+
   const scrollCallback = useCallback(() => {
     const percent = easeInOutSine(
       Math.min(1, window.scrollY / (height * 0.9 || 1))
     );
+    const active = percent === 0;
+    if (active !== animActive) {
+      setAnimActive(active);
+    }
     if (percent > 1) return;
     const offsetLeft =
       width / 2 -
@@ -160,6 +166,7 @@ export default function Cover({
       linksRef.current.style.pointerEvents = linksPercent === 1 ? "none" : "";
     }
   }, [
+    animActive,
     firstLineRect?.height,
     firstLineRect?.left,
     firstLineRect?.top,
@@ -193,7 +200,9 @@ export default function Cover({
             <Title ref={titleRef}>
               <AnimatedTitle
                 animate={
-                  loaded
+                  animActive
+                    ? undefined
+                    : loaded
                     ? {
                         clipPath: "inset(0% 0% 0% 0%)",
                         y: "0rem",
@@ -214,7 +223,9 @@ export default function Cover({
               <br />
               <Name
                 animate={
-                  loaded
+                  animActive
+                    ? undefined
+                    : loaded
                     ? {
                         clipPath: "inset(0% 0% 0% 0%)",
                         y: "0rem",
@@ -235,7 +246,9 @@ export default function Cover({
             </Title>
             <Links
               animate={
-                loaded
+                animActive
+                  ? undefined
+                  : loaded
                   ? {
                       opacity: 1,
                     }
