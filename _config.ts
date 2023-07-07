@@ -6,5 +6,6 @@ const site = lume();
 
 site.use(jsx());
 site.use(mdx());
+site.copy("img");
 
 export default site;
