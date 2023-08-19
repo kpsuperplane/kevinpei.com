@@ -1,4 +1,4 @@
-import { Shantell_Sans } from "next/font/google";
+import { Shantell_Sans, REM } from "next/font/google";
 
 const FUN = Shantell_Sans({
   subsets: ["latin"],
@@ -6,6 +6,13 @@ const FUN = Shantell_Sans({
   display: "swap",
 });
 
+const SANS = REM({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
 export default {
   FUN,
+  SANS,
 };

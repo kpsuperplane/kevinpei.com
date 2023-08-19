@@ -1,0 +1,61 @@
+:root {
+  --page-width: 800px;
+
+  /* Sizes */
+  --gap: 16px;
+  --gap-small: 8px;
+  --hairline: 1px;
+}
+@mixin theme-light {
+  /* Colors */
+  --background: #fff;
+  --button-background: #f0f0f0;
+  --divider: #eee;
+  --primary: #21ad73;
+  --primary-deemphasized: rgba(33, 173, 115, 0.2);
+  --text: #1a1a1a;
+  --text-deemphasized: #717171;
+}
+@mixin theme-dark {
+  $primary: #21ad73;
+  --background: #000;
+  --button-background: #202020;
+  --divider: #222;
+  --primary: #21ad73;
+  --primary-deemphasized: rgba(33, 173, 115, 0.2);
+  --text: #f0f0f0;
+  ---text-deemphasized: #d1d1d1;
+}
+html {
+  @include theme-light;
+  @media (prefers-color-scheme: dark) {
+    @include theme-dark;
+  }
+  &.light {
+    @include theme-light;
+  }
+  &.dark {
+    @include theme-dark;
+  }
+  margin: 0;
+  padding: 0;
+}
+body {
+  margin: 0;
+  padding: 0 var(--gap);
+  background-color: var(--background);
+}
+
+button {
+  background-color: var(--button-background);
+  border-style: none;
+  padding: var(--gap-small);
+  line-height: 1em;
+  transition: all 200ms;
+  color: var(--text);
+  border-radius: var(--gap-small);
+  &:hover {
+    background-color: var(--primary-deemphasized);
+    color: var(--primary);
+  }
+}
