@@ -1,4 +1,4 @@
-import { getRootPage } from "#/lib/mdx/data";
+import { getRootPage, getRootPages } from "#/lib/mdx/data";
 import MDXPage from "#/lib/mdx/Page";
 
 type Props = {
@@ -12,4 +12,9 @@ export default async function Page({ params: { slug } }: Props) {
     throw new Error(`Can't fetch page for slug ${slug}`);
   }
   return <MDXPage page={page} />;
+}
+
+export async function generateStaticParams() {
+  const posts = await getRootPages();
+  return posts.map((post) => ({ params: { slug: post.slug } }));
 }
