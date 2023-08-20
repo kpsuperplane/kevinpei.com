@@ -6,9 +6,6 @@
     "start": "next start"
   },
   "dependencies": {
-    "@mdx-js/loader": "latest",
-    "@mdx-js/react": "latest",
-    "@next/mdx": "latest",
     "gray-matter": "latest",
     "lucide-react": "latest",
     "next": "latest",
