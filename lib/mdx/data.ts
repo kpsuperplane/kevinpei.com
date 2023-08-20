@@ -33,3 +33,9 @@ export async function getRootPage(slug: string) {
   const pages = await getRootPages();
   return pages.find((page) => page.slug === slug);
 }
+
+export const getPosts = cache(async () => await getPages("./app/blog/[slug]"));
+export async function getPost(slug: string) {
+  const posts = await getPosts();
+  return posts.find((post) => post.slug === slug);
+}

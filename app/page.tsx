@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 import styles from "./app.module.scss";
-import { getRootPages } from "#/lib/mdx/data";
+import { getPosts, getRootPages } from "#/lib/mdx/data";
  
 export const metadata: Metadata = {
   title: 'Kevin Pei',
@@ -25,6 +25,7 @@ function Section({headline, children}: SectionProps) {
   
 export default async function () {
   const rootPages = await getRootPages();
+  const posts = await getPosts();
   return (
     <div className={styles.root}>
       <Section headline="📌 Pins">
@@ -37,7 +38,13 @@ export default async function () {
         ))}
       </Section>
       <Section headline="🖋️ Posts">
-        Hello
+        {posts.map(({title, slug}) => (
+          <Link href={`/blog/${slug}`}>
+            <article>
+              <h2>{title}</h2>
+            </article>
+          </Link>
+        ))}
       </Section>
     </div>
   );
