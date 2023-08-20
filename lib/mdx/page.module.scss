@@ -1,0 +1,21 @@
+.root {
+  display: grid;
+  grid-template-columns: 1fr minmax(auto, var(--page-width)) 1fr;
+  margin-block-end: var(--gap);
+  & > * {
+    grid-column-start: 2;
+    grid-column-end: 2;
+  }
+  & > header > h1 {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 2.5em;
+    font-weight: 400;
+  }
+  header,
+  h1,
+  p {
+    margin-block-start: var(--gap);
+    margin-block-end: 0;
+  }
+}

@@ -1,4 +1,28 @@
-.header {
+.root {
   max-width: var(--page-width);
   margin: 0 auto;
+}
+.section {
+  margin-block-start: var(--gap);
+  & > header {
+    & > h1 {
+      font-family: var(--font-sans);
+      font-weight: 300;
+      font-size: 1em;
+      margin: 0;
+    }
+  }
+  a {
+    margin-block-start: var(--gap-small);
+    &:active {
+      transform: scale(0.98);
+    }
+    & > article {
+      & > h2 {
+        font-family: var(--font-serif);
+        font-weight: 600;
+        margin: 0;
+      }
+    }
+  }
 }

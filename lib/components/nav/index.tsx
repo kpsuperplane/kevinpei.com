@@ -12,16 +12,18 @@ export default function () {
   return (
     <header>
       <nav className={styles.root}>
-        <Link href="/" className={styles.start}>
-          <Image
-            width={IMAGE_SIZE}
-            height={IMAGE_SIZE}
-            className={styles.image}
-            alt="Photo of Kevin Pei"
-            src={me}
-          />
-          <h1 className={styles.name}>Hi, I&rsquo;m Kevin 👋</h1>
-        </Link>
+        <div className={styles.start}>
+          <Link href="/" className={styles.home}>
+            <Image
+              width={IMAGE_SIZE}
+              height={IMAGE_SIZE}
+              className={styles.image}
+              alt="Photo of Kevin Pei"
+              src={me}
+            />
+            <h1 className={styles.name}>Hi, I&rsquo;m Kevin 👋</h1>
+          </Link>
+        </div>
         <ThemeSelector />
         <div className={styles.end}>
           <div className={styles.links}>

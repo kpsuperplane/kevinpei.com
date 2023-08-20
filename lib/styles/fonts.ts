@@ -1,4 +1,4 @@
-import { Shantell_Sans, REM } from "next/font/google";
+import { Shantell_Sans, REM, Source_Serif_4 } from "next/font/google";
 
 const FUN = Shantell_Sans({
   subsets: ["latin"],
@@ -12,7 +12,14 @@ const SANS = REM({
   display: "swap",
 });
 
+const SERIF = Source_Serif_4({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  display: "swap",
+});
+
 export default {
   FUN,
   SANS,
+  SERIF,
 };

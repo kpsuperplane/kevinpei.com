@@ -10,7 +10,6 @@ $max-width: 475px;
   border-block-end: var(--hairline) solid var(--divider);
   flex-wrap: wrap;
 }
-.start,
 .end {
   display: flex;
   flex-direction: row;
@@ -19,9 +18,21 @@ $max-width: 475px;
 }
 .start {
   flex-grow: 1;
+  display: flex;
+}
+.home {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--gap);
   text-decoration: none;
-  &:hover .name {
-    color: var(--primary);
+  @media (hover: hover) {
+    &:hover .name {
+      color: var(--primary);
+    }
+  }
+  &:active {
+    transform: scale(0.98);
   }
 }
 .name {
@@ -40,17 +51,9 @@ $max-width: 475px;
 .links {
   display: flex;
   flex-direction: row;
-  gap: var(--gap-small);
+  gap: var(--gap);
   a {
-    font-family: var(--font-sans);
-    color: var(--text);
-    font-weight: 300;
-    text-decoration: none;
-    transition: all 200ms;
     line-height: 1em;
-    &:hover {
-      color: var(--primary);
-    }
   }
 }
 .divider {

@@ -54,8 +54,34 @@ button {
   transition: all 200ms;
   color: var(--text);
   border-radius: var(--gap-small);
-  &:hover {
+  transform: scale(1);
+  @media (hover: hover) {
+    &:hover {
+      background-color: var(--primary-deemphasized);
+      color: var(--primary);
+    }
+  }
+  &:active {
     background-color: var(--primary-deemphasized);
+    color: var(--primary);
+    transform: scale(0.9);
+  }
+}
+a {
+  font-family: var(--font-sans);
+  color: var(--text);
+  font-weight: 300;
+  text-decoration: none;
+  transition: all 200ms;
+  transform: scale(1);
+  display: inline-block;
+  @media (hover: hover) {
+    &:hover {
+      color: var(--primary);
+    }
+  }
+  &:active {
+    transform: scale(0.9);
     color: var(--primary);
   }
 }
