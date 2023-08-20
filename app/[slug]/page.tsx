@@ -15,6 +15,6 @@ export default async function Page({ params: { slug } }: Props) {
 }
 
 export async function generateStaticParams() {
-  const posts = await getRootPages();
-  return posts.map((post) => ({ params: { slug: post.slug } }));
+  const pages = await getRootPages();
+  return pages.map((page) => ({ slug: page.slug }));
 }
