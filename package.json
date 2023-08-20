@@ -6,8 +6,13 @@
     "start": "next start"
   },
   "dependencies": {
+    "@mdx-js/loader": "latest",
+    "@mdx-js/react": "latest",
+    "@next/mdx": "latest",
+    "gray-matter": "latest",
     "lucide-react": "latest",
     "next": "latest",
+    "next-mdx-remote": "4.4.1",
     "react": "latest",
     "react-dom": "latest"
   },
@@ -15,7 +20,7 @@
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "sass": "1.66.1",
+    "sass": "latest",
     "typescript": "latest"
   }
 }
