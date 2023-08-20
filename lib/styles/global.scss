@@ -1,8 +1,9 @@
 @import "./variables.scss";
+@import "./code.scss";
 
 :root {
   /* Sizes */
-  --gap: $gap;
+  --gap: #{$gap};
   --gap-small: 8px;
   --hairline: 1px;
 }
@@ -12,10 +13,12 @@
   --wash: #fafafa;
   --button-background: #f0f0f0;
   --divider: #eee;
+  --table-border: #ddd;
   --primary: #21ad73;
   --primary-deemphasized: rgba(33, 173, 115, 0.2);
   --text: #1a1a1a;
-  --text-deemphasized: #717171;
+  --text-deemphasized: #515151;
+  @include code-light;
 }
 @mixin theme-dark {
   $primary: #21ad73;
@@ -23,10 +26,12 @@
   --wash: #202020;
   --button-background: #202020;
   --divider: #222;
+  --table-border: #444;
   --primary: #21ad73;
   --primary-deemphasized: rgba(33, 173, 115, 0.2);
   --text: #f0f0f0;
-  ---text-deemphasized: #d1d1d1;
+  --text-deemphasized: #818181;
+  @include code-dark;
 }
 html {
   @include theme-light;

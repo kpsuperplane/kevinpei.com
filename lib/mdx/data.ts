@@ -16,7 +16,9 @@ const getPage = async (folder: string, slug: string) => {
   const fileName = join("./app", folder, slug, "page.mdx");
   const fileContent = await fs.readFile(fileName);
   const { data, content } = matter(fileContent);
+  const dateStr = slug.match(/(\d\d\d\d-\d\d-\d\d)-.+/);
   return {
+    date: dateStr != null ? new Date(dateStr[1]) : undefined,
     title: nullthrows(data.title, "title"),
     subtitle: data.subtitle as string | undefined,
     uri: folder.replace("[slug]", slug),

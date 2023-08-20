@@ -2,7 +2,7 @@
 
 $max-width: 475px;
 .root {
-  max-width: var($page-width);
+  max-width: $page-width;
   display: flex;
   flex-direction: row;
   align-items: center;
