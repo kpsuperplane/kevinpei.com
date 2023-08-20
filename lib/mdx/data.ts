@@ -13,14 +13,20 @@ function nullthrows(value: string | null | undefined, name: string): string {
 }
 
 const getPage = async (folder: string, slug: string) => {
-  const fileName = join(folder, slug, "page.mdx");
+  const fileName = join("./app", folder, slug, "page.mdx");
   const fileContent = await fs.readFile(fileName);
   const { data, content } = matter(fileContent);
-  return { title: nullthrows(data.title, "title"), slug, body: content };
+  return {
+    title: nullthrows(data.title, "title"),
+    subtitle: data.subtitle as string | undefined,
+    uri: folder.replace("[slug]", slug),
+    slug,
+    body: content,
+  };
 };
 
 const getPages = async (path: string) => {
-  const rootPages = await fs.readdir(path);
+  const rootPages = await fs.readdir(join("./app", path));
   return await Promise.all(
     rootPages
       .filter((name) => !name.includes("."))
@@ -28,13 +34,13 @@ const getPages = async (path: string) => {
   );
 };
 
-export const getRootPages = cache(async () => await getPages("./app/[slug]"));
+export const getRootPages = cache(async () => await getPages("[slug]"));
 export async function getRootPage(slug: string) {
   const pages = await getRootPages();
   return pages.find((page) => page.slug === slug);
 }
 
-export const getPosts = cache(async () => await getPages("./app/blog/[slug]"));
+export const getPosts = cache(async () => await getPages("blog/[slug]"));
 export async function getPost(slug: string) {
   const posts = await getPosts();
   return posts.find((post) => post.slug === slug);

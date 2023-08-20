@@ -11,7 +11,8 @@
     "next": "latest",
     "next-mdx-remote": "4.4.1",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "rehype-highlight": "6.0.0"
   },
   "devDependencies": {
     "@types/node": "latest",

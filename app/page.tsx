@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 import styles from "./app.module.scss";
-import { getPosts, getRootPages } from "#/lib/mdx/data";
+import { Page, getPosts, getRootPages } from "#/lib/mdx/data";
  
 export const metadata: Metadata = {
   title: 'Kevin Pei',
@@ -22,6 +22,16 @@ function Section({headline, children}: SectionProps) {
     </section>
   );
 }
+
+function Article({page}: {page: Page}) {
+  return (
+    <Link href={`/${page.uri}`}>
+      <article>
+        <h2>{page.title}</h2>
+        {page.subtitle != null && <h3>{page.subtitle}</h3>}
+      </article>
+    </Link>);
+}
   
 export default async function () {
   const rootPages = await getRootPages();
@@ -29,21 +39,13 @@ export default async function () {
   return (
     <div className={styles.root}>
       <Section headline="📌 Pins">
-        {rootPages.map(({title, slug}) => (
-          <Link href={`/${slug}`}>
-            <article>
-              <h2>{title}</h2>
-            </article>
-          </Link>
+        {rootPages.map((page) => (
+          <Article page={page} key={page.slug} />
         ))}
       </Section>
       <Section headline="🖋️ Posts">
-        {posts.map(({title, slug}) => (
-          <Link href={`/blog/${slug}`}>
-            <article>
-              <h2>{title}</h2>
-            </article>
-          </Link>
+        {posts.map((post) => (
+          <Article page={post} key={post.slug} />
         ))}
       </Section>
     </div>

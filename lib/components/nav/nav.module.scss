@@ -39,11 +39,16 @@ $max-width: 475px;
   font-family: var(--font-sans);
   font-weight: 400;
   color: var(--text);
+  font-size: 1.3em;
   flex: 1;
   margin: 0;
   padding: 0;
   white-space: nowrap;
   transition: all 200ms;
+  .fancy {
+    font-family: var(--font-fun);
+    font-weight: 500;
+  }
 }
 .image {
   border-radius: 100%;

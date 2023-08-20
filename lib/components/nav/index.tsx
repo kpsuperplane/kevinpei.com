@@ -6,7 +6,7 @@ import styles from "./nav.module.scss";
 import me from "./me.jpg";
 import ThemeSelector from "./ThemeSelector";
 
-const IMAGE_SIZE = 48;
+const IMAGE_SIZE = 36;
 
 export default function () {
   return (
@@ -21,7 +21,9 @@ export default function () {
               alt="Photo of Kevin Pei"
               src={me}
             />
-            <h1 className={styles.name}>Hi, I&rsquo;m Kevin 👋</h1>
+            <h1 className={styles.name}>
+              Hi, I&rsquo;m <span className={styles.fancy}>Kevin</span> 👋
+            </h1>
           </Link>
         </div>
         <ThemeSelector />

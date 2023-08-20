@@ -9,6 +9,7 @@
 @mixin theme-light {
   /* Colors */
   --background: #fff;
+  --wash: #fafafa;
   --button-background: #f0f0f0;
   --divider: #eee;
   --primary: #21ad73;
@@ -19,6 +20,7 @@
 @mixin theme-dark {
   $primary: #21ad73;
   --background: #000;
+  --wash: #202020;
   --button-background: #202020;
   --divider: #222;
   --primary: #21ad73;
@@ -42,8 +44,9 @@ html {
 }
 body {
   margin: 0;
-  padding: 0 var(--gap);
+  padding: 0 var(--gap) calc(var(--gap) * 2) var(--gap);
   background-color: var(--background);
+  font-size: 16px;
 }
 
 button {
