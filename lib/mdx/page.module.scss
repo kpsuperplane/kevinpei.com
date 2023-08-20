@@ -105,9 +105,7 @@
       background-color: var(--wash);
       border: var(--hairline) solid var(--table-border);
       border-radius: var(--gap-small);
-      overflow-x: auto;
-      white-space: nowrap;
-      max-width: calc(100vw - 2 * var(--gap));
+      white-space: pre-wrap;
       box-sizing: border-box;
     }
   }
