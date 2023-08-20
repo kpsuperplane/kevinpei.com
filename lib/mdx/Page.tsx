@@ -7,6 +7,7 @@ export default function ({ page }: { page: Page }) {
   return (
     <article>
       <h1>{page.title}</h1>
+      {/* @ts-expect-error Server Component */}
       <MDXRemote source={page.body} />
     </article>
   );
