@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import { Instagram, Github, Linkedin } from "lucide-react";
 
 import styles from "./nav.module.scss";
@@ -13,7 +12,7 @@ export default function () {
     <header>
       <nav className={styles.root}>
         <div className={styles.start}>
-          <Link href="/" className={styles.home}>
+          <a href="/" className={styles.home}>
             <Image
               width={IMAGE_SIZE}
               height={IMAGE_SIZE}
@@ -24,27 +23,24 @@ export default function () {
             <h1 className={styles.name}>
               Hi, I&rsquo;m <span className={styles.fancy}>Kevin</span> 👋
             </h1>
-          </Link>
+          </a>
         </div>
         <ThemeSelector />
         <div className={styles.end}>
           <div className={styles.links}>
-            <Link target="_blank" href="/assets/kevin-pei-resume-20201024.pdf">
+            <a target="_blank" href="/assets/kevin-pei-resume-20201024.pdf">
               Resume
-            </Link>
+            </a>
             <span className={styles.divider} />
-            <Link target="_blank" href="https://instagram.com/kpsuperplane">
+            <a target="_blank" href="https://instagram.com/kpsuperplane">
               <Instagram size="1em" />
-            </Link>
-            <Link target="_blank" href="https://github.com/kpsuperplane">
+            </a>
+            <a target="_blank" href="https://github.com/kpsuperplane">
               <Github size="1em" />
-            </Link>
-            <Link
-              target="_blank"
-              href="https://www.linkedin.com/in/kpsuperplane/"
-            >
+            </a>
+            <a target="_blank" href="https://www.linkedin.com/in/kpsuperplane/">
               <Linkedin size="1em" />
-            </Link>
+            </a>
           </div>
         </div>
       </nav>

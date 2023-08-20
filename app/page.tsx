@@ -1,18 +1,17 @@
 import { Metadata } from "next";
-import Link from "next/link";
 
 import styles from "./app.module.scss";
 import { Page, getPosts, getRootPages } from "#/lib/mdx/data";
- 
+
 export const metadata: Metadata = {
-  title: 'Kevin Pei',
+  title: "Kevin Pei",
 };
 
 type SectionProps = {
-  headline: string,
-  children: React.ReactNode,
+  headline: string;
+  children: React.ReactNode;
 };
-function Section({headline, children}: SectionProps) {
+function Section({ headline, children }: SectionProps) {
   return (
     <section className={styles.section}>
       <header>
@@ -23,16 +22,17 @@ function Section({headline, children}: SectionProps) {
   );
 }
 
-function Article({page}: {page: Page}) {
+function Article({ page }: { page: Page }) {
   return (
-    <Link href={`/${page.uri}`}>
+    <a href={`/${page.uri}`}>
       <article>
         <h2>{page.title}</h2>
         {page.subtitle != null && <h3>{page.subtitle}</h3>}
       </article>
-    </Link>);
+    </a>
+  );
 }
-  
+
 export default async function () {
   const rootPages = await getRootPages();
   const posts = await getPosts();
