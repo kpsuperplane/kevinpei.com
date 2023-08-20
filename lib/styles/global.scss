@@ -1,8 +1,8 @@
-:root {
-  --page-width: 800px;
+@import "./variables.scss";
 
+:root {
   /* Sizes */
-  --gap: 16px;
+  --gap: $gap;
   --gap-small: 8px;
   --hairline: 1px;
 }

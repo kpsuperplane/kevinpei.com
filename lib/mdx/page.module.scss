@@ -1,6 +1,8 @@
+@import "../styles/variables.scss";
+
 .root {
   display: grid;
-  grid-template-columns: 1fr minmax(auto, var(--page-width)) 1fr;
+  grid-template-columns: 1fr minmax(auto, $page-width) 1fr;
   margin-block-end: var(--gap);
   color: var(--text);
   & > * {
@@ -54,6 +56,9 @@
   ul {
     margin: 0;
     padding-inline-start: 0;
+    @media (max-width: $page-width + $gap * 2) {
+      padding-inline-start: var(--gap);
+    }
   }
   code {
     display: block;
@@ -62,6 +67,9 @@
     background-color: var(--wash);
     border: var(--hairline) solid var(--divider);
     border-radius: var(--gap-small);
+    overflow-x: auto;
+    max-width: calc(100vw - 2 * var(--gap));
+    box-sizing: border-box;
   }
   strong {
     font-weight: 500;

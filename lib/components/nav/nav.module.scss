@@ -1,6 +1,8 @@
+@import "../../styles/variables.scss";
+
 $max-width: 475px;
 .root {
-  max-width: var(--page-width);
+  max-width: var($page-width);
   display: flex;
   flex-direction: row;
   align-items: center;

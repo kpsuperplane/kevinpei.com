@@ -1,5 +1,6 @@
+@import "../lib/styles/variables.scss";
 .root {
-  max-width: var(--page-width);
+  max-width: $page-width;
   margin: 0 auto;
 }
 .section {
