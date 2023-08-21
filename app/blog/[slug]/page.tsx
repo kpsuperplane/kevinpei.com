@@ -1,3 +1,4 @@
+import Root from "#/lib/components/transitions/Root";
 import { getPost, getPosts } from "#/lib/mdx/data";
 import MDXPage from "#/lib/mdx/Page";
 
@@ -11,7 +12,11 @@ export default async function Post({ params: { slug } }: Props) {
   if (post == null) {
     throw new Error(`Can't fetch post for slug ${slug}`);
   }
-  return <MDXPage page={post} />;
+  return (
+    <Root key={`post-${slug}`}>
+      <MDXPage page={post} />
+    </Root>
+  );
 }
 
 export async function generateStaticParams() {

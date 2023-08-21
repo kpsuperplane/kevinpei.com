@@ -2,6 +2,8 @@ import { Metadata } from "next";
 
 import styles from "./app.module.scss";
 import { Page, getPosts, getRootPages } from "#/lib/mdx/data";
+import Root from "#/lib/components/transitions/Root";
+import Link from "#/lib/components/transitions/Link";
 
 export const metadata: Metadata = {
   title: "Kevin Pei",
@@ -24,12 +26,12 @@ function Section({ headline, children }: SectionProps) {
 
 function Article({ page }: { page: Page }) {
   return (
-    <a href={`/${page.uri}`}>
+    <Link href={`/${page.uri}`}>
       <article>
         <h2>{page.title}</h2>
         {page.subtitle != null && <h3>{page.subtitle}</h3>}
       </article>
-    </a>
+    </Link>
   );
 }
 
@@ -37,7 +39,7 @@ export default async function () {
   const rootPages = await getRootPages();
   const posts = await getPosts();
   return (
-    <div className={styles.root}>
+    <Root className={styles.root} key="home">
       <Section headline="📌 Pins">
         {rootPages.map((page) => (
           <Article page={page} key={page.slug} />
@@ -48,6 +50,6 @@ export default async function () {
           <Article page={post} key={post.slug} />
         ))}
       </Section>
-    </div>
+    </Root>
   );
 }

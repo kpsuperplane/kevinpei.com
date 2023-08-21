@@ -4,19 +4,17 @@ import fonts from "#/lib/styles/fonts";
 
 export default function ({ children }: { children: React.ReactNode }) {
   return (
-    <html 
+    <html
       lang="en"
       className={[
         fonts.FUN.variable,
         fonts.SANS.variable,
-        fonts.SERIF.variable
-      ].join(' ')}
+        fonts.SERIF.variable,
+      ].join(" ")}
     >
       <body>
         <Nav />
-        <div id="page-root">
-          {children}
-        </div>
+        {children}
       </body>
     </html>
   );
