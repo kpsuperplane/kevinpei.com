@@ -12,6 +12,14 @@ export default function ({ children }: { children: React.ReactNode }) {
         fonts.SERIF.variable,
       ].join(" ")}
     >
+      <head>
+        <script type="text/javascript">
+          {`const theme = localStorage.getItem('theme');
+          if (theme === 'dark' || theme === 'light') {
+            document.documentElement.classList.add(theme);
+          }`}
+        </script>
+      </head>
       <body>
         <Nav />
         <div id="page-root">{children}</div>
