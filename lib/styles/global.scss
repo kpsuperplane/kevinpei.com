@@ -54,6 +54,32 @@ body {
   font-size: 16px;
 }
 
+@keyframes loading {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+html.transition body:after {
+  content: "Loading...";
+  position: fixed;
+  inset-inline-start: 0;
+  inset-block-start: 7em;
+  width: 100%;
+  font-family: var(--font-fun);
+  text-align: center;
+  display: block;
+  margin-block: var(--gap);
+  color: var(--text-deemphasized);
+  animation-fill-mode: backwards;
+  animation-name: loading;
+  animation-duration: 1s;
+  animation-delay: 1s;
+}
+
 button {
   background-color: var(--button-background);
   border-style: none;
