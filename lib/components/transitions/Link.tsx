@@ -30,6 +30,7 @@ export default function (props: Props) {
             e.preventDefault();
             e.stopImmediatePropagation();
             document.documentElement.classList.add("transition");
+            history.pushState({}, "", ref.href);
             root
               .animate(
                 {
@@ -44,7 +45,7 @@ export default function (props: Props) {
                 }
               )
               .addEventListener("finish", () => {
-                router.push(ref.href);
+                router.replace(ref.href);
               });
           }
         });
