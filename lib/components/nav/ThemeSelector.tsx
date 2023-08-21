@@ -33,7 +33,10 @@ function getThemeInfo(theme: Theme) {
 const STORAGE_KEY = "theme";
 
 function getSavedTheme(): Theme {
-  switch (window?.localStorage?.getItem(STORAGE_KEY)) {
+  if (typeof window === "undefined") {
+    return Theme.DEFAULT;
+  }
+  switch (window.localStorage.getItem(STORAGE_KEY)) {
     case Theme.DARK:
       return Theme.DARK;
     case Theme.LIGHT:
