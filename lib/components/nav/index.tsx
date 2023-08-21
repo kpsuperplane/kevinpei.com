@@ -29,12 +29,12 @@ export default function () {
         <ThemeSelector />
         <div className={styles.end}>
           <div className={styles.links}>
-            <Link target="_blank" href="/assets/kevin-pei-resume.pdf">
+            <a target="_blank" href="/assets/kevin-pei-resume.pdf">
               <span style={{ verticalAlign: "text-bottom" }}>
                 <ScrollText size="1em" />
               </span>{" "}
               Resume
-            </Link>
+            </a>
             <span className={styles.divider} />
             <Link target="_blank" href="https://instagram.com/kpsuperplane">
               <Instagram size="1em" />
