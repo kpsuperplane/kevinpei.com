@@ -1,4 +1,4 @@
-import Root from "#/lib/components/transitions/Root";
+import TransitionIn from "#/lib/components/transitions/TransitionIn";
 import { getPost, getPosts } from "#/lib/mdx/data";
 import MDXPage from "#/lib/mdx/Page";
 
@@ -13,9 +13,10 @@ export default async function Post({ params: { slug } }: Props) {
     throw new Error(`Can't fetch post for slug ${slug}`);
   }
   return (
-    <Root key={`post-${slug}`}>
+    <>
+      <TransitionIn />
       <MDXPage page={post} />
-    </Root>
+    </>
   );
 }
 

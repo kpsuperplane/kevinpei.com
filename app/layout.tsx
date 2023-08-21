@@ -14,7 +14,7 @@ export default function ({ children }: { children: React.ReactNode }) {
     >
       <body>
         <Nav />
-        {children}
+        <div id="page-root">{children}</div>
       </body>
     </html>
   );

@@ -1,4 +1,4 @@
-import Root from "#/lib/components/transitions/Root";
+import TransitionIn from "#/lib/components/transitions/TransitionIn";
 import { getRootPage, getRootPages } from "#/lib/mdx/data";
 import MDXPage from "#/lib/mdx/Page";
 
@@ -13,9 +13,10 @@ export default async function Page({ params: { slug } }: Props) {
     throw new Error(`Can't fetch page for slug ${slug}`);
   }
   return (
-    <Root key={`page-${slug}`}>
+    <>
+      <TransitionIn />
       <MDXPage page={page} />
-    </Root>
+    </>
   );
 }
 

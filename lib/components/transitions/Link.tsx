@@ -14,7 +14,6 @@ export default function (props: Props) {
       if (
         ref.target !== "_blank" &&
         sameSite &&
-        ref.pathname !== window.location.pathname &&
         !(
           "matchMedia" in window &&
           window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -22,11 +21,15 @@ export default function (props: Props) {
       ) {
         ref.addEventListener("click", (e) => {
           const root = document.querySelector("#page-root");
-          if (root != null && "animate" in root) {
+          if (
+            root != null &&
+            "animate" in root &&
+            ref.pathname !== window.location.pathname
+          ) {
             router.prefetch(ref.href);
             e.preventDefault();
             e.stopImmediatePropagation();
-            document.documentElement.classList.add("with-transition");
+            document.documentElement.classList.add("transition");
             root
               .animate(
                 {

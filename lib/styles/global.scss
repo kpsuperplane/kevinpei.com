@@ -54,23 +54,6 @@ body {
   font-size: 16px;
 }
 
-@keyframes enter {
-  0% {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0px);
-  }
-}
-
-html.with-transition #page-root {
-  @media (prefers-reduced-motion: no-preference) {
-    animation: enter 300ms cubic-bezier(0.25, 1, 0.5, 1);
-  }
-}
-
 button {
   background-color: var(--button-background);
   border-style: none;

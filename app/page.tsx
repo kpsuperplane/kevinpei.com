@@ -2,8 +2,8 @@ import { Metadata } from "next";
 
 import styles from "./app.module.scss";
 import { Page, getPosts, getRootPages } from "#/lib/mdx/data";
-import Root from "#/lib/components/transitions/Root";
 import Link from "#/lib/components/transitions/Link";
+import TransitionIn from "#/lib/components/transitions/TransitionIn";
 
 export const metadata: Metadata = {
   title: "Kevin Pei",
@@ -39,17 +39,20 @@ export default async function () {
   const rootPages = await getRootPages();
   const posts = await getPosts();
   return (
-    <Root className={styles.root} key="home">
-      <Section headline="📌 Pins">
-        {rootPages.map((page) => (
-          <Article page={page} key={page.slug} />
-        ))}
-      </Section>
-      <Section headline="🖋️ Posts">
-        {posts.map((post) => (
-          <Article page={post} key={post.slug} />
-        ))}
-      </Section>
-    </Root>
+    <>
+      <div className={styles.root}>
+        <Section headline="📌 Pins">
+          {rootPages.map((page) => (
+            <Article page={page} key={page.slug} />
+          ))}
+        </Section>
+        <Section headline="🖋️ Posts">
+          {posts.map((post) => (
+            <Article page={post} key={post.slug} />
+          ))}
+        </Section>
+      </div>
+      <TransitionIn />
+    </>
   );
 }
