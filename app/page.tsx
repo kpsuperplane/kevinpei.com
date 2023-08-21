@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 import styles from "./app.module.scss";
-import { Page, getPosts, getRootPages } from "#/lib/mdx/data";
+import { Page, getPosts, getRootPages, isPublished } from "#/lib/mdx/data";
 import Link from "#/lib/components/transitions/Link";
 import TransitionIn from "#/lib/components/transitions/TransitionIn";
 
@@ -47,7 +47,7 @@ export default async function () {
           ))}
         </Section>
         <Section headline="🖋️ Posts">
-          {posts.map((post) => (
+          {posts.filter(isPublished).map((post) => (
             <Article page={post} key={post.slug} />
           ))}
         </Section>
