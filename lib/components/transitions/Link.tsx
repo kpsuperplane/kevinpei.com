@@ -17,7 +17,7 @@ export default function (props: Props) {
         ref.pathname !== window.location.pathname &&
         !(
           "matchMedia" in window &&
-          window.matchMedia("(prefers-reduced-motion: reduce)")
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches
         )
       ) {
         ref.addEventListener("click", (e) => {
