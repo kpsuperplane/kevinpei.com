@@ -152,8 +152,24 @@
   a {
     color: var(--primary);
     font-weight: 500;
+    display: inline-block;
+    &:after {
+      width: 100%;
+      content: "";
+      position: absolute;
+      inset-block-end: 0;
+      inset-inline-start: 0;
+      height: 2px;
+      background-color: var(--table-border);
+    }
   }
   strong {
-    font-weight: 600;
+    font-weight: 500;
+  }
+  img {
+    border-radius: var(--gap-small);
+    margin-block-start: var(--gap);
+    display: block;
+    width: 100%;
   }
 }

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Instagram, Github, Linkedin, Mail } from "lucide-react";
+import { Instagram, Github, Linkedin, Mail, ScrollText } from "lucide-react";
 
 import styles from "./nav.module.scss";
 import me from "./me.jpg";
@@ -29,7 +29,10 @@ export default function () {
         <ThemeSelector />
         <div className={styles.end}>
           <div className={styles.links}>
-            <Link target="_blank" href="/assets/kevin-pei-resume-20201024.pdf">
+            <Link target="_blank" href="/assets/kevin-pei-resume.pdf">
+              <span style={{ verticalAlign: "text-bottom" }}>
+                <ScrollText size="1em" />
+              </span>{" "}
               Resume
             </Link>
             <span className={styles.divider} />

@@ -2,68 +2,52 @@
 title: About Me
 ---
 
-_This is a Chat GPT placeholder while I build this site_
-
-# Modern Ipsum
-
-## Introduction
-
-Welcome to Modern Ipsum, a placeholder text generator for the contemporary era. Use it to simulate content in your Markdown documents, websites, and designs.
-
-## Why Modern Ipsum?
-
-In a world driven by technology and innovation, traditional placeholder text no longer suffices. Modern Ipsum offers relevant and relatable text that captures the spirit of the present day.
-
-## Features
-
-- **Tech-Savvy Content:** Our ipsum includes references to AI, blockchain, virtual reality, and more, making it perfect for tech-related projects.
-- **Social Media Lingo:** Find phrases commonly used on social platforms, ensuring your designs feel current and connected.
-- **Eco-Conscious Vocabulary:** Embrace sustainability with words highlighting the importance of our environment and a greener future.
-- **Inclusive Language:** Modern Ipsum promotes diversity with inclusive language, reflecting the rich tapestry of our global community.
-
-## Usage
-
-Simply include the following Markdown snippet in your document to generate Modern Ipsum text:
-
-```markdown
-> ## Modern Ipsum
+<div
+  style={{
+    borderInlineStart: "4px solid var(--primary)",
+    paddingInlineStart: "var(--gap)",
+    marginBlockStart: "var(--gap)",
+  }}
 >
-> 🚀 Disrupting industries with blockchain synergy.
->
-> 🌱 Embracing the future through sustainable AI.
->
-> #Blessed with virtual experiences.
->
-> Connecting minds in the metaverse.
->
-> Your success is our API. 🌐
-```
+  <h2
+    style={{
+      marginBlockStart: 0,
+      fontFamily: "var(--font-serif)",
+      color: "var(--text)",
+      fontSize: "2em",
+    }}
+  >Kevin Pei</h2>
+  <p
+    children={`[ˈkɛvɪn peɪ] · noun`}
+    style={{
+      color: "var(--text-deemphasized)",
+      marginBlockStart: 0,
+      fontSize: "0.8em",
+    }}
+  />
+  A silly human who enjoys building cool things  
+  <span style={{color: 'var(--text-deemphasized)'}}>*Sometimes Kevin can be a real Kevin — a "friend"*</span>
 
-```tsx {2-4}
-import styles from "./page.module.scss";
-import "./prism.css";
-import rehypePrism from "rehype-prism-plus";
-import { MDXRemote } from "next-mdx-remote/rsc";
+  #### Other Definitions
+  1. [An avid skier](https://www.instagram.com/reel/Ca21sOHghG3/?utm_source=ig_web_copy_link&igshid=MzRlODBiNWFlZA==) and occasional snowboarder ⛷️
+  2. A developer with a deep passion for user experience
+  3. Someone who loves playing [Valorant](https://tracker.gg/valorant/profile/riot/freshglazeddonut%23yum/overview)
+</div>
 
-import { Page } from "./data";
+# My Work
 
-const options = {
-  mdxOptions: {
-    remarkPlugins: [],
-    rehypePlugins: [rehypePrism],
-  },
-};
+I am currently a full-time Front End Engineer at **Meta** working on Facebook Marketplace.
 
-export default function ({ page }: { page: Page }) {
-  return (
-    <article className={styles.root}>
-      <header>
-        <h1>{page.title}</h1>
-        {page.subtitle != null && <h2>{page.subtitle}</h2>}
-      </header>
-      {/* @ts-expect-error Server Component */}
-      <MDXRemote source={page.body} options={options} />
-    </article>
-  );
-}
-```
+Before that I did internships at the **Liquor Control Board of Ontario**, **Yahoo Inc**, and the **Royal Bank of Canada**.
+
+I have a Bachelor of Computer Science from the University of Waterloo, where I spent a significant portion of my time helping to organize [Hack the North](https://hackthenorth.com), Canada's biggest hackathon.
+
+[My Resume](/assets/kevin-pei-resume.pdf)
+
+# My Life
+
+## Outdoors
+Being able to the explore the PNW wilderness is an absolute privilege so I try to get out at least once a week. You can see my completed hikes [here](https://www.alltrails.com/members/kevin-pei-2/completed).
+
+In the winter you'll find me on the slopes skiing with friends and hunting for fresh snow. I'm excited to dip my toes into backcountry for the 2023-2024 season.
+<img src="/assets/posts/slopes.jpg" style={{maxWidth: 300}} />
