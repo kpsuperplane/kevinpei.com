@@ -26,6 +26,7 @@ export default function (props: Props) {
             router.prefetch(ref.href);
             e.preventDefault();
             e.stopImmediatePropagation();
+            document.documentElement.classList.add("with-transition");
             root
               .animate(
                 {
