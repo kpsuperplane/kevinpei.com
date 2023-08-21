@@ -34,6 +34,13 @@
         font-size: 1em;
         color: var(--text-deemphasized);
       }
+      & > h4 {
+        font-family: var(--font-fun);
+        font-weight: 300;
+        margin: 0;
+        font-size: 1em;
+        color: var(--primary);
+      }
     }
   }
 }

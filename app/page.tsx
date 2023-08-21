@@ -28,6 +28,16 @@ function Article({ page }: { page: Page }) {
   return (
     <Link href={`/${page.uri}`}>
       <article>
+        {page.date != null && (
+          <h4>
+            {page.date.toLocaleDateString("en-us", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              timeZone: "UTC",
+            })}
+          </h4>
+        )}
         <h2>{page.title}</h2>
         {page.subtitle != null && <h3>{page.subtitle}</h3>}
       </article>
