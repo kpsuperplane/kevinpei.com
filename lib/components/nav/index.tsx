@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Instagram, Github, Linkedin } from "lucide-react";
+import { Instagram, Github, Linkedin, Mail } from "lucide-react";
 
 import styles from "./nav.module.scss";
 import me from "./me.jpg";
@@ -44,6 +44,9 @@ export default function () {
               href="https://www.linkedin.com/in/kpsuperplane/"
             >
               <Linkedin size="1em" />
+            </Link>
+            <Link href="mailto:hello@kevinpei.com">
+              <Mail size="1em" />
             </Link>
           </div>
         </div>
