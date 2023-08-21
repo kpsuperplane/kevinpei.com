@@ -33,7 +33,7 @@ function getThemeInfo(theme: Theme) {
 const STORAGE_KEY = "theme";
 
 function getSavedTheme(): Theme {
-  switch (localStorage.getItem(STORAGE_KEY)) {
+  switch (window?.localStorage?.getItem(STORAGE_KEY)) {
     case Theme.DARK:
       return Theme.DARK;
     case Theme.LIGHT:
@@ -55,7 +55,7 @@ export default function () {
       : [Theme.DEFAULT, Theme.DARK, Theme.LIGHT];
     const currentIndex = order.findIndex((value) => value === theme);
     const newTheme = order[(currentIndex + 1) % order.length];
-    localStorage.setItem(STORAGE_KEY, newTheme);
+    window.localStorage.setItem(STORAGE_KEY, newTheme);
     setTheme(newTheme);
   }, [theme]);
   useEffect(() => {
