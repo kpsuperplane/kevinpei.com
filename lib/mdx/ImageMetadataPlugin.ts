@@ -9,7 +9,10 @@ import { join } from "path";
 const sizeOf = promisify(imageSize);
 
 type Imports = { [key: string]: string };
-function resolveSource(imports: Imports, node: MdxJsxTextElement) {
+function resolveSource(
+  imports: Imports,
+  node: MdxJsxTextElement | MdxJsxFlowElement
+) {
   for (const attribute of node.attributes) {
     if (attribute.type === "mdxJsxAttribute" && attribute.name === "src") {
       if (typeof attribute.value === "string") {
@@ -31,7 +34,7 @@ function resolveSource(imports: Imports, node: MdxJsxTextElement) {
 async function processImage(
   cwd: string,
   imports: Imports,
-  node: MdxJsxTextElement
+  node: MdxJsxTextElement | MdxJsxFlowElement
 ) {
   const source = resolveSource(imports, node);
   const res = await sizeOf(join(cwd, source));
@@ -50,56 +53,32 @@ const remarkMdxImages: Plugin<[Options], Root> =
   ({ cwd }) =>
   async (ast) => {
     const imports: Imports = {};
-    visit(
-      ast,
-      "mdxjsEsm",
-      (
-        node: MdxjsEsm,
-        index: number | undefined,
-        parent: Parent | undefined
-      ) => {
-        const body = node?.data?.estree?.body[0];
-        if (body != null && body.type === "ImportDeclaration") {
-          const importSpecifier = body.specifiers.find(
-            (specifier) => specifier.type === "ImportDefaultSpecifier"
-          );
-          if (importSpecifier?.local?.type === "Identifier") {
-            const name = importSpecifier.local.name;
-            const url = body.source.value;
-            if (typeof name === "string" && typeof url === "string") {
-              imports[name] = url;
-            }
+    visit(ast, "mdxjsEsm", (node: MdxjsEsm) => {
+      const body = node?.data?.estree?.body[0];
+      if (body != null && body.type === "ImportDeclaration") {
+        const importSpecifier = body.specifiers.find(
+          (specifier) => specifier.type === "ImportDefaultSpecifier"
+        );
+        if (importSpecifier?.local?.type === "Identifier") {
+          const name = importSpecifier.local.name;
+          const url = body.source.value;
+          if (typeof name === "string" && typeof url === "string") {
+            imports[name] = url;
           }
         }
       }
-    );
+    });
     const promises: Promise<void>[] = [];
-    visit(
-      ast,
-      "mdxJsxTextElement",
-      (
-        node: MdxJsxTextElement,
-        index: number | undefined,
-        parent: Parent | undefined
-      ) => {
-        if (node.name === "img") {
-          promises.push(processImage(cwd, imports, node));
-        }
+    visit(ast, "mdxJsxTextElement", (node: MdxJsxTextElement) => {
+      if (node.name === "img") {
+        promises.push(processImage(cwd, imports, node));
       }
-    );
-    visit(
-      ast,
-      "mdxJsxFlowElement",
-      (
-        node: MdxJsxFlowElement,
-        index: number | undefined,
-        parent: Parent | undefined
-      ) => {
-        if (node.name === "img") {
-          promises.push(processImage(cwd, imports, node));
-        }
+    });
+    visit(ast, "mdxJsxFlowElement", (node: MdxJsxFlowElement) => {
+      if (node.name === "img") {
+        promises.push(processImage(cwd, imports, node));
       }
-    );
+    });
     await Promise.all(promises);
   };
 

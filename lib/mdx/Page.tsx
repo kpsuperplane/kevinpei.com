@@ -6,7 +6,6 @@ import Image from "next/image";
 
 import { Page } from "./data";
 import { useMemo } from "react";
-import { StaticImport } from "next/dist/shared/lib/get-img-props";
 
 function numerify(input: string | number | undefined): number | undefined {
   if (typeof input === "string") {
