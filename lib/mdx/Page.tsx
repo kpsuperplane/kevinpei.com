@@ -1,20 +1,34 @@
 import styles from "./page.module.scss";
 import "./prism.css";
 
-import RehypePrism from "rehype-prism-plus";
-import { MDXRemote } from "next-mdx-remote/rsc";
-import RemarkGFM from "remark-gfm";
+import { getMDXComponent } from "mdx-bundler/client";
+import Image from "next/image";
 
 import { Page } from "./data";
+import { useMemo } from "react";
+import { StaticImport } from "next/dist/shared/lib/get-img-props";
 
-const options = {
-  mdxOptions: {
-    remarkPlugins: [RemarkGFM],
-    rehypePlugins: [[RehypePrism, { showLineNumbers: true }]],
-  },
+function numerify(input: string | number | undefined): number | undefined {
+  if (typeof input === "string") {
+    return Number(input);
+  }
+  return input;
+}
+const COMPONENTS = {
+  img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
+    <Image
+      {...props}
+      placeholder={undefined}
+      height={numerify(props.height)}
+      width={numerify(props.width)}
+      src={props.src ?? ""}
+      alt={props.alt ?? ""}
+    />
+  ),
 };
 
 export default function ({ page }: { page: Page }) {
+  const MDXComponent = useMemo(() => getMDXComponent(page.code), [page.code]);
   return (
     <article className={styles.root}>
       <header>
@@ -31,8 +45,7 @@ export default function ({ page }: { page: Page }) {
         <h1>{page.title}</h1>
         {page.subtitle != null && <h2>{page.subtitle}</h2>}
       </header>
-      {/* @ts-expect-error Server Component */}
-      <MDXRemote source={page.body} options={options} />
+      <MDXComponent components={COMPONENTS} />
     </article>
   );
 }

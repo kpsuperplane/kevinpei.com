@@ -6,14 +6,16 @@
     "start": "next start"
   },
   "dependencies": {
-    "gray-matter": "latest",
+    "image-size": "latest",
     "lucide-react": "latest",
+    "mdx-bundler": "latest",
     "next": "latest",
-    "next-mdx-remote": "latest",
     "react": "latest",
     "react-dom": "latest",
     "rehype-prism-plus": "latest",
-    "remark-gfm": "3.0.1"
+    "remark-gfm": "latest",
+    "remark-mdx-images": "latest",
+    "unist-util-visit": "latest"
   },
   "devDependencies": {
     "@types/node": "latest",

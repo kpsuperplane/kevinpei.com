@@ -1,8 +1,12 @@
-import matter from "gray-matter";
+import { bundleMDX } from "mdx-bundler";
 import { cache } from "react";
 import fs from "fs/promises";
 import { join } from "path";
+import RehypePrism from "rehype-prism-plus";
+import RemarkGFM from "remark-gfm";
+import RemarkMdxImages from "remark-mdx-images";
 
+import ImageMetadataPlugin from "./ImageMetadataPlugin";
 export type Page = Awaited<ReturnType<typeof getPage>>;
 
 function nullthrows(value: string | null | undefined, name: string): string {
@@ -13,18 +17,46 @@ function nullthrows(value: string | null | undefined, name: string): string {
 }
 
 const getPage = async (root: string, folder: string, slug: string) => {
-  const fileName = join("./", root, folder, slug, "page.mdx");
-  const fileContent = await fs.readFile(fileName);
-  const { data, content } = matter(fileContent);
+  const cwd = join(process.cwd(), "./", root, folder, slug);
+  const fileName = join(cwd, "page.mdx");
+  const source = await fs.readFile(fileName, "utf8");
+  const { code, frontmatter } = await bundleMDX({
+    cwd,
+    source,
+    esbuildOptions: (options) => ({
+      ...options,
+      loader: {
+        ...options.loader,
+        ".jpg": "file",
+        ".png": "file",
+      },
+      write: true,
+      outdir: join(process.cwd(), "./public/generated"),
+      publicPath: "/generated",
+    }),
+    mdxOptions: (options) => ({
+      ...options,
+      remarkPlugins: [
+        ...(options.remarkPlugins ?? []),
+        RemarkGFM,
+        RemarkMdxImages,
+        [ImageMetadataPlugin, { cwd }],
+      ],
+      rehypePlugins: [
+        ...(options.rehypePlugins ?? []),
+        [RehypePrism, { showLineNumbers: true }],
+      ],
+    }),
+  });
   const dateStr = slug.match(/(\d\d\d\d-\d\d-\d\d)-.+/);
   return {
     date: dateStr != null ? new Date(dateStr[1]) : undefined,
-    title: nullthrows(data.title, "title"),
-    subtitle: data.subtitle as string | undefined,
-    published: data.published !== false,
+    title: nullthrows(frontmatter.title, "title"),
+    subtitle: frontmatter.subtitle as string | undefined,
+    published: frontmatter.published !== false,
     uri: join(folder, slug),
     slug,
-    body: content,
+    code,
   };
 };
 
