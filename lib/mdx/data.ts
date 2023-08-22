@@ -7,6 +7,7 @@ import RemarkGFM from "remark-gfm";
 import RemarkMdxImages from "remark-mdx-images";
 
 import ImageMetadataPlugin from "./ImageMetadataPlugin";
+
 export type Page = Awaited<ReturnType<typeof getPage>>;
 
 function nullthrows(value: string | null | undefined, name: string): string {
