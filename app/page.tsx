@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Head from "next/head";
 
 import styles from "./app.module.scss";
 import { Page, getPosts, getRootPages, isPublished } from "#/lib/mdx/data";
@@ -48,8 +49,17 @@ function Article({ page }: { page: Page }) {
 export default async function () {
   const rootPages = await getRootPages();
   const posts = await getPosts();
+  const title = "Kevin Pei";
+  const subtitle = "A silly human who enjoys building cool things";
   return (
     <>
+      <Head>
+        <title>{title}</title>
+        <meta name="description" content={subtitle} />
+        <meta name="robots" content="all" />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={subtitle} />
+      </Head>
       <div className={styles.root}>
         <Section headline="📌 Pins">
           {rootPages.map((page) => (

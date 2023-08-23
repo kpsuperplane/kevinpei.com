@@ -6,6 +6,7 @@ import Image from "next/image";
 
 import { Page } from "./data";
 import { useMemo } from "react";
+import Head from "next/head";
 
 function numerify(input: string | number | undefined): number | undefined {
   if (typeof input === "string") {
@@ -30,6 +31,16 @@ export default function ({ page }: { page: Page }) {
   const MDXComponent = useMemo(() => getMDXComponent(page.code), [page.code]);
   return (
     <article className={styles.root}>
+      <Head>
+        <title>{page.title}</title>
+        <meta name="description" content={page.subtitle} />
+        <meta
+          name="robots"
+          content={page.published ? "all" : "noindex,nofollow"}
+        />
+        <meta property="og:title" content={page.title} />
+        <meta property="og:description" content={page.subtitle} />
+      </Head>
       <header>
         {page.date != null && (
           <h3 className={styles.dateline}>
