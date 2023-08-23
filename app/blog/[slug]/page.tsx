@@ -1,3 +1,5 @@
+import { Metadata } from "next";
+
 import TransitionIn from "#/lib/components/transitions/TransitionIn";
 import { getPost, getPosts } from "#/lib/mdx/data";
 import MDXPage from "#/lib/mdx/Page";
@@ -18,6 +20,11 @@ export default async function Post({ params: { slug } }: Props) {
       <MDXPage page={post} />
     </>
   );
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const post = await getPost(params.slug);
+  return post!.metadata;
 }
 
 export async function generateStaticParams() {

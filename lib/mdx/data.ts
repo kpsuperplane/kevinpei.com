@@ -7,6 +7,7 @@ import RemarkGFM from "remark-gfm";
 import RemarkMdxImages from "remark-mdx-images";
 
 import ImageMetadataPlugin from "./ImageMetadataPlugin";
+import { getMetadata } from "#/lib/metadata";
 
 export type Page = Awaited<ReturnType<typeof getPage>>;
 
@@ -50,11 +51,17 @@ const getPage = async (root: string, folder: string, slug: string) => {
     }),
   });
   const dateStr = slug.match(/(\d\d\d\d-\d\d-\d\d)-.+/);
+  const title = nullthrows(frontmatter.title, "title");
+  const subtitle = frontmatter.subtitle as string | undefined;
+  const published = frontmatter.published !== false;
   return {
     date: dateStr != null ? new Date(dateStr[1]) : undefined,
-    title: nullthrows(frontmatter.title, "title"),
-    subtitle: frontmatter.subtitle as string | undefined,
-    published: frontmatter.published !== false,
+    title,
+    subtitle,
+    published,
+    metadata: getMetadata(title, subtitle ?? "", {
+      robots: published ? "all" : "noindex nofollow",
+    }),
     uri: join(folder, slug),
     slug,
     code,
