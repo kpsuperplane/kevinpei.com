@@ -4,7 +4,7 @@ import { Instagram, Github, Linkedin, Mail, ScrollText } from "lucide-react";
 import styles from "./nav.module.scss";
 import me from "./me.jpg";
 import ThemeSelector from "./ThemeSelector";
-import Link from "#/lib/components/transitions/Link";
+import Link from "#/app/lib/components/transitions/Link";
 
 const IMAGE_SIZE = 36;
 
@@ -13,7 +13,7 @@ export default function () {
     <header>
       <nav className={styles.root}>
         <div className={styles.start}>
-          <Link href="/" className={styles.home}>
+          <Link title="Navigate Home" href="/" className={styles.home}>
             <Image
               width={IMAGE_SIZE}
               height={IMAGE_SIZE}
@@ -29,26 +29,39 @@ export default function () {
         <ThemeSelector />
         <div className={styles.end}>
           <div className={styles.links}>
-            <a target="_blank" href="/assets/kevin-pei-resume.pdf">
+            <a
+              title="My Resume"
+              target="_blank"
+              href="/assets/kevin-pei-resume.pdf"
+            >
               <span style={{ verticalAlign: "text-bottom" }}>
                 <ScrollText size="1em" />
               </span>{" "}
               Resume
             </a>
             <span className={styles.divider} />
-            <Link target="_blank" href="https://instagram.com/kpsuperplane">
+            <Link
+              title="My Instagram"
+              target="_blank"
+              href="https://instagram.com/kpsuperplane"
+            >
               <Instagram size="1em" />
             </Link>
-            <Link target="_blank" href="https://github.com/kpsuperplane">
+            <Link
+              title="My Github"
+              target="_blank"
+              href="https://github.com/kpsuperplane"
+            >
               <Github size="1em" />
             </Link>
             <Link
+              title="My LinkedIn"
               target="_blank"
               href="https://www.linkedin.com/in/kpsuperplane/"
             >
               <Linkedin size="1em" />
             </Link>
-            <Link href="mailto:hello@kevinpei.com">
+            <Link title="My Email" href="mailto:hello@kevinpei.com">
               <Mail size="1em" />
             </Link>
           </div>

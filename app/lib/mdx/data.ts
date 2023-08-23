@@ -7,7 +7,7 @@ import RemarkGFM from "remark-gfm";
 import RemarkMdxImages from "remark-mdx-images";
 
 import ImageMetadataPlugin from "./ImageMetadataPlugin";
-import { getMetadata } from "#/lib/metadata";
+import { getMetadata } from "#/app/lib/metadata";
 
 export type Page = Awaited<ReturnType<typeof getPage>>;
 

@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 
 import styles from "./app.module.scss";
-import { Page, getPosts, getRootPages, isPublished } from "#/lib/mdx/data";
-import Link from "#/lib/components/transitions/Link";
-import TransitionIn from "#/lib/components/transitions/TransitionIn";
-import { getMetadata } from "#/lib/metadata";
+import { Page, getPosts, getRootPages, isPublished } from "#/app/lib/mdx/data";
+import Link from "#/app/lib/components/transitions/Link";
+import TransitionIn from "#/app/lib/components/transitions/TransitionIn";
+import { getMetadata } from "#/app/lib/metadata";
 
 export const metadata: Metadata = getMetadata(
   "Kevin Pei",

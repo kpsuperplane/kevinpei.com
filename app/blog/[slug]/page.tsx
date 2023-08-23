@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
-import TransitionIn from "#/lib/components/transitions/TransitionIn";
-import { getPost, getPosts } from "#/lib/mdx/data";
-import MDXPage from "#/lib/mdx/Page";
+import TransitionIn from "#/app/lib/components/transitions/TransitionIn";
+import { getPost, getPosts } from "#/app/lib/mdx/data";
+import MDXPage from "#/app/lib/mdx/Page";
 
 type Props = {
   params: {

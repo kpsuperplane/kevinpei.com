@@ -1,6 +1,6 @@
-import "#/lib/styles/global.scss";
-import Nav from "#/lib/components/nav";
-import fonts from "#/lib/styles/fonts";
+import "#/app/lib/styles/global.scss";
+import Nav from "#/app/lib/components/nav";
+import fonts from "#/app/lib/styles/fonts";
 
 export default function ({ children }: { children: React.ReactNode }) {
   return (
