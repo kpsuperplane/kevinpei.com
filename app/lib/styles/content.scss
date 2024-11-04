@@ -189,4 +189,13 @@
     flex-direction: column;
     gap: var(--gap-small);
   }
+  .gallery {
+    display: flex;
+    gap: var(--gap);
+    > img {
+      flex: 1;
+      width: 0;
+      display: block;
+    }
+  }
 }

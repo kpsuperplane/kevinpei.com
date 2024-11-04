@@ -2,29 +2,14 @@ import styles from "./page.module.scss";
 import "./prism.css";
 
 import { getMDXComponent } from "mdx-bundler/client";
-import Image from "next/image";
 
 import { Page } from "./data";
 import { useMemo } from "react";
 import Head from "next/head";
+import ExpandableImage from "#/app/lib/components/ExpandableImage";
 
-function numerify(input: string | number | undefined): number | undefined {
-  if (typeof input === "string") {
-    return Number(input);
-  }
-  return input;
-}
 const COMPONENTS = {
-  img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
-    <Image
-      {...props}
-      placeholder={undefined}
-      height={numerify(props.height)}
-      width={numerify(props.width)}
-      src={props.src ?? ""}
-      alt={props.alt ?? ""}
-    />
-  ),
+  img: ExpandableImage,
 };
 
 export default function ({ page }: { page: Page }) {
