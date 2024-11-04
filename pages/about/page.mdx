@@ -1,32 +1,25 @@
 ---
 title: About Me
 ---
-
-<div
-  style={{
-    borderInlineStart: "4px solid var(--primary)",
-    paddingInlineStart: "var(--gap)",
-    marginBlockStart: "var(--gap)",
-  }}
->
-  <h2
-    style={{
-      marginBlockStart: 0,
-      fontFamily: "var(--font-serif)",
-      color: "var(--text)",
-      fontSize: "2em",
-    }}
-  >Kevin Pei</h2>
-  <p
-    children={`[ˈkɛvɪn peɪ] · noun`}
-    style={{
-      color: "var(--text-deemphasized)",
-      marginBlockStart: 0,
-      fontSize: "0.8em",
-    }}
-  />
-  A silly human who enjoys building cool things  
-  <span style={{color: 'var(--text-deemphasized)'}}>*Sometimes Kevin can be a real Kevin — a "friend"*</span>
+<div className="card">
+  <header>
+    <h2
+      style={{
+        fontFamily: "var(--font-serif)",
+        color: "var(--text)",
+        fontSize: "2em",
+      }}
+    >Kevin Pei</h2>
+    <p
+      children={`[ˈkɛvɪn peɪ] · noun`}
+      style={{
+        color: "var(--text-deemphasized)",
+        fontSize: "0.8em",
+      }}
+    />
+  </header>
+  <p>A silly human who enjoys building cool things</p>
+  > *Sometimes Kevin can be a real Kevin*
 
   #### Other Definitions
   1. [An avid skier](https://www.instagram.com/reel/Ca21sOHghG3/?utm_source=ig_web_copy_link&igshid=MzRlODBiNWFlZA==) and occasional snowboarder
@@ -36,7 +29,7 @@ title: About Me
 
 # My Work
 
-I am currently a full-time Front End Engineer at **Meta** working on Facebook Marketplace.
+I am currently a full-time Front End Engineer at **Meta** working on Facebook Messenger.
 
 Before that I did internships at the **Liquor Control Board of Ontario**, **Yahoo Inc**, and the **Royal Bank of Canada**.
 
@@ -49,11 +42,10 @@ I have a Bachelor of Computer Science from the University of Waterloo, where I s
 ## Outdoors
 Being able to the explore the PNW wilderness is an absolute privilege so I try to get out at least once a week. You can see my completed hikes [here](https://www.alltrails.com/members/kevin-pei-2/completed).
 
-In the winter you'll find me on the slopes skiing with friends and hunting for fresh snow. I'm excited to dip my toes into backcountry for the 2023-2024 season.
+In the winter you'll find me on the slopes skiing with friends and hunting for fresh snow. I'm excited to venture more into the backcountry for the 2024-2025 season.
 
-import slopes from "./slopes.jpg";
-
-<img alt="My 2022/2023 Slopes History" src={slopes} style={{maxWidth: 350}} />
+<img alt="My 2022/2023 Slopes History" src="./slopes-2023.jpg" style={{maxWidth: 350}} />
+<img alt="My 2023/2024 Slopes History" src="./slopes-2024.jpg" style={{maxWidth: 350}} />
 
 ## Indoors
 I enjoy reading about cars, snowsports, and technology in my downtime and I follow the web development space fairly closely. I'm also passionate about smart home devices, where I've made several custom setups including a Philips Wiz Homebridge plugin that [got featured on Ars Technica](https://arstechnica.com/gadgets/2021/09/how-i-saved-money-on-homekit-smartbulbs-with-philips-wiz-and-a-raspberry-pi/).

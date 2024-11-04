@@ -1,0 +1,192 @@
+.content {
+  time {
+    font-size: 1em;
+    font-family: var(--font-fun);
+    font-weight: 300;
+    color: var(--text-deemphasized);
+  }
+  & > header {
+    & > time {
+      color: var(--primary);
+    }
+    & > h1 {
+      font-family: var(--font-serif);
+      font-size: 2.5em;
+      font-weight: 400;
+      line-height: 1.2em;
+    }
+    & > h2 {
+      font-family: var(--font-serif);
+      font-size: 1.3em;
+      font-weight: 600;
+      line-height: 1.2em;
+      color: inherit;
+    }
+    & > p {
+      color: var(--text-deemphasized);
+    }
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0;
+  }
+  :not(h1, h2, h3, h4, h5, h6, time) {
+    + h1,
+    + h2,
+    + h3,
+    + h4,
+    + h5,
+    + h6 {
+      padding-block-start: var(--gap);
+    }
+  }
+  h1 {
+    font-family: var(--font-fun);
+    font-weight: 400;
+    font-size: 1.5em;
+  }
+  h2 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 1.3em;
+    color: var(--primary);
+  }
+  h3 {
+    font-family: var(--font-serif);
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--text);
+  }
+  h4 {
+    font-family: var(--font-sans);
+    color: var(--text-deemphasized);
+    font-weight: 600;
+    font-size: 1em;
+  }
+  blockquote {
+    margin: 0;
+    border-inline-start: 4px solid var(--primary);
+    margin-inline: 0;
+    padding-inline-start: var(--gap);
+    display: block;
+    font-family: var(--font-sans);
+    p {
+      margin: 0;
+    }
+  }
+  hr {
+    display: block;
+    margin: 0;
+    height: var(--hairline);
+    width: 100%;
+    border-style: none;
+    background-color: var(--divider);
+  }
+  p,
+  li,
+  pre {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 1em;
+    font-weight: 300;
+    line-height: 1.5em;
+  }
+  li::marker {
+    color: var(--text-deemphasized);
+    font-family: var(--font-fun);
+  }
+  ul,
+  ol {
+    margin: 0;
+    padding: 0;
+    list-style-position: inside;
+  }
+  pre[class*="language-"] {
+    code {
+      display: block;
+      padding-block: var(--gap-small);
+      font-size: 0.8em;
+      background-color: var(--wash);
+      border: var(--hairline) solid var(--table-border);
+      border-radius: var(--gap-small);
+      white-space: pre-wrap;
+      box-sizing: border-box;
+    }
+  }
+  p code {
+    display: inline-block;
+    font-size: 0.8rem;
+    padding: 0.1rem 0.4rem;
+    line-height: 1em;
+    margin-block: calc(-1 * var(--hairline));
+    border-radius: var(--gap-small);
+    vertical-align: middle;
+    border: var(--hairline) solid var(--table-border);
+    background-color: var(--wash);
+  }
+  table {
+    border: var(--hairline) solid var(--table-border);
+    border-radius: var(--gap-small);
+    margin: var(--gap) 0 0 0;
+    border-spacing: 0;
+    border-collapse: separate;
+    padding: 0;
+    th {
+      font-weight: 600;
+    }
+    td {
+      font-weight: 300;
+    }
+    thead th,
+    thead td {
+      border-block-end: var(--hairline) solid var(--table-border);
+    }
+    td,
+    th {
+      text-align: start;
+      font-family: var(--font-sans);
+      padding: var(--gap-small);
+      font-size: 0.85em;
+    }
+    tr:nth-child(even) {
+      background-color: var(--wash);
+    }
+  }
+  a {
+    color: var(--primary);
+    font-weight: 500;
+    display: inline-block;
+    &:after {
+      width: 100%;
+      content: "";
+      position: absolute;
+      inset-block-end: 0;
+      inset-inline-start: 0;
+      height: 2px;
+      background-color: var(--table-border);
+    }
+  }
+  strong {
+    font-weight: 500;
+  }
+  img {
+    border-radius: var(--gap-small);
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .card {
+    padding: var(--gap);
+    background: var(--wash);
+    border-radius: var(--gap-small);
+    border: 1px solid var(--divider);
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-small);
+  }
+}

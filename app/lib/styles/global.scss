@@ -30,7 +30,7 @@
   --primary: #21ad73;
   --primary-deemphasized: rgba(33, 173, 115, 0.2);
   --text: #f0f0f0;
-  --text-deemphasized: #818181;
+  --text-deemphasized: #919191;
   @include code-dark;
 }
 html {
@@ -119,3 +119,5 @@ a {
     color: var(--primary);
   }
 }
+
+@import "./content.scss";

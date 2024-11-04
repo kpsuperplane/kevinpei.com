@@ -30,7 +30,7 @@ const COMPONENTS = {
 export default function ({ page }: { page: Page }) {
   const MDXComponent = useMemo(() => getMDXComponent(page.code), [page.code]);
   return (
-    <article className={styles.root}>
+    <article className={`${styles.root} content`}>
       <Head>
         <title>{page.title}</title>
         <meta name="description" content={page.subtitle} />
@@ -43,17 +43,17 @@ export default function ({ page }: { page: Page }) {
       </Head>
       <header>
         {page.date != null && (
-          <h3 className={styles.dateline}>
+          <time className={styles.dateline}>
             {page.date.toLocaleDateString("en-us", {
               year: "numeric",
               month: "long",
               day: "numeric",
               timeZone: "UTC",
             })}
-          </h3>
+          </time>
         )}
         <h1>{page.title}</h1>
-        {page.subtitle != null && <h2>{page.subtitle}</h2>}
+        {page.subtitle != null && <p>{page.subtitle}</p>}
       </header>
       <MDXComponent components={COMPONENTS} />
     </article>
