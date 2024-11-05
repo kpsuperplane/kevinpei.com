@@ -1,0 +1,16 @@
+@import "./lib/styles/content.module.scss";
+.root {
+  @extend .content;
+}
+.header {
+  display: flex;
+  gap: var(--gap);
+  align-items: center;
+  h1 {
+    margin-top: -6px;
+  }
+}
+.image {
+  flex: 0;
+  width: 64px !important;
+}

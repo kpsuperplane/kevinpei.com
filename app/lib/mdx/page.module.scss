@@ -1,11 +1,9 @@
 @import "../styles/variables.scss";
+@import "../styles/content.module.scss";
 
 .root {
-  display: grid;
+  @extend .content;
   grid-template-columns: 1fr minmax(auto, $page-width) 1fr;
-  margin-block: var(--gap);
-  gap: var(--gap-small);
-  color: var(--text);
   & > * {
     grid-column-start: 2;
     grid-column-end: 2;

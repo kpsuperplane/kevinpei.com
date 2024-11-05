@@ -5,6 +5,7 @@ import { Page, getPosts, getRootPages, isPublished } from "#/app/lib/mdx/data";
 import Link from "#/app/lib/components/transitions/Link";
 import TransitionIn from "#/app/lib/components/transitions/TransitionIn";
 import { getMetadata } from "#/app/lib/metadata";
+import KevinDefinition from "./KevinDefinition";
 
 export const metadata: Metadata = getMetadata(
   "Kevin Pei",
@@ -53,12 +54,13 @@ export default async function () {
   return (
     <>
       <div className={styles.root}>
-        <Section headline="📌 Pins">
+        <KevinDefinition />
+        <Section headline="📌 Related Topics">
           {rootPages.map((page) => (
             <Article page={page} key={page.slug} />
           ))}
         </Section>
-        <Section headline="🖋️ Posts">
+        <Section headline="🖋️ Recent Musings">
           {posts.filter(isPublished).map((post) => (
             <Article page={post} key={post.slug} />
           ))}

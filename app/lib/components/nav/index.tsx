@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import { Instagram, Github, Linkedin, Mail, ScrollText } from "lucide-react";
 
@@ -5,15 +7,23 @@ import styles from "./nav.module.scss";
 import me from "./me.jpg";
 import ThemeSelector from "./ThemeSelector";
 import Link from "#/app/lib/components/transitions/Link";
+import { usePathname } from "next/navigation";
 
 const IMAGE_SIZE = 36;
 
 export default function () {
+  const path = usePathname();
   return (
     <header>
       <nav className={styles.root}>
         <div className={styles.start}>
-          <Link title="Navigate Home" href="/" className={styles.home}>
+          <Link
+            title="Navigate Home"
+            href="/"
+            className={`${styles.home} ${
+              path === "/" ? styles["home-hidden"] : ""
+            }`}
+          >
             <Image
               width={IMAGE_SIZE}
               height={IMAGE_SIZE}

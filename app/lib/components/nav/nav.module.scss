@@ -9,7 +9,6 @@ $max-width: 475px;
   gap: var(--gap);
   margin: 0 auto;
   padding-block: var(--gap);
-  border-block-end: var(--hairline) solid var(--divider);
   flex-wrap: wrap;
 }
 .end {
@@ -28,6 +27,7 @@ $max-width: 475px;
   align-items: center;
   gap: var(--gap);
   text-decoration: none;
+  transition: all 200ms;
   @media (hover: hover) {
     &:hover .name {
       color: var(--primary);
@@ -36,6 +36,10 @@ $max-width: 475px;
   &:active {
     transform: scale(0.98);
   }
+}
+.home-hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 .name {
   font-family: var(--font-sans);

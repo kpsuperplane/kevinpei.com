@@ -1,28 +1,32 @@
 .content {
+  display: grid;
+  margin-block: var(--gap);
+  gap: var(--gap-small);
+  color: var(--text);
   time {
     font-size: 1em;
     font-family: var(--font-fun);
     font-weight: 300;
     color: var(--text-deemphasized);
   }
-  & > header {
-    & > time {
+  header {
+    time {
       color: var(--primary);
     }
-    & > h1 {
+    h1 {
       font-family: var(--font-serif);
       font-size: 2.5em;
       font-weight: 400;
       line-height: 1.2em;
     }
-    & > h2 {
+    h2 {
       font-family: var(--font-serif);
       font-size: 1.3em;
       font-weight: 600;
       line-height: 1.2em;
       color: inherit;
     }
-    & > p {
+    p {
       color: var(--text-deemphasized);
     }
   }
@@ -180,7 +184,7 @@
     height: auto;
   }
 
-  .card {
+  :global(.card) {
     padding: var(--gap);
     background: var(--wash);
     border-radius: var(--gap-small);
@@ -189,7 +193,7 @@
     flex-direction: column;
     gap: var(--gap-small);
   }
-  .gallery {
+  :global(.gallery) {
     display: flex;
     gap: var(--gap);
     > img {
