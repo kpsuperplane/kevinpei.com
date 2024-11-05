@@ -78,4 +78,8 @@ $max-width: 475px;
   font-size: 1em;
   width: 2em;
   height: 2em;
+  background: var(--backdrop);
+  &:hover {
+    background: var(--backdrop);
+  }
 }

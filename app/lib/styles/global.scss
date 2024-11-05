@@ -19,6 +19,12 @@
   --primary-deemphasized: rgba(33, 173, 115, 0.2);
   --text: #1a1a1a;
   --text-deemphasized: #515151;
+  --gradient: linear-gradient(
+    to right,
+    rgba(0, 255, 179, 0.3) 0%,
+    rgba(213, 3, 255, 0.3) 50%,
+    rgba(0, 204, 255, 0.3) 100%
+  );
   @include code-light;
 }
 @mixin theme-dark {
@@ -33,6 +39,12 @@
   --primary-deemphasized: rgba(33, 173, 115, 0.2);
   --text: #f0f0f0;
   --text-deemphasized: #919191;
+  --gradient: linear-gradient(
+    to right,
+    rgba(0, 255, 179, 0.5) 0%,
+    rgba(213, 3, 255, 0.5) 50%,
+    rgba(0, 204, 255, 0.5) 100%
+  );
   @include code-dark;
 }
 html {
@@ -52,7 +64,14 @@ html {
 body {
   margin: 0;
   padding: 0 var(--gap) calc(var(--gap) * 2) var(--gap);
-  background-color: var(--background);
+  background: linear-gradient(
+      to bottom,
+      var(--backdrop) 0px,
+      var(--background) 120px
+    ),
+    var(--gradient), var(--background);
+  box-sizing: border-box;
+  min-height: 100vh;
   font-size: 16px;
 }
 
