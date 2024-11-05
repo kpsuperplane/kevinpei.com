@@ -79,7 +79,7 @@ export default function ExpandedImage({
           {
             opacity: 1,
             transform: "translate(0px, 0px) scale(1)",
-            borderRadius: "0px",
+            borderRadius: "8px",
           },
         ],
         ANIMATION_CONFIG
