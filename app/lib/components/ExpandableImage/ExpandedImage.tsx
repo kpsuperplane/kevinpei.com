@@ -12,10 +12,12 @@ export function numerify(
 }
 
 const ANIMATION_CONFIG = {
-  duration: 250,
+  duration: 200,
   iterations: 1,
   fill: "forwards" as "forwards",
 };
+
+const EASING = "cubic-bezier(0.33, 1, 0.68, 1)";
 
 function getActualRect(elem: HTMLImageElement): {
   centerX: number;
@@ -73,7 +75,7 @@ export default function ExpandedImage({
       const transform = getSourceTransform();
       targetRef.current!.animate(
         [
-          { ...transform, opacity: 1 },
+          { ...transform, opacity: 1, easing: EASING },
           {
             opacity: 1,
             transform: "translate(0px, 0px) scale(1)",
@@ -83,9 +85,27 @@ export default function ExpandedImage({
         ANIMATION_CONFIG
       );
     }
+    const onKeyPress = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        close();
+      }
+    };
+    window.addEventListener("keypress", onKeyPress);
+    return () => window.removeEventListener("keypress", onKeyPress);
   }, [sourceRef, getSourceTransform]);
   const close = useCallback(() => {
-    targetRef.current!.animate([getSourceTransform()], ANIMATION_CONFIG);
+    targetRef.current!.animate(
+      [
+        {
+          easing: EASING,
+          opacity: 1,
+          transform: "translate(0px, 0px) scale(1)",
+          borderRadius: "0px",
+        },
+        getSourceTransform(),
+      ],
+      ANIMATION_CONFIG
+    );
     backdrop.current
       ?.animate([{ opacity: 0 }], ANIMATION_CONFIG)
       .addEventListener("finish", onDismiss);
