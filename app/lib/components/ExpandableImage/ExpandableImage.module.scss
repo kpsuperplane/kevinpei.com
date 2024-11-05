@@ -13,7 +13,7 @@
   background-color: transparent;
   align-items: center;
   justify-content: center;
-  display: flex;
+  display: grid;
   > img {
     opacity: 0;
     display: block;
@@ -24,6 +24,7 @@
     height: auto;
     margin: auto;
     object-fit: contain;
+    border-radius: var(--gap-small);
   }
 }
 

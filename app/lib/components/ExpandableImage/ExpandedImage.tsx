@@ -12,12 +12,12 @@ export function numerify(
 }
 
 const ANIMATION_CONFIG = {
-  duration: 200,
+  duration: 250,
   iterations: 1,
   fill: "forwards" as "forwards",
 };
 
-const EASING = "cubic-bezier(0.33, 1, 0.68, 1)";
+const EASING = "cubic-bezier(0.25, 1, 0.5, 1)";
 
 function getActualRect(elem: HTMLImageElement): {
   centerX: number;
@@ -60,38 +60,31 @@ export default function ExpandedImage({
       borderRadius: `${8 * (target.width / source.width)}px`,
     };
   }, [sourceRef]);
-  const opened = useRef(false);
-  useEffect(() => {
-    if (!opened.current) {
-      opened.current = true;
-      backdrop.current!.animate(
-        [
-          {
-            opacity: 1,
-          },
-        ],
-        ANIMATION_CONFIG
-      );
-      const transform = getSourceTransform();
-      targetRef.current!.animate(
-        [
-          { ...transform, opacity: 1, easing: EASING },
-          {
-            opacity: 1,
-            transform: "translate(0px, 0px) scale(1)",
-            borderRadius: "8px",
-          },
-        ],
-        ANIMATION_CONFIG
-      );
-    }
-    const onKeyPress = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        close();
-      }
-    };
-    window.addEventListener("keypress", onKeyPress);
-    return () => window.removeEventListener("keypress", onKeyPress);
+  const open = useCallback(() => {
+    backdrop.current!.animate(
+      [
+        { opacity: 0, easing: EASING },
+        {
+          opacity: 1,
+        },
+      ],
+      ANIMATION_CONFIG
+    );
+    const transform = getSourceTransform();
+    targetRef.current!.animate(
+      [
+        { ...transform, opacity: 1, easing: EASING },
+        {
+          opacity: 1,
+          transform: "translate(0px, 0px) scale(1)",
+          borderRadius: "8px",
+        },
+      ],
+      ANIMATION_CONFIG
+    );
+    setTimeout(() => {
+      sourceRef.current!.style.opacity = "0";
+    }, 10);
   }, [sourceRef, getSourceTransform]);
   const close = useCallback(() => {
     targetRef.current!.animate(
@@ -107,8 +100,23 @@ export default function ExpandedImage({
       ANIMATION_CONFIG
     );
     backdrop.current
-      ?.animate([{ opacity: 0 }], ANIMATION_CONFIG)
-      .addEventListener("finish", onDismiss);
+      ?.animate(
+        [{ opacity: 1, easing: EASING }, { opacity: 0 }],
+        ANIMATION_CONFIG
+      )
+      .addEventListener("finish", () => {
+        sourceRef.current!.style.opacity = "1";
+        onDismiss();
+      });
+  }, []);
+  useEffect(() => {
+    const onKeyPress = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        close();
+      }
+    };
+    window.addEventListener("keypress", onKeyPress);
+    return () => window.removeEventListener("keypress", onKeyPress);
   }, []);
   return (
     <div className={styles.expanded} onClick={close}>
@@ -122,6 +130,7 @@ export default function ExpandedImage({
         src={props.src ?? ""}
         alt={props.alt ?? ""}
         ref={targetRef}
+        onLoad={open}
       />
     </div>
   );
