@@ -29,7 +29,7 @@ export default function (props: React.ImgHTMLAttributes<HTMLImageElement>) {
       />
       {opened &&
         createPortal(
-          <ExpandedImage imageRef={imageRef} onDismiss={close} {...props} />,
+          <ExpandedImage sourceRef={imageRef} onDismiss={close} {...props} />,
           document.body
         )}
     </>

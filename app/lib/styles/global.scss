@@ -10,6 +10,7 @@
 @mixin theme-light {
   /* Colors */
   --background: #fff;
+  --backdrop: rgba(255, 255, 255, 0.6);
   --wash: #fafafa;
   --button-background: #f0f0f0;
   --divider: #eee;
@@ -23,6 +24,7 @@
 @mixin theme-dark {
   $primary: #21ad73;
   --background: #000;
+  --backdrop: rgba(0, 0, 0, 0.6);
   --wash: #202020;
   --button-background: #202020;
   --divider: #222;
