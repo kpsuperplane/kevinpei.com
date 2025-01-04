@@ -5,9 +5,38 @@ export type Coordinate = {
   lat: number;
   lng: number;
 };
+function easeInOutQuad(x: number): number {
+  return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+}
+function getDelta(
+  from: Coordinate,
+  to: Coordinate
+): { deltaLat: number; deltaLng: number } {
+  const deltaLat = to.lat - from.lat;
+  const deltaLng = to.lng - from.lng;
+  return { deltaLat, deltaLng };
+}
 
-function easeOutCubic(x: number): number {
-  return 1 - Math.pow(1 - x, 3);
+function haversine(from: Coordinate, to: Coordinate): number {
+  const { deltaLat, deltaLng } = getDelta(from, to);
+  const a =
+    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+    Math.cos(from.lat) *
+      Math.cos(to.lat) *
+      Math.sin(deltaLng / 2) *
+      Math.sin(deltaLng / 2);
+  return Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+export function getPosition(
+  from: Coordinate,
+  to: Coordinate,
+  progress: number
+): Coordinate {
+  const { deltaLat, deltaLng } = getDelta(from, to);
+  const lat = from.lat + deltaLat * progress;
+  const lng = from.lng + deltaLng * progress;
+  return { lat, lng };
 }
 
 export default class GlobeAnimation extends Animation {
@@ -16,27 +45,24 @@ export default class GlobeAnimation extends Animation {
     render: () => void,
     from: Coordinate,
     to: Coordinate,
+    extraSetValue?: (progress: number) => void
   ) {
-    const deltaLat = to.lat - from.lat;
-    const deltaLng = to.lng - from.lng;
+    const percentAroundTheWorld = haversine(from, to) / Math.PI;
 
-    const a =
-      Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-      Math.cos(from.lat) *
-        Math.cos(to.lat) *
-        Math.sin(deltaLng / 2) *
-        Math.sin(deltaLng / 2);
-    const percentAroundTheWorld = Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) / Math.PI;
+    const durationMs = 1000 + percentAroundTheWorld * 2000;
 
-    const durationMs = percentAroundTheWorld * 4000;
-
-    super((progress) => {
-      const lat = from.lat + deltaLat * progress;
-      const lng = from.lng + deltaLng * progress;
-      globe.rotation.x = lat;
-      globe.rotation.y = -lng;
-      globe.position.z = 400 * percentAroundTheWorld * progress * (progress - 1);
-      render();
-    }, durationMs, easeOutCubic);
+    super(
+      (progress) => {
+        const { lat, lng } = getPosition(from, to, progress);
+        globe.rotation.x = lat;
+        globe.rotation.y = -lng;
+        globe.position.z =
+          400 * percentAroundTheWorld * progress * (progress - 1);
+        extraSetValue?.(progress);
+        render();
+      },
+      durationMs,
+      easeInOutQuad
+    );
   }
 }

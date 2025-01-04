@@ -5,7 +5,7 @@ import GlobeAnimation from "./GlobeAnimation";
 export default class GlobeAnimationManager {
   constructor(private globe: ThreeGlobe, private render: () => void) {
   }
-  animate(to: Coordinate) {
-    new GlobeAnimation(this.globe, this.render, {lat: this.globe.rotation.x, lng: -this.globe.rotation.y}, to).play();
+  animate(to: Coordinate, extraSetValue?: (progress: number) => void): Promise<void> {
+    return new GlobeAnimation(this.globe, this.render, {lat: this.globe.rotation.x, lng: -this.globe.rotation.y}, to, extraSetValue).play();
   }
 }

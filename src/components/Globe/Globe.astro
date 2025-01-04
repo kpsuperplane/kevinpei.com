@@ -64,19 +64,29 @@ import kevin from "./Kevin.jpg";
   import { CSS2DRenderer } from "three/addons/renderers/CSS2DRenderer.js";
   import countries from "./ne_110m_admin_0_countries.json";
   import GlobeAnimationManager from "./GlobeAnimationManager";
+  import { getPosition, type Coordinate } from "./GlobeAnimation";
 
   type Marker = {
     lat: number;
     lng: number;
     element: HTMLElement;
   };
-  const gData: Marker[] = [
-    {
-      lat: 47.6061,
-      lng: -122.3328,
+
+  const waterloo = {
+    lat: 43.4643,
+    lng: -80.5204,
+  };
+  const seattle = {
+    lat: 47.6061,
+    lng: -122.3328,
+  };
+
+  function getKevin(c: Coordinate): Marker {
+    return {
+      ...c,
       element: document.getElementById("globe:html:kevin")!!,
-    },
-  ];
+    };
+  }
 
   // Initialize the globe
   const globe = new ThreeGlobe({ animateIn: false })
@@ -89,8 +99,9 @@ import kevin from "./Kevin.jpg";
     .hexPolygonMargin(0.3)
     .hexPolygonUseDots(true)
     .hexPolygonColor(() => "rgb(255, 255, 255)")
-    .htmlElementsData(gData)
-    .htmlElement((d) => (d as Marker).element);
+    .htmlElementsData([getKevin(waterloo)])
+    .htmlTransitionDuration(0)
+    .htmlElement("element");
   // Setup globe renderer
   const globeRenderer = new THREE.WebGLRenderer({
     canvas: document.getElementById("globe:canvas") as HTMLCanvasElement,
@@ -141,8 +152,22 @@ import kevin from "./Kevin.jpg";
   globe.onGlobeReady(() => {
     setTimeout(() => {
       render();
-      document.getElementById('globe')!.animate([{opacity: 0}, {opacity: 1}], {duration: 500, fill: "forwards"});
-      animationManager.animate({ lat: toRad(47.6), lng: toRad(-122.3) });
+      document
+        .getElementById("globe")!
+        .animate([{ opacity: 0 }, { opacity: 1 }], {
+          duration: 500,
+          fill: "forwards",
+        });
+      animationManager.animate({lat: toRad(waterloo.lat), lng: toRad(waterloo.lng)}).then(() => {
+        animationManager.animate({lat: toRad(seattle.lat), lng: toRad(seattle.lng)}, (progress) => {
+          globe.htmlElementsData([
+            getKevin(getPosition(waterloo, seattle, progress)),
+          ]);
+        }).then(() => {
+          globe.htmlElementsData([getKevin(seattle)]);
+          render();
+        });
+      });
     }, 100);
   });
 </script>

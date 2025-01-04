@@ -5,7 +5,7 @@ export default class Animation {
     private durationMs: number,
     private easing: (progress: number) => number
   ) {}
-  play = () => {
+  playInternal = () => {
     if (this.startTime === 0) {
       this.startTime = new Date().getTime();
     }
@@ -15,4 +15,9 @@ export default class Animation {
       requestAnimationFrame(this.play);
     }
   };
+  play = () =>
+    new Promise<void>((resolve) => {
+      this.playInternal();
+      setTimeout(() => requestAnimationFrame(() => resolve()), this.durationMs + 10);
+    });
 }
