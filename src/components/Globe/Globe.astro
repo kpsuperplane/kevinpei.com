@@ -1,7 +1,20 @@
-<canvas id="globe"></canvas>
+---
+import { Image } from "astro:assets";
+import kevin from "./Kevin.jpg";
+---
+
+<div id="globe">
+  <canvas id="globe:canvas"></canvas>
+  <div id="globe:html">
+    <div id="globe:html:kevin">
+      <div class="marker"><Image src={kevin} alt="Kevin Pei" /></div>
+    </div>
+  </div>
+</div>
 
 <style>
-  canvas {
+  #globe {
+    opacity: 0;
     position: fixed;
     top: 0;
     left: 0;
@@ -9,71 +22,127 @@
     width: 100vw;
     height: 100vh;
   }
+  #globe\:canvas,
+  #globe\:html {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .marker {
+    transform: translate3d(0, -50%, 0);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.15));
+    > img {
+      height: 48px;
+      width: 48px;
+      border-radius: 100%;
+      border: 4px solid white;
+    }
+    &:after {
+      margin-top: -8px;
+      width: 0;
+      height: 0;
+      border-left: 16px solid transparent;
+      border-right: 16px solid transparent;
+      border-top: 16px solid white;
+      content: "";
+      display: block;
+      position: relative;
+      z-index: -1;
+    }
+  }
 </style>
 
 <script>
   import * as THREE from "three";
   import ThreeGlobe from "three-globe";
-  import LandTopo from "world-atlas/land-110m.json";
-  import * as topojson from "topojson-client";
-  import type { Topology, GeometryCollection } from "topojson-specification";
+  import { CSS2DRenderer } from "three/addons/renderers/CSS2DRenderer.js";
+  import countries from "./ne_110m_admin_0_countries.json";
+  import GlobeAnimationManager from "./GlobeAnimationManager";
+
+  type Marker = {
+    lat: number;
+    lng: number;
+    element: HTMLElement;
+  };
+  const gData: Marker[] = [
+    {
+      lat: 47.6061,
+      lng: -122.3328,
+      element: document.getElementById("globe:html:kevin")!!,
+    },
+  ];
+
+  // Initialize the globe
   const globe = new ThreeGlobe({ animateIn: false })
     .atmosphereColor("rgb(220, 220, 220)")
-    .globeMaterial(new THREE.MeshLambertMaterial({color: 'rgb(245, 245, 245)'}))
-    .polygonsData(
-      topojson.feature(
-        LandTopo as unknown as Topology,
-        LandTopo.objects.land as GeometryCollection
-      ).features
+    .globeMaterial(
+      new THREE.MeshLambertMaterial({ color: "rgb(245, 245, 245)" })
     )
-    .polygonCapMaterial(
-      new THREE.MeshLambertMaterial({ color: "rgb(255, 255, 255)", side: THREE.FrontSide })
-    )
-    .polygonAltitude(0.005)
-    .polygonSideColor(() => "rgba(0,0,0,0)")
-    .polygonsTransitionDuration(0);
-
-  // Setup renderer
-  const renderer = new THREE.WebGLRenderer({
-    canvas: document.getElementById("globe") as HTMLCanvasElement,
+    .hexPolygonsData(countries.features)
+    .hexPolygonResolution(3)
+    .hexPolygonMargin(0.3)
+    .hexPolygonUseDots(true)
+    .hexPolygonColor(() => "rgb(255, 255, 255)")
+    .htmlElementsData(gData)
+    .htmlElement((d) => (d as Marker).element);
+  // Setup globe renderer
+  const globeRenderer = new THREE.WebGLRenderer({
+    canvas: document.getElementById("globe:canvas") as HTMLCanvasElement,
   });
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setClearColor(0xffffff, 0);
+  globeRenderer.setClearColor(0xffffff, 0);
+
+  // Setup HTML renderer
+  const htmlRenderer = new CSS2DRenderer({
+    element: document.getElementById("globe:html")!!,
+  });
 
   // Setup scene
   const scene = new THREE.Scene();
   scene.add(globe);
   scene.add(new THREE.AmbientLight(0xeeeeee, Math.PI));
-  // const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3 * Math.PI);
-  // scene.add(directionalLight);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3 * Math.PI);
+  directionalLight.position.set(-1, 1, 0);
+  scene.add(directionalLight);
 
   // Setup camera
   const camera = new THREE.PerspectiveCamera();
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
   camera.position.z = 200;
 
-  // globe.onGlobeReady(() => {
-  //   setTimeout(() => {
-  //     renderer.render(scene, camera);
-  //   }, 100);
-  // });
+  const render = () => {
+    globe.setPointOfView(camera);
+    globeRenderer.render(scene, camera);
+    htmlRenderer.render(scene, camera);
+  };
 
-  // Add camera controls
-  import { TrackballControls } from 'three/addons/controls/TrackballControls.js';
-  const tbControls = new TrackballControls(camera, renderer.domElement);
-  tbControls.minDistance = 101;
-  tbControls.rotateSpeed = 5;
-  tbControls.zoomSpeed = 0.8;
-  // Kick-off renderer
-  (function animate() { // IIFE
-    // Frame cycle
-    tbControls.update();
-    // directionalLight.position.setX(camera.position.x);
-    // directionalLight.position.setY(camera.position.y);
-    // directionalLight.position.setZ(camera.position.z);
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
-  })();
+  const onResize = () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    globeRenderer.setPixelRatio(window.devicePixelRatio);
+    globeRenderer.setSize(window.innerWidth, window.innerHeight);
+    htmlRenderer.setSize(window.innerWidth, window.innerHeight);
+    render();
+  };
+
+  onResize();
+  window.addEventListener("resize", onResize);
+
+  const animationManager = new GlobeAnimationManager(globe, render);
+
+  function toRad(degrees: number) {
+    return degrees * (Math.PI / 180);
+  }
+
+  globe.onGlobeReady(() => {
+    setTimeout(() => {
+      render();
+      document.getElementById('globe')!.animate([{opacity: 0}, {opacity: 1}], {duration: 500, fill: "forwards"});
+      animationManager.animate({ lat: toRad(47.6), lng: toRad(-122.3) });
+    }, 100);
+  });
 </script>
