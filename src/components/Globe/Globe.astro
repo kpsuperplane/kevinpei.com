@@ -1,0 +1,79 @@
+<canvas id="globe"></canvas>
+
+<style>
+  canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    width: 100vw;
+    height: 100vh;
+  }
+</style>
+
+<script>
+  import * as THREE from "three";
+  import ThreeGlobe from "three-globe";
+  import LandTopo from "world-atlas/land-110m.json";
+  import * as topojson from "topojson-client";
+  import type { Topology, GeometryCollection } from "topojson-specification";
+  const globe = new ThreeGlobe({ animateIn: false })
+    .atmosphereColor("rgb(220, 220, 220)")
+    .globeMaterial(new THREE.MeshLambertMaterial({color: 'rgb(245, 245, 245)'}))
+    .polygonsData(
+      topojson.feature(
+        LandTopo as unknown as Topology,
+        LandTopo.objects.land as GeometryCollection
+      ).features
+    )
+    .polygonCapMaterial(
+      new THREE.MeshLambertMaterial({ color: "rgb(255, 255, 255)", side: THREE.FrontSide })
+    )
+    .polygonAltitude(0.005)
+    .polygonSideColor(() => "rgba(0,0,0,0)")
+    .polygonsTransitionDuration(0);
+
+  // Setup renderer
+  const renderer = new THREE.WebGLRenderer({
+    canvas: document.getElementById("globe") as HTMLCanvasElement,
+  });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0xffffff, 0);
+
+  // Setup scene
+  const scene = new THREE.Scene();
+  scene.add(globe);
+  scene.add(new THREE.AmbientLight(0xeeeeee, Math.PI));
+  // const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3 * Math.PI);
+  // scene.add(directionalLight);
+
+  // Setup camera
+  const camera = new THREE.PerspectiveCamera();
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  camera.position.z = 200;
+
+  // globe.onGlobeReady(() => {
+  //   setTimeout(() => {
+  //     renderer.render(scene, camera);
+  //   }, 100);
+  // });
+
+  // Add camera controls
+  import { TrackballControls } from 'three/addons/controls/TrackballControls.js';
+  const tbControls = new TrackballControls(camera, renderer.domElement);
+  tbControls.minDistance = 101;
+  tbControls.rotateSpeed = 5;
+  tbControls.zoomSpeed = 0.8;
+  // Kick-off renderer
+  (function animate() { // IIFE
+    // Frame cycle
+    tbControls.update();
+    // directionalLight.position.setX(camera.position.x);
+    // directionalLight.position.setY(camera.position.y);
+    // directionalLight.position.setZ(camera.position.z);
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  })();
+</script>
