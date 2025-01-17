@@ -9,6 +9,9 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@fontsource-variable/rem": "^5.1.1",
+    "@fontsource-variable/shantell-sans": "^5.1.1",
+    "@fontsource-variable/source-serif-4": "^5.1.1",
     "astro": "^5.1.2",
     "three": "^0.172.0",
     "three-globe": "^2.39.1",

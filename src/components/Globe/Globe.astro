@@ -92,11 +92,11 @@ import kevin from "./Kevin.jpg";
   const globe = new ThreeGlobe({ animateIn: false })
     .atmosphereColor("rgb(220, 220, 220)")
     .globeMaterial(
-      new THREE.MeshLambertMaterial({ color: "rgb(245, 245, 245)" })
+      new THREE.MeshLambertMaterial({ color: "rgb(209, 241, 255)" })
     )
     .hexPolygonsData(countries.features)
     .hexPolygonResolution(3)
-    .hexPolygonMargin(0.3)
+    .hexPolygonMargin(0.1)
     .hexPolygonUseDots(true)
     .hexPolygonColor(() => "rgb(255, 255, 255)")
     .htmlElementsData([getKevin(waterloo)])
@@ -106,7 +106,7 @@ import kevin from "./Kevin.jpg";
   const globeRenderer = new THREE.WebGLRenderer({
     canvas: document.getElementById("globe:canvas") as HTMLCanvasElement,
   });
-  globeRenderer.setClearColor(0xffffff, 0);
+  globeRenderer.setClearColor(0x000000, 1);
 
   // Setup HTML renderer
   const htmlRenderer = new CSS2DRenderer({
@@ -123,7 +123,7 @@ import kevin from "./Kevin.jpg";
 
   // Setup camera
   const camera = new THREE.PerspectiveCamera();
-  camera.position.z = 200;
+  camera.position.z = 140;
 
   const render = () => {
     globe.setPointOfView(camera);

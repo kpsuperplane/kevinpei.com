@@ -1,25 +1,209 @@
 ---
-import Globe from '../components/Globe/Globe.astro';
+import "@fontsource-variable/shantell-sans";
+import "@fontsource-variable/rem";
+import "@fontsource-variable/source-serif-4";
+import Globe from "../components/Globe/Globe.astro";
+import Nav from "../components/Nav/Nav.astro";
 ---
+
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Kevin Pei</title>
-	</head>
-	<body>
-		<Globe />
-		<slot />
-	</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Kevin Pei</title>
+  </head>
+  <body>
+    <Globe />
+    <Nav />
+    <slot />
+  </body>
 </html>
 
-<style>
-	html,
-	body {
-		padding: 0;
-		margin: 0;
-	}
+<style is:global>
+  :root {
+    /* Sizes */
+    --gap: 16px;
+    --gap-small: 8px;
+    --hairline: 1px;
+    --background: #fff;
+    --backdrop: rgba(255, 255, 255, 0.6);
+    --wash: #fafafa;
+    --button-background: #f0f0f0;
+    --divider: #eee;
+    --table-border: #ddd;
+    --primary: #21ad73;
+    --primary-deemphasized: rgba(33, 173, 115, 0.2);
+    --text: #1a1a1a;
+    --text-deemphasized: #515151;
+    --gradient: linear-gradient(
+      to right,
+      rgba(0, 255, 179, 0.3) 0%,
+      rgba(213, 3, 255, 0.3) 50%,
+      rgba(0, 204, 255, 0.3) 100%
+    );
+		--font-fun: 'Shantell Sans Variable';
+		--font-sans: 'REM Variable';
+		--font-serif: 'Source Serif 4 Variable';
+  }
+  html,
+  body {
+    padding: 0;
+    margin: 0;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0;
+  }
+  :not(h1, h2, h3, h4, h5, h6, time) {
+    + h1,
+    + h2,
+    + h3,
+    + h4,
+    + h5,
+    + h6 {
+      padding-block-start: var(--gap);
+    }
+  }
+  h1 {
+    font-family: var(--font-fun);
+    font-weight: 400;
+    font-size: 1.5em;
+  }
+  h2 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 1.3em;
+    color: var(--primary);
+  }
+  h3 {
+    font-family: var(--font-serif);
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--text);
+  }
+  h4 {
+    font-family: var(--font-sans);
+    color: var(--text-deemphasized);
+    font-weight: 600;
+    font-size: 1em;
+  }
+  blockquote {
+    margin: 0;
+    border-inline-start: 4px solid var(--primary);
+    margin-inline: 0;
+    padding-inline-start: var(--gap);
+    display: block;
+    font-family: var(--font-sans);
+    p {
+      margin: 0;
+    }
+  }
+  hr {
+    display: block;
+    margin: 0;
+    height: var(--hairline);
+    width: 100%;
+    border-style: none;
+    background-color: var(--divider);
+  }
+  p,
+  li,
+  pre {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 1em;
+    font-weight: 300;
+    line-height: 1.5em;
+  }
+  li::marker {
+    color: var(--text-deemphasized);
+    font-family: var(--font-fun);
+  }
+  ul,
+  ol {
+    margin: 0;
+    padding: 0;
+    list-style-position: inside;
+  }
+  pre[class*="language-"] {
+    code {
+      display: block;
+      padding-block: var(--gap-small);
+      font-size: 0.8em;
+      background-color: var(--wash);
+      border: var(--hairline) solid var(--table-border);
+      border-radius: var(--gap-small);
+      white-space: pre-wrap;
+      box-sizing: border-box;
+    }
+  }
+  p code {
+    display: inline-block;
+    font-size: 0.8rem;
+    padding: 0.1rem 0.4rem;
+    line-height: 1em;
+    margin-block: calc(-1 * var(--hairline));
+    border-radius: var(--gap-small);
+    vertical-align: middle;
+    border: var(--hairline) solid var(--table-border);
+    background-color: var(--wash);
+  }
+  table {
+    border: var(--hairline) solid var(--table-border);
+    border-radius: var(--gap-small);
+    margin: var(--gap) 0 0 0;
+    border-spacing: 0;
+    border-collapse: separate;
+    padding: 0;
+    th {
+      font-weight: 600;
+    }
+    td {
+      font-weight: 300;
+    }
+    thead th,
+    thead td {
+      border-block-end: var(--hairline) solid var(--table-border);
+    }
+    td,
+    th {
+      text-align: start;
+      font-family: var(--font-sans);
+      padding: var(--gap-small);
+      font-size: 0.85em;
+    }
+    tr:nth-child(even) {
+      background-color: var(--wash);
+    }
+  }
+  a {
+    color: var(--primary);
+    font-weight: 500;
+    display: inline-block;
+    &:after {
+      width: 100%;
+      content: "";
+      position: absolute;
+      inset-block-end: 0;
+      inset-inline-start: 0;
+      height: 2px;
+      background-color: var(--table-border);
+    }
+  }
+  strong {
+    font-weight: 500;
+  }
+  img {
+    border-radius: var(--gap-small);
+    display: block;
+    width: 100%;
+    height: auto;
+  }
 </style>

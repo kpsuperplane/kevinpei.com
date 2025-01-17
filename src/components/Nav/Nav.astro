@@ -1,0 +1,142 @@
+---
+import { Image } from "astro:assets";
+import kevin from "./kevin.jpg";
+import instagram from "./instagram.svg?raw";
+import github from "./github.svg?raw";
+import linkedin from "./linkedin.svg?raw";
+import email from "./email.svg?raw";
+import resume from "./resume.svg?raw";
+---
+
+<nav>
+  <div id="profile" class="section">
+    <div id="profile-links">
+      <a title="Resume" href="/assets/kevin-pei-resume.pdf">
+        <Fragment set:html={resume} /> Resume
+      </a>
+      <div class="profile-links-divider"></div>
+      <a
+        title="Instagram"
+        href="https://instagram.com/kpsuperplane"
+        target="_blank"
+      >
+        <Fragment set:html={instagram} />
+      </a>
+      <a title="Github" href="https://github.com/kpsuperplane" target="_blank">
+        <Fragment set:html={github} />
+      </a>
+      <a
+        title="LinkedIn"
+        href="https://www.linkedin.com/in/kpsuperplane/"
+        target="_blank"
+      >
+        <Fragment set:html={linkedin} />
+      </a>
+      <a title="Email" href="mailto:hello@kevinpei.com">
+        <Fragment set:html={email} />
+      </a>
+    </div>
+    <div id="profile-header">
+      <Image src={kevin} alt="" />
+      <div id="profile-header-content">
+        <h1>Kevin Pei</h1>
+        <p>[ˈkɛvɪn peɪ] · noun</p>
+      </div>
+    </div>
+    <p>A silly person who enjoys building cool things</p>
+    <h4>Other Definitions</h4>
+    <ol>
+      <li>An avid skier and occasional snowboarder</li>
+      <li>A developer with a deep passion for UX</li>
+      <li>Someone who knows a lot about planes</li>
+    </ol>
+  </div>
+</nav>
+
+<style>
+  nav {
+    height: 300px;
+    margin: 16px;
+  }
+  .section {
+    max-width: 360px;
+    background: white;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  #profile {
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.5) 0px,
+        white 32px
+      ),
+      linear-gradient(
+        to right,
+        rgba(0, 255, 179, 0.3) 0%,
+        rgba(213, 3, 255, 0.3) 50%,
+        rgba(0, 204, 255, 0.3) 100%
+      ),
+      white;
+    display: flex;
+    flex-direction: column;
+    #profile-links {
+      display: flex;
+      gap: var(--gap);
+      .profile-links-divider {
+        height: 1em;
+        background: var(--text-deemphasized);
+        width: 1px;
+      }
+      a {
+        font-size: 1em;
+        font-family: var(--font-sans);
+        color: var(--text-deemphasized);
+        text-decoration: none;
+        font-weight: 300;
+        line-height: 1em;
+        transition: all 200ms;
+        svg {
+          height: 1em;
+          width: 1em;
+          vertical-align: bottom;
+        }
+        &:hover {
+          color: var(--primary);
+        }
+      }
+    }
+    #profile-header {
+      padding-block: var(--gap);
+      display: flex;
+      gap: var(--gap);
+      align-items: center;
+      img {
+        height: 64px;
+        width: 64px;
+        border-radius: 8px;
+      }
+      #profile-header-content {
+        display: flex;
+        flex-direction: column;
+        h1 {
+          font-family: var(--font-serif), sans-serif;
+          font-weight: 400;
+          font-size: 40px;
+          margin: 0;
+          padding: 0;
+          line-height: 1em;
+        }
+        p {
+          font-family: var(--font-sans), sans-serif;
+          font-weight: 300;
+          font-size: 12px;
+          margin: 0;
+          padding: 0;
+          color: var(--text-deemphasized);
+          line-height: 1.5em;
+        }
+      }
+    }
+  }
+</style>
