@@ -1,29 +1,30 @@
 ---
 import { Image } from "astro:assets";
 import kevin from "./Kevin.jpg";
+import "maplibre-gl/dist/maplibre-gl.css";
 ---
 
 <div id="globe">
-  <canvas id="globe:canvas"></canvas>
-  <div id="globe:html">
-    <div id="globe:html:kevin">
+  <div id="globe-canvas"></div>
+  <!-- <div id="globe-html">
+    <div id="globe-html-kevin">
       <div class="marker"><Image src={kevin} alt="Kevin Pei" /></div>
     </div>
-  </div>
+  </div> -->
 </div>
 
 <style>
   #globe {
+    background: #e0e4e4;
     opacity: 0;
     position: fixed;
     top: 0;
     left: 0;
-    z-index: -1;
     width: 100vw;
     height: 100vh;
   }
-  #globe\:canvas,
-  #globe\:html {
+  #globe-canvas,
+  #globe-html {
     position: absolute;
     top: 0;
     left: 0;
@@ -59,115 +60,34 @@ import kevin from "./Kevin.jpg";
 </style>
 
 <script>
-  import * as THREE from "three";
-  import ThreeGlobe from "three-globe";
-  import { CSS2DRenderer } from "three/addons/renderers/CSS2DRenderer.js";
-  import countries from "./ne_110m_admin_0_countries.json";
-  import GlobeAnimationManager from "./GlobeAnimationManager";
-  import { getPosition, type Coordinate } from "./GlobeAnimation";
+  import maplibregl from "maplibre-gl";
+  import {Protocol} from "pmtiles";
+  import style from './style';
 
-  type Marker = {
-    lat: number;
-    lng: number;
-    element: HTMLElement;
-  };
+  let protocol = new Protocol({ metadata: true });
+  maplibregl.addProtocol("pmtiles", protocol.tile);
 
-  const waterloo = {
-    lat: 43.4643,
-    lng: -80.5204,
-  };
-  const seattle = {
-    lat: 47.6061,
-    lng: -122.3328,
-  };
-
-  function getKevin(c: Coordinate): Marker {
-    return {
-      ...c,
-      element: document.getElementById("globe:html:kevin")!!,
-    };
-  }
-
-  // Initialize the globe
-  const globe = new ThreeGlobe({ animateIn: false })
-    .atmosphereColor("rgb(220, 220, 220)")
-    .globeMaterial(
-      new THREE.MeshLambertMaterial({ color: "rgb(209, 241, 255)" })
-    )
-    .hexPolygonsData(countries.features)
-    .hexPolygonResolution(3)
-    .hexPolygonMargin(0.1)
-    .hexPolygonUseDots(true)
-    .hexPolygonColor(() => "rgb(255, 255, 255)")
-    .htmlElementsData([getKevin(waterloo)])
-    .htmlTransitionDuration(0)
-    .htmlElement("element");
-  // Setup globe renderer
-  const globeRenderer = new THREE.WebGLRenderer({
-    canvas: document.getElementById("globe:canvas") as HTMLCanvasElement,
+  const map = new maplibregl.Map({
+    container: "globe-canvas", // container id
+    style,
+    center: [0, 0], // starting position [lng, lat]
+    zoom: 5,
   });
-  globeRenderer.setClearColor(0x000000, 1);
-
-  // Setup HTML renderer
-  const htmlRenderer = new CSS2DRenderer({
-    element: document.getElementById("globe:html")!!,
+  map.on("style.load", () => {
+    map.setProjection({
+      type: "globe", // Set projection to globe
+    });
   });
-
-  // Setup scene
-  const scene = new THREE.Scene();
-  scene.add(globe);
-  scene.add(new THREE.AmbientLight(0xeeeeee, Math.PI));
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3 * Math.PI);
-  directionalLight.position.set(-1, 1, 0);
-  scene.add(directionalLight);
-
-  // Setup camera
-  const camera = new THREE.PerspectiveCamera();
-  camera.position.z = 140;
-
-  const render = () => {
-    globe.setPointOfView(camera);
-    globeRenderer.render(scene, camera);
-    htmlRenderer.render(scene, camera);
-  };
-
-  const onResize = () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    globeRenderer.setPixelRatio(window.devicePixelRatio);
-    globeRenderer.setSize(window.innerWidth, window.innerHeight);
-    htmlRenderer.setSize(window.innerWidth, window.innerHeight);
-    render();
-  };
-
-  onResize();
-  window.addEventListener("resize", onResize);
-
-  const animationManager = new GlobeAnimationManager(globe, render);
-
-  function toRad(degrees: number) {
-    return degrees * (Math.PI / 180);
-  }
-
-  globe.onGlobeReady(() => {
-    setTimeout(() => {
-      render();
-      document
-        .getElementById("globe")!
-        .animate([{ opacity: 0 }, { opacity: 1 }], {
-          duration: 500,
-          fill: "forwards",
-        });
-      animationManager.animate({lat: toRad(waterloo.lat), lng: toRad(waterloo.lng)}).then(() => {
-        animationManager.animate({lat: toRad(seattle.lat), lng: toRad(seattle.lng)}, (progress) => {
-          globe.htmlElementsData([
-            getKevin(getPosition(waterloo, seattle, progress)),
-          ]);
-        }).then(() => {
-          globe.htmlElementsData([getKevin(seattle)]);
-          render();
-        });
+  map.on("load", () => {
+    document
+      .getElementById("globe")!
+      .animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: 200,
+        fill: "forwards",
       });
-    }, 100);
+
+    const marker = new maplibregl.Marker()
+        .setLngLat([12.550343, 55.665957])
+        .addTo(map); 
   });
 </script>

@@ -13,6 +13,8 @@
     "@fontsource-variable/shantell-sans": "^5.1.1",
     "@fontsource-variable/source-serif-4": "^5.1.1",
     "astro": "^5.1.2",
+    "maplibre-gl": "^5.0.1",
+    "pmtiles": "^4.2.1",
     "three": "^0.172.0",
     "three-globe": "^2.39.1",
     "topojson-client": "^3.1.0",
