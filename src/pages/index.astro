@@ -1,36 +1,15 @@
 ---
 import AppShell from '../layouts/AppShell.astro';
-import Sidebar from '../components/Sidebar.astro';
 import TrackList from '../components/TrackList.astro';
-import NowPlaying from '../components/NowPlaying.astro';
 import FeaturedBanner from '../components/FeaturedBanner.astro';
 import { getCollection } from 'astro:content';
 
 const allPosts = await getCollection('posts');
 const posts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-const tags = [...new Set(posts.flatMap(p => p.data.tags))].sort();
 ---
 
 <AppShell title="Kevin Pei">
-  <Sidebar currentPath="/" tags={tags} />
-  <main class="main-panel">
-    <TrackList posts={posts} heading="" headingId="greeting">
-      <FeaturedBanner slot="feature" />
-    </TrackList>
-  </main>
-  <NowPlaying />
+  <FeaturedBanner />
+  <TrackList heading="Top Picks for You" posts={posts} />
 </AppShell>
 
-<script is:inline>
-  const h = new Date().getHours();
-  const greeting = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-  document.getElementById('greeting').textContent = greeting;
-</script>
-
-<style>
-  .main-panel {
-    grid-area: main;
-    overflow-y: auto;
-    background: var(--bg);
-  }
-</style>

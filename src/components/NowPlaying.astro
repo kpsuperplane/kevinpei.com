@@ -67,7 +67,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
 
   if (!footer?.classList.contains('active')) {
     // Nothing to wire up on non-post pages
-  } else if (main && scrubber) {
+  } else if (scrubber) {
     const formatTime = (pct: number, readTime: number) => {
       const totalSec = readTime * 60;
       const sec = Math.round(pct * totalSec);
@@ -84,10 +84,10 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
     if (total) total.textContent = `${totalM}:${totalS.toString().padStart(2, '0')}`;
 
     // Scroll → scrubber
-    main.addEventListener('scroll', () => {
-      const scrollable = main.scrollHeight - main.clientHeight;
+    window.addEventListener('scroll', () => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
       if (scrollable <= 0) return;
-      const pct = main.scrollTop / scrollable;
+      const pct = window.scrollY / scrollable;
       scrubber.value = String(pct * 100);
       scrubber.style.setProperty('--pct', `${pct * 100}%`);
       if (elapsed) elapsed.textContent = formatTime(pct, readTime);
@@ -96,8 +96,8 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
     // Scrubber → scroll
     scrubber.addEventListener('input', () => {
       const pct = Number(scrubber.value) / 100;
-      const scrollable = main.scrollHeight - main.clientHeight;
-      main.scrollTop = pct * scrollable;
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      window.scrollTo(0, pct * scrollable);
       scrubber.style.setProperty('--pct', `${pct * 100}%`);
     });
 
@@ -121,15 +121,22 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
 
 <style>
   .nowplaying {
-    grid-area: nowplaying;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(calc(-50% + var(--sidebar-w) / 2));
+    width: calc(var(--content-w) - 48px);
     background: var(--bg-elevated);
-    border-top: 1px solid var(--border);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
     display: grid;
     grid-template-columns: 1fr 2fr 1fr;
     align-items: center;
     padding: 0 16px;
     gap: 16px;
     height: var(--nowplaying-h);
+    z-index: 100;
   }
 
   .track-info {
@@ -322,6 +329,11 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
 
   @media (max-width: 768px) {
     .nowplaying {
+      left: 12px;
+      right: 12px;
+      bottom: calc(var(--mobile-nav-h) + 12px);
+      width: auto;
+      transform: none;
       grid-template-columns: 1fr auto;
       padding: 0 12px;
       gap: 8px;

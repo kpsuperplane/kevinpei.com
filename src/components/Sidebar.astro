@@ -69,14 +69,35 @@ const socialLinks = [
   </nav>
 </aside>
 
+<nav class="mobile-nav">
+  <a href="/" class:list={['mobile-nav-item', { active: currentPath === '/' }]}>
+    <span class="mobile-nav-icon">◎</span>
+    <span>Home</span>
+  </a>
+  <a href="/about" class:list={['mobile-nav-item', { active: currentPath === '/about' }]}>
+    <span class="mobile-nav-icon">♪</span>
+    <span>About</span>
+  </a>
+  {tags.slice(0, 2).map(tag => (
+    <a
+      href={`/tags/${tag.toLowerCase()}`}
+      class:list={['mobile-nav-item', { active: currentPath === `/tags/${tag.toLowerCase()}` }]}
+    >
+      <span class="mobile-nav-icon">♫</span>
+      <span>{tag}</span>
+    </a>
+  ))}
+</nav>
+
 <style>
   .sidebar {
     grid-area: sidebar;
-    background: var(--bg-elevated);
-    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
     overflow-y: auto;
     scrollbar-gutter: stable;
-    padding: 24px 12px;
+    padding: 32px 12px;
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -89,10 +110,6 @@ const socialLinks = [
     padding: 6px 8px;
     border-radius: 6px;
     transition: background 0.1s;
-  }
-
-  .profile:hover {
-    background: var(--bg-hover);
   }
 
   .avatar {
@@ -183,6 +200,46 @@ const socialLinks = [
   @media (max-width: 768px) {
     .sidebar {
       display: none;
+    }
+  }
+
+  .mobile-nav {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .mobile-nav {
+      display: flex;
+      flex-direction: row;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--mobile-nav-h);
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      z-index: 90;
+    }
+
+    .mobile-nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 11px;
+      color: var(--text-muted);
+      transition: color 0.1s;
+    }
+
+    .mobile-nav-item.active {
+      color: var(--accent);
+    }
+
+    .mobile-nav-icon {
+      font-size: 18px;
+      line-height: 1;
     }
   }
 </style>

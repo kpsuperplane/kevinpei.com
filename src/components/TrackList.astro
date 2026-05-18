@@ -15,14 +15,13 @@ interface Props {
   posts: Post[];
   activeSlug?: string;
   heading?: string;
-  headingId?: string;
 }
-const { posts, activeSlug, heading = 'All Posts', headingId } = Astro.props;
+const { posts, activeSlug, heading } = Astro.props;
 ---
 
 <div class="track-list-wrap">
   <div class="track-list-header">
-    <h1 class="heading" id={headingId}>{heading}</h1>
+    <h1 class="heading">{heading}</h1>
     <slot name="feature" />
     <div class="col-headers">
       <span class="col-num">#</span>
@@ -50,7 +49,7 @@ const { posts, activeSlug, heading = 'All Posts', headingId } = Astro.props;
 
 <style>
   .track-list-wrap {
-    padding: 32px 16px 24px;
+    padding: 0px 16px;
   }
 
   .heading {

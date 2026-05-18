@@ -1,38 +1,20 @@
 ---
 import AppShell from '../layouts/AppShell.astro';
-import Sidebar from '../components/Sidebar.astro';
-import NowPlaying from '../components/NowPlaying.astro';
-import { getCollection } from 'astro:content';
 import AboutContent from '../content/about.md';
-
-const allPosts = await getCollection('posts');
-const tags = [...new Set(allPosts.flatMap(p => p.data.tags))].sort();
 ---
 
 <AppShell title="About — Kevin Pei">
-  <Sidebar currentPath="/about" tags={tags} />
-  <main class="main-panel">
-    <div class="about-wrap">
-      <p class="label">About</p>
-      <div class="body">
-        <AboutContent />
-      </div>
+  <div class="about-wrap">
+    <p class="label">About</p>
+    <div class="body">
+      <AboutContent />
     </div>
-  </main>
-  <NowPlaying />
+  </div>
 </AppShell>
 
 <style>
-  .main-panel {
-    grid-area: main;
-    overflow-y: auto;
-    background: var(--bg);
-  }
-
   .about-wrap {
-    max-width: 680px;
-    margin: 0 auto;
-    padding: 48px 32px;
+    padding: 0px 32px 48px;
   }
 
   .label {
@@ -42,13 +24,6 @@ const tags = [...new Set(allPosts.flatMap(p => p.data.tags))].sort();
     letter-spacing: 0.08em;
     color: var(--accent);
     margin-bottom: 12px;
-  }
-
-  .title {
-    font-size: 42px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    margin-bottom: 24px;
   }
 
   .body {
