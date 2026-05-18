@@ -1,0 +1,348 @@
+---
+interface Props {
+  title?: string;
+  tags?: string[];
+  prevSlug?: string;
+  nextSlug?: string;
+  active?: boolean;
+}
+const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
+---
+
+<footer
+  class:list={['nowplaying', { active }]}
+  data-prev={prevSlug ? `/posts/${prevSlug}` : undefined}
+  data-next={nextSlug ? `/posts/${nextSlug}` : undefined}
+>
+  <div class="track-info">
+    <div class="art">{active ? (tags[0]?.charAt(0) ?? '♫') : '♫'}</div>
+    <div class="meta">
+      <span class="track-title">{active ? title : 'Nothing playing'}</span>
+      <span class="track-category">{active ? tags.join(', ') : 'Select a post to start reading'}</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="buttons">
+      <button class="btn-prev" aria-label="Previous post" disabled={!prevSlug}>
+        &#9664;&#9664;
+      </button>
+      <button class="btn-play" aria-label="Toggle reading">
+        {active ? '⏸' : '▶'}
+      </button>
+      <button class="btn-next" aria-label="Next post" disabled={!nextSlug}>
+        &#9654;&#9654;
+      </button>
+    </div>
+    <div class="scrubber-row">
+      <span class="time-elapsed" id="time-elapsed">0:00</span>
+      <input
+        type="range"
+        class="scrubber"
+        id="scrubber"
+        min="0"
+        max="100"
+        value="0"
+        disabled={!active}
+        aria-label="Reading progress"
+      />
+      <span class="time-total" id="time-total">{active ? `${0}:00` : '0:00'}</span>
+    </div>
+  </div>
+
+  <div class="right-controls">
+    <span class="read-time">{active ? 'Reading' : ''}</span>
+  </div>
+</footer>
+
+<script>
+  const footer = document.querySelector('.nowplaying') as HTMLElement | null;
+  const scrubber = document.getElementById('scrubber') as HTMLInputElement | null;
+  const elapsed = document.getElementById('time-elapsed');
+  const total = document.getElementById('time-total');
+  const btnPlay = document.querySelector('.btn-play') as HTMLButtonElement | null;
+  const btnPrev = document.querySelector('.btn-prev') as HTMLButtonElement | null;
+  const btnNext = document.querySelector('.btn-next') as HTMLButtonElement | null;
+  const main = document.querySelector('.main-panel') as HTMLElement | null;
+
+  if (!footer?.classList.contains('active')) {
+    // Nothing to wire up on non-post pages
+  } else if (main && scrubber) {
+    const formatTime = (pct: number, readTime: number) => {
+      const totalSec = readTime * 60;
+      const sec = Math.round(pct * totalSec);
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m}:${s.toString().padStart(2, '0')}`;
+    };
+
+    // Read readTime from body data attribute set by the post page
+    const readTime = parseInt(document.body.dataset.readtime ?? '5', 10);
+    const totalSec = readTime * 60;
+    const totalM = Math.floor(totalSec / 60);
+    const totalS = totalSec % 60;
+    if (total) total.textContent = `${totalM}:${totalS.toString().padStart(2, '0')}`;
+
+    // Scroll → scrubber
+    main.addEventListener('scroll', () => {
+      const scrollable = main.scrollHeight - main.clientHeight;
+      if (scrollable <= 0) return;
+      const pct = main.scrollTop / scrollable;
+      scrubber.value = String(pct * 100);
+      scrubber.style.setProperty('--pct', `${pct * 100}%`);
+      if (elapsed) elapsed.textContent = formatTime(pct, readTime);
+    }, { passive: true });
+
+    // Scrubber → scroll
+    scrubber.addEventListener('input', () => {
+      const pct = Number(scrubber.value) / 100;
+      const scrollable = main.scrollHeight - main.clientHeight;
+      main.scrollTop = pct * scrollable;
+      scrubber.style.setProperty('--pct', `${pct * 100}%`);
+    });
+
+    // Play/pause toggles a dimmed class on main for fun
+    btnPlay?.addEventListener('click', () => {
+      document.body.classList.toggle('paused');
+      if (btnPlay) btnPlay.textContent = document.body.classList.contains('paused') ? '▶' : '⏸';
+    });
+  }
+
+  // Prev/Next navigation
+  btnPrev?.addEventListener('click', () => {
+    const href = footer?.dataset.prev;
+    if (href) window.location.href = href;
+  });
+  btnNext?.addEventListener('click', () => {
+    const href = footer?.dataset.next;
+    if (href) window.location.href = href;
+  });
+</script>
+
+<style>
+  .nowplaying {
+    grid-area: nowplaying;
+    background: var(--bg-elevated);
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+    height: var(--nowplaying-h);
+  }
+
+  .track-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden;
+  }
+
+  .art {
+    width: 48px;
+    height: 48px;
+    background: var(--bg-selected);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    color: var(--text-muted);
+  }
+
+  .nowplaying.active .art {
+    background: var(--accent);
+    color: #000;
+    font-weight: 700;
+  }
+
+  .meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+  }
+
+  .track-title {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+  }
+
+  .nowplaying:not(.active) .track-title {
+    color: var(--text-muted);
+  }
+
+  .track-category {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .buttons {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .btn-prev,
+  .btn-next {
+    font-size: 16px;
+    color: var(--text-muted);
+    transition: color 0.1s;
+  }
+
+  .btn-prev:hover:not(:disabled),
+  .btn-next:hover:not(:disabled) {
+    color: var(--text);
+  }
+
+  .btn-prev:disabled,
+  .btn-next:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .btn-play {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--text);
+    color: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: transform 0.1s, background 0.1s;
+  }
+
+  .btn-play:hover {
+    transform: scale(1.05);
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .scrubber-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .time-elapsed,
+  .time-total {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    min-width: 36px;
+  }
+
+  .time-total {
+    text-align: right;
+  }
+
+  .scrubber {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 5px;
+    border-radius: 3px;
+    background: linear-gradient(
+      to right,
+      var(--accent) var(--pct, 0%),
+      var(--bg-selected) var(--pct, 0%)
+    );
+    cursor: pointer;
+    --pct: 0%;
+  }
+
+  .scrubber:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .scrubber::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--text);
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+
+  .scrubber:not(:disabled):hover::-webkit-slider-thumb {
+    opacity: 1;
+  }
+
+  .scrubber::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--text);
+    border: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+
+  .scrubber:not(:disabled):hover::-moz-range-thumb {
+    opacity: 1;
+  }
+
+  .right-controls {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .read-time {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Paused state dims main content */
+  :global(body.paused) :global(.main-panel) {
+    opacity: 0.4;
+    transition: opacity 0.3s;
+  }
+
+  @media (max-width: 768px) {
+    .nowplaying {
+      grid-template-columns: 1fr auto;
+      padding: 0 12px;
+      gap: 8px;
+    }
+
+    .right-controls {
+      display: none;
+    }
+
+    .scrubber-row {
+      width: 200px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .nowplaying {
+      grid-template-columns: 1fr;
+    }
+
+    .controls {
+      display: none;
+    }
+  }
+</style>

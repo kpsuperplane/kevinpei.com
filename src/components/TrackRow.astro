@@ -1,0 +1,141 @@
+---
+interface Props {
+  index: number;
+  title: string;
+  tags: string[];
+  readTime: number;
+  slug: string;
+  active?: boolean;
+  description?: string;
+}
+const { index, title, tags, readTime, slug, active = false, description } = Astro.props;
+---
+
+<li class:list={['track-row', { active }]}>
+  <a href={`/posts/${slug}`}>
+    <span class="track-num">
+      {active
+        ? <span class="equalizer" aria-label="Now playing"><span/><span/><span/></span>
+        : index
+      }
+    </span>
+    <span class="track-info">
+      <span class="track-title">{title}</span>
+      {description && <span class="track-desc">{description}</span>}
+    </span>
+    <span class="track-category">{tags.join(', ')}</span>
+    <span class="track-duration">{readTime} min</span>
+  </a>
+</li>
+
+<style>
+  .track-row a {
+    display: grid;
+    grid-template-columns: 40px 1fr 120px 60px;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: background 0.1s;
+    cursor: pointer;
+  }
+
+  .track-row a:hover {
+    background: var(--bg-hover);
+  }
+
+  .track-row.active a {
+    background: var(--bg-selected);
+  }
+
+  .track-num {
+    font-size: 14px;
+    color: var(--text-muted);
+    text-align: right;
+    padding-right: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .track-row.active .track-num {
+    color: var(--accent);
+  }
+
+  .track-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+  }
+
+  .track-title {
+    font-size: 14px;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+  }
+
+  .track-row.active .track-title {
+    color: var(--accent);
+  }
+
+  .track-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .track-category {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .track-duration {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Animated equalizer bars for the active/playing track */
+  .equalizer {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 14px;
+  }
+
+  .equalizer span {
+    display: block;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 1px;
+    animation: equalize 1.2s ease-in-out infinite;
+  }
+
+  .equalizer span:nth-child(1) { height: 60%; animation-delay: 0s; }
+  .equalizer span:nth-child(2) { height: 100%; animation-delay: 0.2s; }
+  .equalizer span:nth-child(3) { height: 40%; animation-delay: 0.4s; }
+
+  @keyframes equalize {
+    0%, 100% { transform: scaleY(1); }
+    50%       { transform: scaleY(0.3); }
+  }
+
+  @media (max-width: 768px) {
+    .track-row a {
+      grid-template-columns: 32px 1fr 50px;
+      padding: 8px 12px;
+    }
+
+    .track-category {
+      display: none;
+    }
+  }
+</style>

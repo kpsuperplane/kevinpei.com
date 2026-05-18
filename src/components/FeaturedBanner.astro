@@ -1,0 +1,95 @@
+---
+---
+
+<a href="/about" class="featured-banner">
+  <div class="banner-art">KP</div>
+  <div class="banner-content">
+    <p class="banner-label">Feature</p>
+    <h2 class="banner-title">Hello, I'm Kevin.</h2>
+    <p class="banner-desc">
+      From mountain trails to pixel-perfect interfaces, Kevin's debut album features tracks on
+      UX craft, engineering philosophy, and the quiet joy of a good powder day.
+    </p>
+  </div>
+</a>
+
+<style>
+  .featured-banner {
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    padding: 24px 16px 32px;
+    background: linear-gradient(to bottom, var(--bg-elevated), var(--bg));
+    border-radius: 8px;
+    margin: 0 16px 8px;
+    transition: filter 0.15s;
+  }
+
+  .featured-banner:hover {
+    filter: brightness(0.96);
+  }
+
+  .banner-art {
+    width: 140px;
+    height: 140px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #000;
+    font-size: 40px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .banner-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 4px;
+  }
+
+  .banner-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+
+  .banner-title {
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .banner-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    max-width: 480px;
+  }
+
+  @media (max-width: 768px) {
+    .featured-banner {
+      flex-direction: column;
+      align-items: flex-start;
+      margin: 0 0 8px;
+      border-radius: 0;
+    }
+
+    .banner-art {
+      width: 100px;
+      height: 100px;
+      font-size: 28px;
+    }
+
+    .banner-title {
+      font-size: 28px;
+    }
+  }
+</style>

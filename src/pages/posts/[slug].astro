@@ -1,0 +1,56 @@
+---
+import AppShell from '../../layouts/AppShell.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import TrackList from '../../components/TrackList.astro';
+import PostView from '../../components/PostView.astro';
+import NowPlaying from '../../components/NowPlaying.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  const sorted = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  return sorted.map((post, i) => ({
+    params: { slug: post.id },
+    props: {
+      post,
+      allPosts: sorted,
+      prevPost: sorted[i + 1] ?? null,
+      nextPost: sorted[i - 1] ?? null,
+    },
+  }));
+}
+
+const { post, allPosts, prevPost, nextPost } = Astro.props;
+const { Content } = await render(post);
+const tags = [...new Set(allPosts.flatMap((p: typeof post) => p.data.tags))].sort();
+---
+
+<AppShell title={`${post.data.title} — Kevin Pei`} playing={true}>
+  <Fragment slot="head">
+    <meta name="description" content={post.data.description ?? post.data.title} />
+  </Fragment>
+  <Sidebar currentPath={`/posts/${post.id}`} tags={tags} />
+  <main class="main-panel" id="main-panel">
+    <PostView post={post} Content={Content} />
+  </main>
+  <NowPlaying
+    title={post.data.title}
+    tags={post.data.tags}
+    prevSlug={prevPost?.id}
+    nextSlug={nextPost?.id}
+    active={true}
+  />
+</AppShell>
+
+<script define:vars={{ readTime: post.data.readTime }}>
+  document.body.dataset.readtime = String(readTime);
+</script>
+
+<style>
+  .main-panel {
+    grid-area: main;
+    overflow-y: auto;
+    background: var(--bg);
+    scroll-behavior: smooth;
+  }
+</style>

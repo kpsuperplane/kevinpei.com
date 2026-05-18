@@ -1,0 +1,188 @@
+---
+interface Props {
+  currentPath?: string;
+  tags?: string[];
+}
+const { currentPath = '/', tags = [] } = Astro.props;
+
+const navLinks = [
+  { href: '/', label: 'Home' },
+];
+
+const socialLinks = [
+  { href: 'https://github.com/kpsuperplane', label: 'GitHub' },
+  { href: 'https://twitter.com/kpsuperplane', label: 'Twitter' },
+  { href: 'mailto:hello@kevinpei.com', label: 'Email' },
+];
+---
+
+<aside class="sidebar">
+  <a href="/" class="profile" style="display: flex;">
+    <img class="avatar" src="https://raw.githubusercontent.com/kpsuperplane/kevinpei.com/2020/src/favicon/safari-pinned-tab.svg" alt="Kevin Pei" />
+    <div class="profile-info">
+      <span class="name">Kevin Pei</span>
+      <span class="subtitle">Let's build awesome</span>
+    </div>
+  </a>
+
+  <nav>
+    <ul class="nav-list">
+      {navLinks.map(link => (
+        <li>
+          <a
+            href={link.href}
+            class:list={['nav-item', { active: currentPath === link.href }]}
+          >
+            <span class="nav-icon">◎</span>
+            {link.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <p class="section-label">Playlists</p>
+    <ul class="nav-list">
+      {tags.map(tag => (
+        <li>
+          <a
+            href={`/tags/${tag.toLowerCase()}`}
+            class:list={['nav-item', { active: currentPath === `/tags/${tag.toLowerCase()}` }]}
+          >
+            <span class="nav-icon">♫</span>
+            {tag}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <p class="section-label">Social</p>
+    <ul class="nav-list">
+      {socialLinks.map(link => (
+        <li>
+          <a href={link.href} class="nav-item" target="_blank" rel="noopener noreferrer">
+            <span class="nav-icon">→</span>
+            {link.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+</aside>
+
+<style>
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--bg-elevated);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    padding: 24px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: background 0.1s;
+  }
+
+  .profile:hover {
+    background: var(--bg-hover);
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+  }
+
+  .name {
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 8px 8px 4px;
+  }
+
+  .nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-bottom: 16px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+    transition: background 0.1s, color 0.1s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav-item:hover {
+    background: var(--bg-hover);
+    color: var(--text);
+  }
+
+  .nav-item.active {
+    background: var(--bg-selected);
+    color: var(--text);
+  }
+
+  .nav-icon {
+    flex-shrink: 0;
+    width: 16px;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  @media (max-width: 768px) {
+    .sidebar {
+      display: none;
+    }
+  }
+</style>

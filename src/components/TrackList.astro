@@ -1,0 +1,112 @@
+---
+import TrackRow from './TrackRow.astro';
+
+interface Post {
+  id: string;
+  data: {
+    title: string;
+    tags: string[];
+    readTime: number;
+    description?: string;
+  };
+}
+
+interface Props {
+  posts: Post[];
+  activeSlug?: string;
+  heading?: string;
+  headingId?: string;
+}
+const { posts, activeSlug, heading = 'All Posts', headingId } = Astro.props;
+---
+
+<div class="track-list-wrap">
+  <div class="track-list-header">
+    <h1 class="heading" id={headingId}>{heading}</h1>
+    <slot name="feature" />
+    <div class="col-headers">
+      <span class="col-num">#</span>
+      <span class="col-title">Title</span>
+      <span class="col-category">Category</span>
+      <span class="col-duration">Time</span>
+    </div>
+    <hr class="divider" />
+  </div>
+
+  <ul class="track-list">
+    {posts.map((post, i) => (
+      <TrackRow
+        index={i + 1}
+        title={post.data.title}
+        tags={post.data.tags}
+        readTime={post.data.readTime}
+        slug={post.id}
+        active={post.id === activeSlug}
+        description={post.data.description}
+      />
+    ))}
+  </ul>
+</div>
+
+<style>
+  .track-list-wrap {
+    padding: 32px 16px 24px;
+  }
+
+  .heading {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    padding: 0 16px;
+  }
+
+  .col-headers {
+    display: grid;
+    grid-template-columns: 40px 1fr 120px 60px;
+    gap: 8px;
+    padding: 4px 16px;
+    margin-bottom: 4px;
+  }
+
+  .col-num {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: right;
+    padding-right: 8px;
+  }
+
+  .col-title,
+  .col-category,
+  .col-duration {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .col-duration {
+    text-align: right;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 4px 16px 8px;
+  }
+
+  .track-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  @media (max-width: 768px) {
+    .col-headers {
+      grid-template-columns: 32px 1fr 50px;
+    }
+
+    .col-category {
+      display: none;
+    }
+  }
+</style>

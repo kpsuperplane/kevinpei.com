@@ -1,0 +1,40 @@
+---
+import AppShell from '../../layouts/AppShell.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import TrackList from '../../components/TrackList.astro';
+import NowPlaying from '../../components/NowPlaying.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const allPosts = await getCollection('posts');
+  const tags = [...new Set(allPosts.flatMap(p => p.data.tags))];
+  return tags.map(tag => ({
+    params: { tag: tag.toLowerCase() },
+    props: { tag, allPosts },
+  }));
+}
+
+const { tag, allPosts } = Astro.props;
+const posts = allPosts
+  .filter((p: typeof allPosts[0]) => p.data.tags.map((t: string) => t.toLowerCase()).includes(tag.toLowerCase()))
+  .sort((a: typeof allPosts[0], b: typeof allPosts[0]) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const allTags = [...new Set(allPosts.flatMap((p: typeof allPosts[0]) => p.data.tags))].sort();
+const displayName = allPosts.flatMap((p: typeof allPosts[0]) => p.data.tags).find((t: string) => t.toLowerCase() === tag.toLowerCase()) ?? tag;
+---
+
+<AppShell title={`${displayName} — Kevin Pei`}>
+  <Sidebar currentPath={`/tags/${tag.toLowerCase()}`} tags={allTags} />
+  <main class="main-panel">
+    <TrackList posts={posts} heading={displayName} />
+  </main>
+  <NowPlaying />
+</AppShell>
+
+<style>
+  .main-panel {
+    grid-area: main;
+    overflow-y: auto;
+    background: var(--bg);
+  }
+</style>
