@@ -7,7 +7,7 @@ const { title = "Hey, I'm Kevin.", description } = Astro.props;
 ---
 
 <a href="/about" class="featured-banner">
-  <div class="banner-art">KP</div>
+  <img class="banner-art" src="/cover.png" alt="Kevin Pei" />
   <div class="banner-content">
     <p class="banner-label">Feature</p>
     <h2 class="banner-title">{title}</h2>
@@ -36,7 +36,6 @@ const { title = "Hey, I'm Kevin.", description } = Astro.props;
     height: 140px;
     flex-shrink: 0;
     border-radius: 6px;
-    background: var(--accent);
     color: #000;
     font-size: 40px;
     font-weight: 800;
