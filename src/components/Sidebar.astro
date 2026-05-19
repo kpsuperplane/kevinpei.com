@@ -69,25 +69,107 @@ const socialLinks = [
   </nav>
 </aside>
 
+<!-- Mobile sheets -->
+<div class="mobile-sheet" id="sheet-playlists">
+  <div class="sheet-backdrop"></div>
+  <div class="sheet-content">
+    <p class="sheet-label">Playlists</p>
+    <ul class="sheet-list">
+      {tags.map(tag => (
+        <li>
+          <a href={`/tags/${tag.toLowerCase()}`} class="sheet-item">
+            <span class="nav-icon">♫</span>
+            {tag}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
+
+<div class="mobile-sheet" id="sheet-social">
+  <div class="sheet-backdrop"></div>
+  <div class="sheet-content">
+    <p class="sheet-label">Social</p>
+    <ul class="sheet-list">
+      {socialLinks.map(link => (
+        <li>
+          <a href={link.href} class="sheet-item" target="_blank" rel="noopener noreferrer">
+            <span class="nav-icon">→</span>
+            {link.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
+
 <nav class="mobile-nav">
   <a href="/" class:list={['mobile-nav-item', { active: currentPath === '/' }]}>
     <span class="mobile-nav-icon">◎</span>
     <span>Home</span>
   </a>
-  <a href="/about" class:list={['mobile-nav-item', { active: currentPath === '/about' }]}>
-    <span class="mobile-nav-icon">♪</span>
-    <span>About</span>
-  </a>
-  {tags.slice(0, 2).map(tag => (
-    <a
-      href={`/tags/${tag.toLowerCase()}`}
-      class:list={['mobile-nav-item', { active: currentPath === `/tags/${tag.toLowerCase()}` }]}
-    >
-      <span class="mobile-nav-icon">♫</span>
-      <span>{tag}</span>
-    </a>
-  ))}
+  <button class="mobile-nav-item" id="btn-playlists" aria-expanded="false">
+    <span class="mobile-nav-icon">♫</span>
+    <span>Playlists</span>
+  </button>
+  <button class="mobile-nav-item" id="btn-social" aria-expanded="false">
+    <span class="mobile-nav-icon">→</span>
+    <span>Social</span>
+  </button>
 </nav>
+
+<script>
+  function initMobileNav() {
+    const btnPlaylists = document.getElementById('btn-playlists');
+    const btnSocial    = document.getElementById('btn-social');
+    const sheetPlaylists = document.getElementById('sheet-playlists');
+    const sheetSocial    = document.getElementById('sheet-social');
+
+    function openSheet(sheet: HTMLElement, btn: HTMLElement) {
+      sheet.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+      btn.classList.add('active');
+    }
+
+    function closeSheet(sheet: HTMLElement, btn: HTMLElement) {
+      if (!sheet.classList.contains('open')) return;
+      sheet.classList.add('closing');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.classList.remove('active');
+      sheet.querySelector('.sheet-content')?.addEventListener('animationend', () => {
+        sheet.classList.remove('open', 'closing');
+      }, { once: true });
+    }
+
+    function toggleSheet(sheet: HTMLElement, btn: HTMLElement, other: HTMLElement, otherBtn: HTMLElement) {
+      if (sheet.classList.contains('open') && !sheet.classList.contains('closing')) {
+        closeSheet(sheet, btn);
+      } else {
+        closeSheet(other, otherBtn);
+        sheet.classList.remove('closing');
+        openSheet(sheet, btn);
+      }
+    }
+
+    btnPlaylists?.addEventListener('click', () =>
+      toggleSheet(sheetPlaylists!, btnPlaylists, sheetSocial!, btnSocial!)
+    );
+    btnSocial?.addEventListener('click', () =>
+      toggleSheet(sheetSocial!, btnSocial, sheetPlaylists!, btnPlaylists!)
+    );
+
+    // Close on backdrop click
+    sheetPlaylists?.querySelector('.sheet-backdrop')?.addEventListener('click', () =>
+      closeSheet(sheetPlaylists, btnPlaylists!)
+    );
+    sheetSocial?.querySelector('.sheet-backdrop')?.addEventListener('click', () =>
+      closeSheet(sheetSocial, btnSocial!)
+    );
+  }
+
+  initMobileNav();
+</script>
 
 <style>
   .sidebar {
@@ -202,7 +284,8 @@ const socialLinks = [
     }
   }
 
-  .mobile-nav {
+  .mobile-nav,
+  .mobile-sheet {
     display: none;
   }
 
@@ -217,7 +300,7 @@ const socialLinks = [
       height: var(--mobile-nav-h);
       background: var(--bg);
       border-top: 1px solid var(--border);
-      z-index: 90;
+      z-index: 110;
     }
 
     .mobile-nav-item {
@@ -239,6 +322,87 @@ const socialLinks = [
     .mobile-nav-icon {
       font-size: 18px;
       line-height: 1;
+    }
+
+    /* ── Sheets ── */
+    .mobile-sheet {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 105;
+      pointer-events: none;
+    }
+
+    .mobile-sheet.open {
+      display: block;
+      pointer-events: auto;
+    }
+
+    .sheet-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .sheet-content {
+      position: absolute;
+      bottom: var(--mobile-nav-h);
+      left: 0;
+      right: 0;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 8px 0 4px;
+      animation: sheet-up 0.2s ease;
+    }
+
+    .mobile-sheet.closing .sheet-content {
+      animation: sheet-down 0.2s ease forwards;
+    }
+
+    .mobile-sheet.closing .sheet-backdrop {
+      animation: fade-out 0.2s ease forwards;
+    }
+
+    @keyframes fade-out {
+      from { opacity: 1; }
+      to   { opacity: 0; }
+    }
+
+    @keyframes sheet-up {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+
+    @keyframes sheet-down {
+      from { transform: translateY(0); }
+      to   { transform: translateY(100%); }
+    }
+
+    .sheet-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 16px 8px;
+    }
+
+    .sheet-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sheet-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .sheet-item:active {
+      background: var(--bg-hover);
     }
   }
 </style>
