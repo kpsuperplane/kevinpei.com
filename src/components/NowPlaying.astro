@@ -44,14 +44,19 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
     value="0"
     disabled={!active}
     aria-label="Reading progress"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    aria-valuenow="0"
+    aria-valuetext="0 seconds"
   />
+  <span class="sr-only" id="play-status" aria-live="polite" aria-atomic="true"></span>
   <span class="time" id="time-elapsed">0:00</span>
   <span class="time" id="time-total">0:00</span>
   <div class="transport">
     <button class="btn-prev" aria-label="Previous post" disabled={!prevSlug}>
       &#9664;&#9664;
     </button>
-    <button class="btn-play" aria-label="Toggle reading" disabled={!active}>
+    <button class="btn-play" aria-label="Toggle reading" aria-pressed="false" disabled={!active}>
       <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5l15 8.5-15 8.5V3.5z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
       <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="4" width="4" height="16" rx="1.5"/><rect x="15" y="4" width="4" height="16" rx="1.5"/></svg>
     </button>
@@ -61,11 +66,9 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
   </div>
 
   <div class="center">
-    <div class="track-row">
-      <div class="meta">
-        <span class="track-title">{active ? title : 'Nothing playing'}</span>
-        <span class="track-tags">{active ? tags.join(', ') : 'Select a post to start reading'}</span>
-      </div>
+    <div class="meta">
+      <span class="track-title truncate">{active ? title : 'Nothing playing'}</span>
+      <span class="track-tags truncate">{active ? tags.join(', ') : 'Select a post to start reading'}</span>
     </div>
   </div>
 
@@ -170,6 +173,11 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
   const btnPrev   = document.querySelector('.btn-prev')   as HTMLButtonElement | null;
   const btnNext   = document.querySelector('.btn-next')   as HTMLButtonElement | null;
   const readLabel = document.getElementById('read-label') as HTMLElement | null;
+  const playStatus = document.getElementById('play-status') as HTMLElement | null;
+
+  // Prev/next always wire up (cheap), but everything else only on post pages
+  btnPrev?.addEventListener('click', () => { const h = footer?.dataset.prev; if (h) window.location.href = h; });
+  btnNext?.addEventListener('click', () => { const h = footer?.dataset.next; if (h) window.location.href = h; });
 
   const isPostPage = footer?.classList.contains('active') && scrubber;
 
@@ -178,6 +186,26 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
     const m = Math.floor(sec / 60);
     const s = sec % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const formatTimeSpoken = (pct: number, readTime: number) => {
+    const sec = Math.round(pct * readTime * 60);
+    const totalSec = readTime * 60;
+    const fmt = (s: number) => {
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      if (m === 0) return `${r} second${r === 1 ? '' : 's'}`;
+      if (r === 0) return `${m} minute${m === 1 ? '' : 's'}`;
+      return `${m} minute${m === 1 ? '' : 's'} ${r} second${r === 1 ? '' : 's'}`;
+    };
+    return `${fmt(sec)} of ${fmt(totalSec)}`;
+  };
+
+  const updateScrubberAria = (pct: number, rt: number) => {
+    if (!scrubber) return;
+    const val = Math.round(pct * 100);
+    scrubber.setAttribute('aria-valuenow', String(val));
+    scrubber.setAttribute('aria-valuetext', formatTimeSpoken(pct, rt));
   };
 
   // ── Lyric sentences ──────────────────────────────────────────────────────────
@@ -306,12 +334,27 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
   let totalSeconds = 300;
   let linesReady = false;
 
+  // Cache last index so playTick doesn't walk the whole array every frame
+  let lastSentenceIdx = -1;
   function getSentenceAtPct(pct: number): HTMLElement | null {
-    let found: HTMLElement | null = null;
-    for (const s of sentences) {
-      if (parseFloat(s.dataset.t ?? '0') <= pct) found = s;
-      else break;
+    // Fast path: if still within current sentence's range, return it
+    if (lastSentenceIdx >= 0 && lastSentenceIdx < sentences.length) {
+      const cur  = sentences[lastSentenceIdx];
+      const next = sentences[lastSentenceIdx + 1];
+      const curT = parseFloat(cur.dataset.t ?? '0');
+      const nextT = next ? parseFloat(next.dataset.t ?? '1') : 1.1;
+      if (pct >= curT && pct < nextT) return cur;
     }
+    // Walk forward or fall back to full search
+    let found: HTMLElement | null = null;
+    let foundIdx = -1;
+    for (let i = 0; i < sentences.length; i++) {
+      if (parseFloat(sentences[i].dataset.t ?? '0') <= pct) {
+        found = sentences[i];
+        foundIdx = i;
+      } else break;
+    }
+    lastSentenceIdx = foundIdx;
     return found;
   }
 
@@ -345,6 +388,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
       s.querySelectorAll('[data-done]').forEach(l => l.removeAttribute('data-done'));
     });
     activeSentence = null;
+    lastSentenceIdx = -1;
   }
 
   function resetLines() {
@@ -382,6 +426,9 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
     }
   }
 
+  // Throttle scrubber aria updates — every ~5% is enough for SR users
+  let lastAriaPct = -1;
+
   function playTick() {
     const elapsedSec = (performance.now() - playStartMs) / 1000;
     const pct = Math.min(1, playStartPct + elapsedSec / totalSeconds);
@@ -391,6 +438,10 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
       footer.style.setProperty('--pct',`${pct * 100}%`);
     }
     if (elapsedEl) elapsedEl.textContent = formatTime(pct, readTime);
+    if (Math.abs(pct - lastAriaPct) > 0.05) {
+      updateScrubberAria(pct, readTime);
+      lastAriaPct = pct;
+    }
 
     const target = getSentenceAtPct(pct);
     if (target) activateSentence(target);
@@ -402,6 +453,9 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
     }
   }
 
+  // Listeners registered only while playing (saves work when idle)
+  const pauseOnScroll = () => { if (document.body.classList.contains('playing')) pausePlay(); };
+
   function startPlay() {
     if (!linesReady) { sentences.forEach(splitSentenceIntoLines); linesReady = true; }
     playStartMs  = performance.now();
@@ -409,7 +463,11 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
     syncLyricToPct(playStartPct);
     document.body.classList.add('playing');
     document.body.classList.remove('paused');
+    if (btnPlay) btnPlay.setAttribute('aria-pressed', 'true');
     if (readLabel) readLabel.textContent = 'Reading';
+    if (playStatus) playStatus.textContent = 'Playing';
+    window.addEventListener('wheel',     pauseOnScroll, { passive: true });
+    window.addEventListener('touchmove', pauseOnScroll, { passive: true });
     rafId = requestAnimationFrame(playTick);
   }
 
@@ -418,7 +476,11 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
     clearLyrics();
     document.body.classList.remove('playing');
     document.body.classList.add('paused');
+    if (btnPlay) btnPlay.setAttribute('aria-pressed', 'false');
     if (readLabel) readLabel.textContent = '';
+    if (playStatus) playStatus.textContent = 'Paused';
+    window.removeEventListener('wheel',     pauseOnScroll);
+    window.removeEventListener('touchmove', pauseOnScroll);
   }
 
   // ── Wire up ──────────────────────────────────────────────────────────────────
@@ -433,6 +495,9 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
 
     sentences = initLyrics(totalSeconds);
 
+    // Initial aria
+    updateScrubberAria(0, readTime);
+
     // Scroll → scrubber (only when not playing)
     window.addEventListener('scroll', () => {
       if (document.body.classList.contains('playing')) return;
@@ -442,6 +507,10 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
       scrubber.value = String(pct * 100);
       footer.style.setProperty('--pct',`${pct * 100}%`);
       if (elapsedEl) elapsedEl.textContent = formatTime(pct, readTime);
+      if (Math.abs(pct - lastAriaPct) > 0.05) {
+        updateScrubberAria(pct, readTime);
+        lastAriaPct = pct;
+      }
     }, { passive: true });
 
     // Scrubber drag → scroll only; lyric sync only when playing
@@ -451,16 +520,14 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
       window.scrollTo(0, pct * scrollable);
       footer.style.setProperty('--pct',`${pct * 100}%`);
       if (elapsedEl) elapsedEl.textContent = formatTime(pct, readTime);
+      updateScrubberAria(pct, readTime);
+      lastAriaPct = pct;
       if (document.body.classList.contains('playing')) {
         playStartMs  = performance.now();
         playStartPct = pct;
         syncLyricToPct(pct);
       }
     });
-
-    // Manual scroll pauses playback
-    window.addEventListener('wheel',     () => { if (document.body.classList.contains('playing')) pausePlay(); }, { passive: true });
-    window.addEventListener('touchmove', () => { if (document.body.classList.contains('playing')) pausePlay(); }, { passive: true });
 
     // Resize reflows text — reset line splits so next play recalculates
     let resizeTimer: number | null = null;
@@ -484,9 +551,6 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
       }
     });
   }
-
-  btnPrev?.addEventListener('click', () => { const h = footer?.dataset.prev; if (h) window.location.href = h; });
-  btnNext?.addEventListener('click', () => { const h = footer?.dataset.next; if (h) window.location.href = h; });
 </script>
 
 <style is:global>
@@ -554,15 +618,26 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
   }
 
   .lyric-sentence.lyric-active .lyric-line::before {
-    animation:
-      lyric-sweep var(--line-dur, 2s) cubic-bezier(0.4, 0, 0.8, 1) var(--line-delay, 0s) forwards,
-      lyric-fade-in 0.25s ease var(--line-delay, 0s) both;
-    /* ensure element is full-width so filter is stable; mask drives the reveal */
+    /* reduced-motion default: just appear at full sweep, no animation */
+    --sweep-pct: 110%;
+    opacity: 1;
     transform: skewX(var(--line-skew, -7deg)) scaleY(1.075);
   }
 
   .lyric-sentence.lyric-active .lyric-line::after {
-    animation: lyric-accent-in 0.25s ease var(--line-delay, 0s) both;
+    opacity: 0.8;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .lyric-sentence.lyric-active .lyric-line::before {
+      animation:
+        lyric-sweep var(--line-dur, 2s) cubic-bezier(0.4, 0, 0.8, 1) var(--line-delay, 0s) forwards,
+        lyric-fade-in 0.25s ease var(--line-delay, 0s) both;
+    }
+
+    .lyric-sentence.lyric-active .lyric-line::after {
+      animation: lyric-accent-in 0.25s ease var(--line-delay, 0s) both;
+    }
   }
 
   .lyric-sentence.lyric-active .lyric-line[data-done]::after {
@@ -613,15 +688,13 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
     transform: translateX(calc(-50% + var(--sidebar-w) / 2));
     width: calc(var(--content-w) - 48px);
     background: rgba(255, 255, 255, 0.55);
-    backdrop-filter: blur(28px) saturate(180%);
-    -webkit-backdrop-filter: blur(28px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
     border-radius: 8px;
     overflow: hidden;
     border: 1px solid rgba(0, 0, 0, 0.1);
     box-shadow:
-      0 20px 60px rgba(0, 0, 0, 0.18),
-      0 8px 24px rgba(0, 0, 0, 0.12),
+      0 18px 48px rgba(0, 0, 0, 0.16),
       0 2px 6px rgba(0, 0, 0, 0.08),
       inset 0 1px 0 rgba(255, 255, 255, 0.9);
     transition: background 0.4s ease, box-shadow 0.4s ease;
@@ -631,15 +704,14 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
     padding: 0 20px;
     gap: 20px;
     height: var(--nowplaying-h);
-    z-index: 100;
+    z-index: var(--z-nowplaying);
   }
 
   :global(body.playing) .nowplaying {
     background: rgba(255, 255, 255, 0.65);
     background-image: linear-gradient(135deg, rgba(29, 185, 84, 0.05) 0%, transparent 60%);
     box-shadow:
-      0 20px 60px rgba(0, 0, 0, 0.2),
-      0 8px 24px rgba(0, 0, 0, 0.14),
+      0 18px 48px rgba(0, 0, 0, 0.18),
       0 2px 6px rgba(0, 0, 0, 0.08),
       inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
@@ -705,13 +777,6 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
     gap: 6px;
   }
 
-  .track-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
-  }
-
   .art {
     width: 40px;
     height: 40px;
@@ -741,12 +806,17 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
 
   .vinyl-disc {
     transform-origin: 20px 21px;
-    animation: vinyl-spin 2.5s linear infinite;
-    animation-play-state: paused;
   }
 
-  :global(body.playing) .vinyl-disc {
-    animation-play-state: running;
+  @media (prefers-reduced-motion: no-preference) {
+    .vinyl-disc {
+      animation: vinyl-spin 2.5s linear infinite;
+      animation-play-state: paused;
+    }
+
+    :global(body.playing) .vinyl-disc {
+      animation-play-state: running;
+    }
   }
 
   @keyframes vinyl-spin {
@@ -761,22 +831,16 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
   }
 
   .track-title {
-    font-size: 13px;
+    font-size: var(--text-base);
     font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     color: var(--text);
   }
 
   .nowplaying:not(.active) .track-title { color: var(--text-muted); }
 
   .track-tags {
-    font-size: 11px;
+    font-size: var(--text-xs);
     color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .nowplaying:not(.active) .progress-bar,

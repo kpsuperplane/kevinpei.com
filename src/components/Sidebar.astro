@@ -1,15 +1,18 @@
 ---
+import { tagPath } from '../utils/tags';
+import type { NavLink } from '../types';
+
 interface Props {
   currentPath?: string;
   tags?: string[];
 }
 const { currentPath = '/', tags = [] } = Astro.props;
 
-const navLinks = [
+const navLinks: NavLink[] = [
   { href: '/', label: 'Home' },
 ];
 
-const socialLinks = [
+const socialLinks: NavLink[] = [
   { href: 'https://github.com/kpsuperplane', label: 'GitHub' },
   { href: 'https://twitter.com/kpsuperplane', label: 'Twitter' },
   { href: 'mailto:hello@kevinpei.com', label: 'Email' },
@@ -45,8 +48,8 @@ const socialLinks = [
       {tags.map(tag => (
         <li>
           <a
-            href={`/tags/${tag.toLowerCase()}`}
-            class:list={['nav-item', { active: currentPath === `/tags/${tag.toLowerCase()}` }]}
+            href={tagPath(tag)}
+            class:list={['nav-item', { active: currentPath === tagPath(tag) }]}
           >
             <span class="nav-icon">♫</span>
             {tag}
@@ -70,14 +73,14 @@ const socialLinks = [
 </aside>
 
 <!-- Mobile sheets -->
-<div class="mobile-sheet" id="sheet-playlists">
+<div class="mobile-sheet" id="sheet-playlists" role="dialog" aria-modal="true" aria-labelledby="sheet-playlists-label" aria-hidden="true">
   <div class="sheet-backdrop"></div>
   <div class="sheet-content">
-    <p class="sheet-label">Playlists</p>
+    <p class="sheet-label" id="sheet-playlists-label">Playlists</p>
     <ul class="sheet-list">
       {tags.map(tag => (
         <li>
-          <a href={`/tags/${tag.toLowerCase()}`} class="sheet-item">
+          <a href={tagPath(tag)} class="sheet-item">
             <span class="nav-icon">♫</span>
             {tag}
           </a>
@@ -87,10 +90,10 @@ const socialLinks = [
   </div>
 </div>
 
-<div class="mobile-sheet" id="sheet-social">
+<div class="mobile-sheet" id="sheet-social" role="dialog" aria-modal="true" aria-labelledby="sheet-social-label" aria-hidden="true">
   <div class="sheet-backdrop"></div>
   <div class="sheet-content">
-    <p class="sheet-label">Social</p>
+    <p class="sheet-label" id="sheet-social-label">Social</p>
     <ul class="sheet-list">
       {socialLinks.map(link => (
         <li>
@@ -121,51 +124,87 @@ const socialLinks = [
 
 <script>
   function initMobileNav() {
-    const btnPlaylists = document.getElementById('btn-playlists');
-    const btnSocial    = document.getElementById('btn-social');
-    const sheetPlaylists = document.getElementById('sheet-playlists');
-    const sheetSocial    = document.getElementById('sheet-social');
+    const btnPlaylists   = document.getElementById('btn-playlists')   as HTMLButtonElement | null;
+    const btnSocial      = document.getElementById('btn-social')      as HTMLButtonElement | null;
+    const sheetPlaylists = document.getElementById('sheet-playlists') as HTMLElement | null;
+    const sheetSocial    = document.getElementById('sheet-social')    as HTMLElement | null;
+    if (!btnPlaylists || !btnSocial || !sheetPlaylists || !sheetSocial) return;
+
+    let openSheetEl: HTMLElement | null = null;
+    let openBtnEl:   HTMLElement | null = null;
 
     function openSheet(sheet: HTMLElement, btn: HTMLElement) {
+      sheet.classList.remove('closing');
       sheet.classList.add('open');
+      sheet.setAttribute('aria-hidden', 'false');
       btn.setAttribute('aria-expanded', 'true');
       btn.classList.add('active');
+      openSheetEl = sheet;
+      openBtnEl   = btn;
+      // Move focus to the first link in the sheet for keyboard users
+      const firstItem = sheet.querySelector<HTMLElement>('.sheet-item');
+      firstItem?.focus();
     }
 
-    function closeSheet(sheet: HTMLElement, btn: HTMLElement) {
-      if (!sheet.classList.contains('open')) return;
+    function closeSheet(sheet: HTMLElement, btn: HTMLElement, restoreFocus = true) {
+      if (!sheet.classList.contains('open') || sheet.classList.contains('closing')) return;
       sheet.classList.add('closing');
+      sheet.setAttribute('aria-hidden', 'true');
       btn.setAttribute('aria-expanded', 'false');
       btn.classList.remove('active');
       sheet.querySelector('.sheet-content')?.addEventListener('animationend', () => {
         sheet.classList.remove('open', 'closing');
       }, { once: true });
+      if (restoreFocus) btn.focus();
+      if (openSheetEl === sheet) { openSheetEl = null; openBtnEl = null; }
     }
 
     function toggleSheet(sheet: HTMLElement, btn: HTMLElement, other: HTMLElement, otherBtn: HTMLElement) {
       if (sheet.classList.contains('open') && !sheet.classList.contains('closing')) {
         closeSheet(sheet, btn);
       } else {
-        closeSheet(other, otherBtn);
-        sheet.classList.remove('closing');
+        closeSheet(other, otherBtn, false);
         openSheet(sheet, btn);
       }
     }
 
-    btnPlaylists?.addEventListener('click', () =>
-      toggleSheet(sheetPlaylists!, btnPlaylists, sheetSocial!, btnSocial!)
+    btnPlaylists.addEventListener('click', () =>
+      toggleSheet(sheetPlaylists, btnPlaylists, sheetSocial, btnSocial)
     );
-    btnSocial?.addEventListener('click', () =>
-      toggleSheet(sheetSocial!, btnSocial, sheetPlaylists!, btnPlaylists!)
+    btnSocial.addEventListener('click', () =>
+      toggleSheet(sheetSocial, btnSocial, sheetPlaylists, btnPlaylists)
     );
 
     // Close on backdrop click
-    sheetPlaylists?.querySelector('.sheet-backdrop')?.addEventListener('click', () =>
-      closeSheet(sheetPlaylists, btnPlaylists!)
+    sheetPlaylists.querySelector('.sheet-backdrop')?.addEventListener('click', () =>
+      closeSheet(sheetPlaylists, btnPlaylists)
     );
-    sheetSocial?.querySelector('.sheet-backdrop')?.addEventListener('click', () =>
-      closeSheet(sheetSocial, btnSocial!)
+    sheetSocial.querySelector('.sheet-backdrop')?.addEventListener('click', () =>
+      closeSheet(sheetSocial, btnSocial)
     );
+
+    // Escape closes the open sheet; Tab traps focus inside
+    document.addEventListener('keydown', (e) => {
+      if (!openSheetEl || !openBtnEl) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeSheet(openSheetEl, openBtnEl);
+        return;
+      }
+      if (e.key === 'Tab') {
+        const focusables = openSheetEl.querySelectorAll<HTMLElement>('.sheet-item');
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last  = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    });
   }
 
   initMobileNav();
@@ -212,14 +251,14 @@ const socialLinks = [
 
   .name {
     font-weight: 600;
-    font-size: 14px;
+    font-size: var(--text-md);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .subtitle {
-    font-size: 11px;
+    font-size: var(--text-xs);
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -233,7 +272,7 @@ const socialLinks = [
   }
 
   .section-label {
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -253,7 +292,7 @@ const socialLinks = [
     gap: 10px;
     padding: 7px 8px;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: var(--text-base);
     color: var(--text-muted);
     transition: background 0.1s, color 0.1s;
     white-space: nowrap;
@@ -300,7 +339,7 @@ const socialLinks = [
       height: var(--mobile-nav-h);
       background: var(--bg);
       border-top: 1px solid var(--border);
-      z-index: 110;
+      z-index: var(--z-mobile-nav);
     }
 
     .mobile-nav-item {
@@ -310,7 +349,7 @@ const socialLinks = [
       align-items: center;
       justify-content: center;
       gap: 3px;
-      font-size: 11px;
+      font-size: var(--text-xs);
       color: var(--text-muted);
       transition: color 0.1s;
     }
@@ -329,7 +368,7 @@ const socialLinks = [
       display: none;
       position: fixed;
       inset: 0;
-      z-index: 105;
+      z-index: var(--z-sheet);
       pointer-events: none;
     }
 
@@ -379,7 +418,7 @@ const socialLinks = [
     }
 
     .sheet-label {
-      font-size: 11px;
+      font-size: var(--text-xs);
       font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
@@ -397,7 +436,7 @@ const socialLinks = [
       align-items: center;
       gap: 12px;
       padding: 12px 16px;
-      font-size: 15px;
+      font-size: var(--text-lg);
       color: var(--text);
     }
 

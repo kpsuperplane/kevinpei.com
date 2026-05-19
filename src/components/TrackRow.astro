@@ -12,18 +12,18 @@ const { index, title, tags, readTime, slug, active = false, description } = Astr
 ---
 
 <li class:list={['track-row', { active }]}>
-  <a href={`/posts/${slug}`}>
+  <a href={`/posts/${slug}`} aria-current={active ? 'true' : undefined}>
     <span class="track-num">
       {active
-        ? <span class="equalizer" aria-label="Now playing"><span/><span/><span/></span>
+        ? <span class="equalizer" role="img" aria-label="Now playing"><span/><span/><span/></span>
         : index
       }
     </span>
     <span class="track-info">
-      <span class="track-title">{title}</span>
-      {description && <span class="track-desc">{description}</span>}
+      <span class="track-title truncate">{title}</span>
+      {description && <span class="track-desc truncate">{description}</span>}
     </span>
-    <span class="track-category">{tags.join(', ')}</span>
+    <span class="track-category truncate">{tags.join(', ')}</span>
     <span class="track-duration">{readTime} min</span>
   </a>
 </li>
@@ -31,7 +31,7 @@ const { index, title, tags, readTime, slug, active = false, description } = Astr
 <style>
   .track-row a {
     display: grid;
-    grid-template-columns: 40px 1fr 120px 60px;
+    grid-template-columns: var(--grid-cols-track);
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
@@ -49,7 +49,7 @@ const { index, title, tags, readTime, slug, active = false, description } = Astr
   }
 
   .track-num {
-    font-size: 14px;
+    font-size: var(--text-md);
     color: var(--text-muted);
     text-align: right;
     padding-right: 8px;
@@ -68,11 +68,8 @@ const { index, title, tags, readTime, slug, active = false, description } = Astr
   }
 
   .track-title {
-    font-size: 14px;
+    font-size: var(--text-md);
     font-weight: 400;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     color: var(--text);
   }
 
@@ -81,23 +78,17 @@ const { index, title, tags, readTime, slug, active = false, description } = Astr
   }
 
   .track-desc {
-    font-size: 12px;
+    font-size: var(--text-sm);
     color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .track-category {
-    font-size: 13px;
+    font-size: var(--text-base);
     color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .track-duration {
-    font-size: 13px;
+    font-size: var(--text-base);
     color: var(--text-muted);
     text-align: right;
     font-variant-numeric: tabular-nums;
@@ -116,12 +107,21 @@ const { index, title, tags, readTime, slug, active = false, description } = Astr
     width: 3px;
     background: var(--accent);
     border-radius: 1px;
-    animation: equalize 1.2s ease-in-out infinite;
   }
 
-  .equalizer span:nth-child(1) { height: 60%; animation-delay: 0s; }
-  .equalizer span:nth-child(2) { height: 100%; animation-delay: 0.2s; }
-  .equalizer span:nth-child(3) { height: 40%; animation-delay: 0.4s; }
+  .equalizer span:nth-child(1) { height: 60%; }
+  .equalizer span:nth-child(2) { height: 100%; }
+  .equalizer span:nth-child(3) { height: 40%; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .equalizer span {
+      animation: equalize 1.2s ease-in-out infinite;
+    }
+
+    .equalizer span:nth-child(1) { animation-delay: 0s; }
+    .equalizer span:nth-child(2) { animation-delay: 0.2s; }
+    .equalizer span:nth-child(3) { animation-delay: 0.4s; }
+  }
 
   @keyframes equalize {
     0%, 100% { transform: scaleY(1); }
@@ -130,7 +130,7 @@ const { index, title, tags, readTime, slug, active = false, description } = Astr
 
   @media (max-width: 768px) {
     .track-row a {
-      grid-template-columns: 32px 1fr 50px;
+      grid-template-columns: var(--grid-cols-track-mobile);
       padding: 8px 12px;
     }
 

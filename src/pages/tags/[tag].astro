@@ -2,22 +2,24 @@
 import AppShell from '../../layouts/AppShell.astro';
 import TrackList from '../../components/TrackList.astro';
 import { getCollection } from 'astro:content';
+import { tagToSlug } from '../../utils/tags';
 
 export async function getStaticPaths() {
   const allPosts = await getCollection('posts');
   const tags = [...new Set(allPosts.flatMap(p => p.data.tags))];
   return tags.map(tag => ({
-    params: { tag: tag.toLowerCase() },
+    params: { tag: tagToSlug(tag) },
     props: { tag, allPosts },
   }));
 }
 
 const { tag, allPosts } = Astro.props;
+const slug = tagToSlug(tag);
 const posts = allPosts
-  .filter((p: typeof allPosts[0]) => p.data.tags.map((t: string) => t.toLowerCase()).includes(tag.toLowerCase()))
+  .filter((p: typeof allPosts[0]) => p.data.tags.map(tagToSlug).includes(slug))
   .sort((a: typeof allPosts[0], b: typeof allPosts[0]) => b.data.date.valueOf() - a.data.date.valueOf());
 
-const displayName = allPosts.flatMap((p: typeof allPosts[0]) => p.data.tags).find((t: string) => t.toLowerCase() === tag.toLowerCase()) ?? tag;
+const displayName = allPosts.flatMap((p: typeof allPosts[0]) => p.data.tags).find((t: string) => tagToSlug(t) === slug) ?? tag;
 ---
 
 <AppShell title={`${displayName} — Kevin Pei`}>
