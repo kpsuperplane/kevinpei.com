@@ -11,15 +11,16 @@ const { title = "Hey, I'm Kevin.", description } = Astro.props;
   <div class="banner-content">
     <p class="banner-label">Feature</p>
     <h2 class="banner-title">{title}</h2>
-    {description && <p class="banner-desc">{description}</p>}
   </div>
+  {description && <p class="banner-desc">{description}</p>}
 </a>
 
 <style>
   .featured-banner {
-    display: flex;
-    align-items: flex-end;
-    gap: 24px;
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 24px;
     padding: 24px 16px 32px;
     background: linear-gradient(to bottom, var(--bg-elevated), var(--bg));
     border-radius: 8px;
@@ -32,24 +33,22 @@ const { title = "Hey, I'm Kevin.", description } = Astro.props;
   }
 
   .banner-art {
+    grid-column: 1;
+    grid-row: 1 / 3;
     width: 140px;
     height: 140px;
-    flex-shrink: 0;
     border-radius: 6px;
-    color: #000;
-    font-size: 40px;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    align-self: start;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   }
 
   .banner-content {
+    grid-column: 2;
+    grid-row: 1;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding-bottom: 4px;
+    align-self: start;
   }
 
   .banner-label {
@@ -69,28 +68,36 @@ const { title = "Hey, I'm Kevin.", description } = Astro.props;
   }
 
   .banner-desc {
+    grid-column: 2;
+    grid-row: 2;
     font-size: 14px;
     color: var(--text-muted);
     line-height: 1.5;
-    max-width: 480px;
+    padding-top: 8px;
   }
 
   @media (max-width: 768px) {
     .featured-banner {
-      flex-direction: column;
-      align-items: flex-start;
-      margin: 0 0 8px;
-      border-radius: 0;
+      grid-template-columns: 72px 1fr;
+      column-gap: 16px;
+      padding: 16px;
+      margin: 0 16px 8px;
     }
 
     .banner-art {
-      width: 100px;
-      height: 100px;
-      font-size: 28px;
+      grid-row: 1;
+      width: 72px;
+      height: 72px;
+      align-self: start;
+    }
+
+    .banner-desc {
+      grid-column: 1 / 3;
+      grid-row: 2;
     }
 
     .banner-title {
-      font-size: 28px;
+      font-size: 22px;
     }
   }
 </style>
