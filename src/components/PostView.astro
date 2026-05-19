@@ -1,14 +1,15 @@
 ---
-import type { CollectionEntry } from 'astro:content';
-
 interface Props {
-  post: CollectionEntry<'posts'>;
   Content: any;
+  title?: string;
+  description?: string;
+  tags?: string[];
+  date?: Date;
+  readTime?: number;
 }
-const { post, Content } = Astro.props;
-const { title, date, tags, readTime, description } = post.data;
+const { Content, title, description, tags, date, readTime } = Astro.props;
 
-const formattedDate = date.toLocaleDateString('en-US', {
+const formattedDate = date?.toLocaleDateString('en-US', {
   year: 'numeric',
   month: 'long',
   day: 'numeric',
@@ -16,20 +17,26 @@ const formattedDate = date.toLocaleDateString('en-US', {
 ---
 
 <article class="post-view">
-  <header class="post-header">
-    <div class="tag-list">
-      {tags.map((tag: string) => (
-        <a href={`/tags/${tag.toLowerCase()}`} class="tag">{tag}</a>
-      ))}
-    </div>
-    <h1 class="post-title">{title}</h1>
-    {description && <p class="post-description">{description}</p>}
-    <div class="post-meta">
-      <span>{formattedDate}</span>
-      <span class="dot">·</span>
-      <span>{readTime} min read</span>
-    </div>
-  </header>
+  {(tags?.length || title || description || date) && (
+    <header class="post-header">
+      {tags?.length && (
+        <div class="tag-list">
+          {tags.map((tag: string) => (
+            <a href={`/tags/${tag.toLowerCase()}`} class="tag">{tag}</a>
+          ))}
+        </div>
+      )}
+      {title && <h1 class="post-title">{title}</h1>}
+      {description && <p class="post-description">{description}</p>}
+      {(date || readTime) && (
+        <div class="post-meta">
+          {formattedDate && <span>{formattedDate}</span>}
+          {formattedDate && readTime && <span class="dot">·</span>}
+          {readTime && <span>{readTime} min read</span>}
+        </div>
+      )}
+    </header>
+  )}
 
   <div class="post-body">
     <Content />

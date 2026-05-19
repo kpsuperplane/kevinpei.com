@@ -3,13 +3,13 @@ import AppShell from '../layouts/AppShell.astro';
 import TrackList from '../components/TrackList.astro';
 import FeaturedBanner from '../components/FeaturedBanner.astro';
 import { getCollection } from 'astro:content';
+import { frontmatter as aboutFrontmatter } from '../content/about.md';
 
 const allPosts = await getCollection('posts');
 const posts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 ---
 
 <AppShell title="Kevin Pei">
-  <FeaturedBanner />
+  <FeaturedBanner title={aboutFrontmatter.title} description={aboutFrontmatter.description} />
   <TrackList heading="Top Picks for You" posts={posts} />
 </AppShell>
-
