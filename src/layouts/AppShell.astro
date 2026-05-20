@@ -70,18 +70,15 @@ const currentPath = Astro.url.pathname;
     animation: none;
   }
 
-  /* Keep NowPlaying in its own transition slot so backdrop-filter stays live.
-     Hide the outgoing snapshot so only the live element is visible.
-     Clamp the group's z-index so it doesn't float above the mobile nav. */
-  ::view-transition-group(nowplaying) {
-    z-index: 100; /* matches --z-nowplaying; vars don't resolve in pseudo-elements */
+  /* Mobile nav gets its own compositing group above NowPlaying's shadow */
+  ::view-transition-group(mobile-nav) {
+    z-index: 110; /* matches --z-mobile-nav; vars don't resolve in pseudo-elements */
   }
-  ::view-transition-old(nowplaying) {
-    display: none;
-  }
-  ::view-transition-new(nowplaying) {
+  ::view-transition-old(mobile-nav),
+  ::view-transition-new(mobile-nav) {
     animation: none;
   }
+
 
   *, *::before, *::after {
     box-sizing: border-box;

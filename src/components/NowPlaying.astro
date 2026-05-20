@@ -711,8 +711,16 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
 </style>
 
 <style>
+  /* Solid fallback so backdrop-filter snapshots in Safari never appear transparent */
+  .nowplaying::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.92);
+    z-index: -1;
+  }
+
   .nowplaying {
-    view-transition-name: nowplaying;
     position: fixed;
     bottom: 20px;
     left: 50%;
