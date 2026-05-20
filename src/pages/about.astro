@@ -13,6 +13,7 @@ const readTime = getReadTime(aboutRaw.replace(/^---[\s\S]*?---\n?/, ''));
   playing={true}
   nowPlayingTitle={frontmatter.title}
   nowPlayingTags={frontmatter.tags}
+  readTime={readTime}
 >
   <PostView
     Content={AboutContent}
@@ -22,7 +23,3 @@ const readTime = getReadTime(aboutRaw.replace(/^---[\s\S]*?---\n?/, ''));
     readTime={readTime}
   />
 </AppShell>
-
-<script define:vars={{ readTime }}>
-  document.body.dataset.readtime = String(readTime);
-</script>

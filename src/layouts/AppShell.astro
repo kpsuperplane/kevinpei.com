@@ -12,6 +12,7 @@ interface Props {
   prevSlug?: string;
   nextSlug?: string;
   firstHref?: string;
+  readTime?: number;
 }
 
 const {
@@ -22,6 +23,7 @@ const {
   prevSlug,
   nextSlug,
   firstHref,
+  readTime,
 } = Astro.props;
 
 const allPosts = await getCollection('posts');
@@ -42,7 +44,7 @@ const currentPath = Astro.url.pathname;
     <ClientRouter />
     <slot name="head" />
   </head>
-  <body data-playing={playing ? 'true' : undefined}>
+  <body data-playing={playing ? 'true' : undefined} data-readtime={readTime != null ? String(readTime) : undefined}>
     <a href="#main" class="skip-link">Skip to content</a>
     <div class="layout">
       <Sidebar currentPath={currentPath} tags={tags} />

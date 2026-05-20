@@ -29,6 +29,7 @@ const readTime = getReadTime(post.body ?? '');
   nowPlayingTags={post.data.tags}
   prevSlug={prevPost?.id}
   nextSlug={nextPost?.id}
+  readTime={readTime}
 >
   <Fragment slot="head">
     <meta name="description" content={post.data.description ?? post.data.title} />
@@ -43,6 +44,3 @@ const readTime = getReadTime(post.body ?? '');
   />
 </AppShell>
 
-<script define:vars={{ readTime }}>
-  document.body.dataset.readtime = String(readTime);
-</script>
