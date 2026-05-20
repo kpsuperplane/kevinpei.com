@@ -70,8 +70,11 @@ const currentPath = Astro.url.pathname;
     animation: none;
   }
 
-  /* Keep NowPlaying in its own transition slot so backdrop-filter stays live */
-  ::view-transition-old(nowplaying),
+  /* Keep NowPlaying in its own transition slot so backdrop-filter stays live.
+     Hide the outgoing snapshot so only the live element is visible. */
+  ::view-transition-old(nowplaying) {
+    display: none;
+  }
   ::view-transition-new(nowplaying) {
     animation: none;
   }
