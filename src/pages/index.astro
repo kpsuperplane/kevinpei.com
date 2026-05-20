@@ -10,7 +10,7 @@ const posts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueO
 ---
 
 <AppShell title="Kevin Pei">
-  <TrackList heading="Top Picks for You" posts={posts}>
+  <TrackList heading="Now Streaming" posts={posts}>
     <FeaturedBanner slot="feature" title={aboutFrontmatter.title} description={aboutFrontmatter.description} />
   </TrackList>
 </AppShell>
