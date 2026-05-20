@@ -1,4 +1,6 @@
 ---
+import { formatDuration } from '../utils/readTime';
+
 interface Props {
   index: number;
   title: string;
@@ -24,7 +26,7 @@ const { index, title, tags, readTime, slug, active = false, description } = Astr
       {description && <span class="track-desc truncate">{description}</span>}
     </span>
     <span class="track-category truncate">{tags.join(', ')}</span>
-    <span class="track-duration">{readTime} min</span>
+    <span class="track-duration">{formatDuration(readTime)}</span>
   </a>
 </li>
 

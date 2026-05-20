@@ -501,8 +501,8 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
   // ── Wire up ──────────────────────────────────────────────────────────────────
   if (isPostPage) {
 
-    readTime     = parseInt(document.body.dataset.readtime ?? '5', 10);
-    totalSeconds = readTime * 60;
+    readTime     = parseFloat(document.body.dataset.readtime ?? '5');
+    totalSeconds = Math.round(readTime * 60);
 
     const totalM = Math.floor(totalSeconds / 60);
     const totalS = totalSeconds % 60;

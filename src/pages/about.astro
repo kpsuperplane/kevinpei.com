@@ -8,7 +8,12 @@ import { getReadTime } from '../utils/readTime';
 const readTime = getReadTime(aboutRaw.replace(/^---[\s\S]*?---\n?/, ''));
 ---
 
-<AppShell title="About — Kevin Pei">
+<AppShell
+  title="About — Kevin Pei"
+  playing={true}
+  nowPlayingTitle={frontmatter.title}
+  nowPlayingTags={frontmatter.tags}
+>
   <PostView
     Content={AboutContent}
     title={frontmatter.title}
@@ -17,3 +22,7 @@ const readTime = getReadTime(aboutRaw.replace(/^---[\s\S]*?---\n?/, ''));
     readTime={readTime}
   />
 </AppShell>
+
+<script define:vars={{ readTime }}>
+  document.body.dataset.readtime = String(readTime);
+</script>

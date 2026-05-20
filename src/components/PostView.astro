@@ -1,4 +1,6 @@
 ---
+import { formatDuration } from '../utils/readTime';
+
 interface Props {
   Content: any;
   title?: string;
@@ -32,7 +34,7 @@ const formattedDate = date?.toLocaleDateString('en-US', {
         <div class="post-meta">
           {formattedDate && <span>{formattedDate}</span>}
           {formattedDate && readTime && <span class="dot">·</span>}
-          {readTime && <span>{readTime} min read</span>}
+          {readTime && <span>{formatDuration(readTime)} read</span>}
         </div>
       )}
     </header>
@@ -186,7 +188,7 @@ const formattedDate = date?.toLocaleDateString('en-US', {
 
   @media (max-width: 768px) {
     .post-view {
-      padding: 32px 16px 60px;
+      padding: 0px 16px 60px;
     }
 
     .post-title {
