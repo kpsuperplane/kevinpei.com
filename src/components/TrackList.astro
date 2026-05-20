@@ -92,6 +92,10 @@ const { posts, activeSlug, heading } = Astro.props;
   }
 
   @media (max-width: 768px) {
+    .track-list-wrap {
+      padding: 0;
+    }
+
     .col-headers {
       grid-template-columns: var(--grid-cols-track-mobile);
     }
