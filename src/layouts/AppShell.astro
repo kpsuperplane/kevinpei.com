@@ -74,7 +74,7 @@ const currentPath = Astro.url.pathname;
      Hide the outgoing snapshot so only the live element is visible.
      Clamp the group's z-index so it doesn't float above the mobile nav. */
   ::view-transition-group(nowplaying) {
-    z-index: var(--z-nowplaying);
+    z-index: 100; /* matches --z-nowplaying; vars don't resolve in pseudo-elements */
   }
   ::view-transition-old(nowplaying) {
     display: none;
