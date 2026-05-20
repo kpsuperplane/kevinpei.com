@@ -715,7 +715,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
     position: fixed;
     bottom: 20px;
     left: 50%;
-    transform: translateX(calc(-50% + var(--sidebar-w) / 2));
+    transform: translateX(calc(-50% + var(--sidebar-w) / 2)) translateZ(0);
     width: calc(var(--content-w) - 48px);
     background: rgba(255, 255, 255, 0.55);
     backdrop-filter: blur(16px) saturate(160%);
@@ -735,7 +735,6 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
     gap: 20px;
     height: var(--nowplaying-h);
     z-index: var(--z-nowplaying);
-    transform: translateZ(0);
   }
 
   :global(body.playing) .nowplaying {
