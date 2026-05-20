@@ -712,10 +712,11 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
 
 <style>
   .nowplaying {
+    view-transition-name: nowplaying;
     position: fixed;
     bottom: 20px;
     left: 50%;
-    transform: translateX(calc(-50% + var(--sidebar-w) / 2)) translateZ(0);
+    transform: translateX(calc(-50% + var(--sidebar-w) / 2));
     width: calc(var(--content-w) - 48px);
     background: rgba(255, 255, 255, 0.55);
     backdrop-filter: blur(16px) saturate(160%);
