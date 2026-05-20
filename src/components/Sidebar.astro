@@ -39,7 +39,7 @@ const socialLinks: NavLink[] = [
             class:list={['nav-item', { active: currentPath === link.href }]}
           >
             {link.iconSrc
-              ? <img class="nav-icon-img" src={link.iconSrc} alt="" width="22" height="22" loading="lazy" />
+              ? <img class="nav-icon-img" src={link.iconSrc} alt="" width="22" height="22" loading="eager" />
               : <span class="nav-icon">{link.iconChar ?? '◎'}</span>
             }
             {link.label}
@@ -56,7 +56,7 @@ const socialLinks: NavLink[] = [
             href={tagPath(tag)}
             class:list={['nav-item', { active: currentPath === tagPath(tag) }]}
           >
-            <img class="nav-icon-img" src="/icons/music.png" alt="" width="22" height="22" loading="lazy" />
+            <img class="nav-icon-img" src="/icons/music.png" alt="" width="22" height="22" loading="eager" />
             {tag}
           </a>
         </li>
@@ -69,7 +69,7 @@ const socialLinks: NavLink[] = [
         <li>
           <a href={link.href} class="nav-item" target="_blank" rel="noopener noreferrer">
             {link.iconSrc
-              ? <img class="nav-icon-img" src={link.iconSrc} alt="" width="22" height="22" loading="lazy" />
+              ? <img class="nav-icon-img" src={link.iconSrc} alt="" width="22" height="22" loading="eager" />
               : <span class="nav-icon">{link.iconChar ?? '→'}</span>
             }
             {link.label}
@@ -89,7 +89,7 @@ const socialLinks: NavLink[] = [
       {tags.map(tag => (
         <li>
           <a href={tagPath(tag)} class="sheet-item">
-            <img class="nav-icon-img" src="/icons/music.png" alt="" width="26" height="26" loading="lazy" />
+            <img class="nav-icon-img" src="/icons/music.png" alt="" width="26" height="26" loading="eager" />
             {tag}
           </a>
         </li>
@@ -107,7 +107,7 @@ const socialLinks: NavLink[] = [
         <li>
           <a href={link.href} class="sheet-item" target="_blank" rel="noopener noreferrer">
             {link.iconSrc
-              ? <img class="nav-icon-img" src={link.iconSrc} alt="" width="26" height="26" loading="lazy" />
+              ? <img class="nav-icon-img" src={link.iconSrc} alt="" width="26" height="26" loading="eager" />
               : <span class="nav-icon">{link.iconChar ?? '→'}</span>
             }
             {link.label}
@@ -130,19 +130,19 @@ const socialLinks: NavLink[] = [
 
 <nav class="mobile-nav">
   <a href="/" class:list={['mobile-nav-item', { active: currentPath === '/' }]}>
-    <img class="mobile-nav-icon" src="/icons/home.png" alt="" width="22" height="22" loading="lazy" />
+    <img class="mobile-nav-icon" src="/icons/home.png" alt="" width="22" height="22" loading="eager" />
     <span>Home</span>
   </a>
   <button class="mobile-nav-item" id="btn-playlists" aria-expanded="false">
-    <img class="mobile-nav-icon" src="/icons/music.png" alt="" width="22" height="22" loading="lazy" />
+    <img class="mobile-nav-icon" src="/icons/music.png" alt="" width="22" height="22" loading="eager" />
     <span>Playlists</span>
   </button>
   <button class="mobile-nav-item" id="btn-social" aria-expanded="false">
-    <img class="mobile-nav-icon" src="/icons/email.png" alt="" width="22" height="22" loading="lazy" />
+    <img class="mobile-nav-icon" src="/icons/email.png" alt="" width="22" height="22" loading="eager" />
     <span>Social</span>
   </button>
   <a href="/kevin-pei-resume-19-06-2026.pdf" class="mobile-nav-item" target="_blank" rel="noopener noreferrer">
-    <img class="mobile-nav-icon" src="/icons/resume.png" alt="" width="22" height="22" loading="lazy" />
+    <img class="mobile-nav-icon" src="/icons/resume.png" alt="" width="22" height="22" loading="eager" />
     <span>Resume</span>
   </a>
 </nav>
