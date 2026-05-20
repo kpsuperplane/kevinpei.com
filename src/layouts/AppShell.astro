@@ -71,7 +71,11 @@ const currentPath = Astro.url.pathname;
   }
 
   /* Keep NowPlaying in its own transition slot so backdrop-filter stays live.
-     Hide the outgoing snapshot so only the live element is visible. */
+     Hide the outgoing snapshot so only the live element is visible.
+     Clamp the group's z-index so it doesn't float above the mobile nav. */
+  ::view-transition-group(nowplaying) {
+    z-index: var(--z-nowplaying);
+  }
   ::view-transition-old(nowplaying) {
     display: none;
   }
