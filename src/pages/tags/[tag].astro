@@ -22,6 +22,6 @@ const posts = allPosts
 const displayName = allPosts.flatMap((p: typeof allPosts[0]) => p.data.tags).find((t: string) => tagToSlug(t) === slug) ?? tag;
 ---
 
-<AppShell title={`${displayName} — Kevin Pei`}>
+<AppShell title={`${displayName} — Kevin Pei`} firstHref={posts[0]?.id ? `/posts/${posts[0].id}` : undefined}>
   <TrackList posts={posts} heading={displayName} />
 </AppShell>

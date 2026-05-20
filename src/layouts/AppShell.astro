@@ -10,6 +10,7 @@ interface Props {
   nowPlayingTags?: string[];
   prevSlug?: string;
   nextSlug?: string;
+  firstHref?: string;
 }
 
 const {
@@ -19,6 +20,7 @@ const {
   nowPlayingTags,
   prevSlug,
   nextSlug,
+  firstHref,
 } = Astro.props;
 
 const allPosts = await getCollection('posts');
@@ -52,6 +54,7 @@ const currentPath = Astro.url.pathname;
       prevSlug={prevSlug}
       nextSlug={nextSlug}
       active={playing}
+      firstHref={firstHref}
     />
   </body>
 </html>

@@ -5,8 +5,9 @@ interface Props {
   prevSlug?: string;
   nextSlug?: string;
   active?: boolean;
+  firstHref?: string;
 }
-const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
+const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astro.props;
 ---
 
 <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -31,6 +32,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
   class:list={['nowplaying', { active }]}
   data-prev={prevSlug ? `/posts/${prevSlug}` : undefined}
   data-next={nextSlug ? `/posts/${nextSlug}` : undefined}
+  data-first={firstHref ?? undefined}
 >
   <div class="progress-bar" aria-hidden="true">
     <div class="progress-fill"></div>
@@ -56,7 +58,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
     <button class="btn-prev" aria-label="Previous post" disabled={!prevSlug}>
       &#9664;&#9664;
     </button>
-    <button class="btn-play" aria-label="Toggle reading" aria-pressed="false" disabled={!active}>
+    <button class="btn-play" aria-label="Toggle reading" aria-pressed="false" disabled={!active && !firstHref}>
       <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5l15 8.5-15 8.5V3.5z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
       <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="4" width="4" height="16" rx="1.5"/><rect x="15" y="4" width="4" height="16" rx="1.5"/></svg>
     </button>
@@ -176,10 +178,23 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
   const playStatus = document.getElementById('play-status') as HTMLElement | null;
 
   // Prev/next always wire up (cheap), but everything else only on post pages
-  btnPrev?.addEventListener('click', () => { const h = footer?.dataset.prev; if (h) window.location.href = h; });
+  btnPrev?.addEventListener('click', () => {
+    if (window.scrollY > 0) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      const h = footer?.dataset.prev;
+      if (h) window.location.href = h;
+    }
+  });
   btnNext?.addEventListener('click', () => { const h = footer?.dataset.next; if (h) window.location.href = h; });
 
+  // On non-post pages, play button navigates to the first post
   const isPostPage = footer?.classList.contains('active') && scrubber;
+  if (!isPostPage && footer?.dataset.first) {
+    btnPlay?.addEventListener('click', () => {
+      window.location.href = footer.dataset.first!;
+    });
+  }
 
   const formatTime = (pct: number, readTime: number) => {
     const sec = Math.round(pct * readTime * 60);
@@ -503,7 +518,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false } = Astro.props;
       if (document.body.classList.contains('playing')) return;
       const scrollable = document.documentElement.scrollHeight - window.innerHeight;
       if (scrollable <= 0 || !scrubber) return;
-      const pct = window.scrollY / scrollable;
+      const pct = Math.min(1, Math.max(0, window.scrollY / scrollable));
       scrubber.value = String(pct * 100);
       footer.style.setProperty('--pct',`${pct * 100}%`);
       if (elapsedEl) elapsedEl.textContent = formatTime(pct, readTime);
