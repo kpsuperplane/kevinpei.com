@@ -74,9 +74,12 @@ const currentPath = Astro.url.pathname;
   ::view-transition-group(mobile-nav) {
     z-index: 110; /* matches --z-mobile-nav; vars don't resolve in pseudo-elements */
   }
-  ::view-transition-old(mobile-nav),
+  ::view-transition-old(mobile-nav) {
+    display: none;
+  }
   ::view-transition-new(mobile-nav) {
     animation: none;
+    opacity: 1;
   }
 
 
