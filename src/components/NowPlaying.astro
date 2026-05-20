@@ -166,7 +166,22 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
 </footer>
 
 <script>
-  // v5
+  // ── Module-level: persists across navigations ─────────────────────────────────
+  let _rafId: number | null = null;
+  let _controller = new AbortController();
+
+  // Cancel any running animation and clean up listeners before each navigation
+  document.addEventListener('astro:before-swap', () => {
+    if (_rafId !== null) { cancelAnimationFrame(_rafId); _rafId = null; }
+    document.body.classList.remove('playing', 'paused');
+    _controller.abort();
+  });
+
+  // ── Per-page init: re-runs on every navigation including initial load ─────────
+  document.addEventListener('astro:page-load', () => {
+    _controller = new AbortController();
+    const { signal } = _controller;
+
   const footer   = document.querySelector('.nowplaying') as HTMLElement | null;
   const scrubber = document.getElementById('scrubber')   as HTMLInputElement | null;
   const elapsedEl = document.getElementById('time-elapsed');
@@ -341,7 +356,6 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
   }
 
   // ── Play state ───────────────────────────────────────────────────────────────
-  let rafId: number | null = null;
   let playStartMs  = 0;
   let playStartPct = 0;
   let activeSentence: HTMLElement | null = null;
@@ -462,7 +476,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
     if (target) activateSentence(target);
 
     if (pct < 1) {
-      rafId = requestAnimationFrame(playTick);
+      _rafId = requestAnimationFrame(playTick);
     } else {
       pausePlay();
     }
@@ -481,13 +495,13 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
     if (btnPlay) btnPlay.setAttribute('aria-pressed', 'true');
     if (readLabel) readLabel.textContent = 'Reading';
     if (playStatus) playStatus.textContent = 'Playing';
-    window.addEventListener('wheel',     pauseOnScroll, { passive: true });
-    window.addEventListener('touchmove', pauseOnScroll, { passive: true });
-    rafId = requestAnimationFrame(playTick);
+    window.addEventListener('wheel',     pauseOnScroll, { passive: true, signal });
+    window.addEventListener('touchmove', pauseOnScroll, { passive: true, signal });
+    _rafId = requestAnimationFrame(playTick);
   }
 
   function pausePlay() {
-    if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+    if (_rafId !== null) { cancelAnimationFrame(_rafId); _rafId = null; }
     clearLyrics();
     document.body.classList.remove('playing');
     document.body.classList.add('paused');
@@ -526,7 +540,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
         updateScrubberAria(pct, readTime);
         lastAriaPct = pct;
       }
-    }, { passive: true });
+    }, { passive: true, signal });
 
     // Scrubber drag → scroll only; lyric sync only when playing
     scrubber.addEventListener('input', () => {
@@ -550,7 +564,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
       if (!linesReady) return;
       if (resizeTimer !== null) clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout(() => { resetLines(); resizeTimer = null; }, 300);
-    }, { passive: true });
+    }, { passive: true, signal });
 
     btnPlay?.addEventListener('click', () => {
       if (document.body.classList.contains('playing')) {
@@ -566,6 +580,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
       }
     });
   }
+  }); // astro:page-load
 </script>
 
 <style is:global>

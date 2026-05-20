@@ -2,6 +2,7 @@
 import Sidebar from '../components/Sidebar.astro';
 import NowPlaying from '../components/NowPlaying.astro';
 import { getCollection } from 'astro:content';
+import ClientRouter from 'astro/components/ClientRouter.astro';
 
 interface Props {
   title?: string;
@@ -38,6 +39,7 @@ const currentPath = Astro.url.pathname;
     <meta name="color-scheme" content="light" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <ClientRouter />
     <slot name="head" />
   </head>
   <body data-playing={playing ? 'true' : undefined}>

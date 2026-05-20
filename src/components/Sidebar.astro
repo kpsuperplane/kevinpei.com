@@ -148,7 +148,14 @@ const socialLinks: NavLink[] = [
 </nav>
 
 <script>
-  function initMobileNav() {
+  let _sidebarController = new AbortController();
+
+  document.addEventListener('astro:before-swap', () => { _sidebarController.abort(); });
+
+  document.addEventListener('astro:page-load', () => {
+    _sidebarController = new AbortController();
+    const { signal } = _sidebarController;
+
     const btnPlaylists   = document.getElementById('btn-playlists')   as HTMLButtonElement | null;
     const btnSocial      = document.getElementById('btn-social')      as HTMLButtonElement | null;
     const sheetPlaylists = document.getElementById('sheet-playlists') as HTMLElement | null;
@@ -158,8 +165,8 @@ const socialLinks: NavLink[] = [
     let openSheetEl: HTMLElement | null = null;
     let openBtnEl:   HTMLElement | null = null;
     let usingKeyboard = false;
-    document.addEventListener('keydown', () => { usingKeyboard = true; }, { capture: true });
-    document.addEventListener('pointerdown', () => { usingKeyboard = false; }, { capture: true });
+    document.addEventListener('keydown', () => { usingKeyboard = true; }, { capture: true, signal });
+    document.addEventListener('pointerdown', () => { usingKeyboard = false; }, { capture: true, signal });
 
     function openSheet(sheet: HTMLElement, btn: HTMLElement) {
       sheet.classList.remove('closing');
@@ -234,10 +241,8 @@ const socialLinks: NavLink[] = [
           first.focus();
         }
       }
-    });
-  }
-
-  initMobileNav();
+    }, { signal });
+  }); // astro:page-load
 </script>
 
 <style>
