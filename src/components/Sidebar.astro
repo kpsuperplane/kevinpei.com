@@ -147,6 +147,9 @@ const socialLinks: NavLink[] = [
 
     let openSheetEl: HTMLElement | null = null;
     let openBtnEl:   HTMLElement | null = null;
+    let usingKeyboard = false;
+    document.addEventListener('keydown', () => { usingKeyboard = true; }, { capture: true });
+    document.addEventListener('pointerdown', () => { usingKeyboard = false; }, { capture: true });
 
     function openSheet(sheet: HTMLElement, btn: HTMLElement) {
       sheet.classList.remove('closing');
@@ -156,9 +159,11 @@ const socialLinks: NavLink[] = [
       btn.classList.add('active');
       openSheetEl = sheet;
       openBtnEl   = btn;
-      // Move focus to the first link in the sheet for keyboard users
-      const firstItem = sheet.querySelector<HTMLElement>('.sheet-item');
-      firstItem?.focus();
+      // Move focus to the first link only for keyboard users, not touch
+      if (usingKeyboard) {
+        const firstItem = sheet.querySelector<HTMLElement>('.sheet-item');
+        firstItem?.focus();
+      }
     }
 
     function closeSheet(sheet: HTMLElement, btn: HTMLElement, restoreFocus = true) {
