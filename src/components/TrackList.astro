@@ -30,7 +30,7 @@ const { posts, activeSlug, heading } = Astro.props;
         index={i + 1}
         title={post.data.title}
         tags={post.data.tags}
-        readTime={post.data.readTime ?? getReadTime(post.body ?? '')}
+        readTime={getReadTime(post.body ?? '')}
         slug={post.id}
         active={post.id === activeSlug}
         description={post.data.description}
