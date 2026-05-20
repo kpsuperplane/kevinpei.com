@@ -62,6 +62,12 @@ const currentPath = Astro.url.pathname;
 </html>
 
 <style is:global>
+  /* Disable default crossfade — keep instant client-side navigation */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+
   *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
