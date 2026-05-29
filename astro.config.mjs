@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import { execFileSync } from 'child_process';
 import { readFileSync, mkdtempSync, rmSync, mkdirSync, readdirSync, existsSync, copyFileSync } from 'fs';
+import ffmpegPath from 'ffmpeg-static';
 import { tmpdir } from 'os';
 import { join, basename, extname } from 'path';
 import { createHash } from 'crypto';
@@ -81,8 +82,11 @@ function audioAstroIntegration() {
           const tmpDir = mkdtempSync(join(tmpdir(), 'audio-'));
           const tmpOut = join(tmpDir, 'out.m4a');
           try {
+            if (!ffmpegPath) {
+              throw new Error('ffmpeg-static does not provide a binary for this platform');
+            }
             console.log(`[audio] transcoding ${file} → ${assetName}`);
-            execFileSync('ffmpeg', ['-i', srcPath, '-c:a', 'aac', '-b:a', '128k', '-y', tmpOut], {
+            execFileSync(ffmpegPath, ['-i', srcPath, '-c:a', 'aac', '-b:a', '128k', '-y', tmpOut], {
               stdio: 'ignore',
             });
             copyFileSync(tmpOut, destPath);
