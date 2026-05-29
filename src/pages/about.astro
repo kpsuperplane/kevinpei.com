@@ -10,6 +10,7 @@ const readTime = getReadTime(aboutRaw.replace(/^---[\s\S]*?---\n?/, ''));
 
 <AppShell
   title="About — Kevin Pei"
+  description={frontmatter.description}
   playing={true}
   nowPlayingTitle={frontmatter.title}
   nowPlayingTags={frontmatter.tags}
@@ -20,6 +21,7 @@ const readTime = getReadTime(aboutRaw.replace(/^---[\s\S]*?---\n?/, ''));
     title={frontmatter.title}
     description={frontmatter.description}
     tags={frontmatter.tags}
+    linkTags={false}
     readTime={readTime}
   />
 </AppShell>

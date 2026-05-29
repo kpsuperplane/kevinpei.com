@@ -1,0 +1,5 @@
+# Transcription — faster-whisper is recommended over openai-whisper on Apple Silicon
+# (avoids PyTorch segfaults; uses CTranslate2 backend)
+faster-whisper
+
+# Alignment — uses stdlib difflib only, no extra deps needed

@@ -20,8 +20,13 @@ const posts = allPosts
   .sort((a: typeof allPosts[0], b: typeof allPosts[0]) => b.data.date.valueOf() - a.data.date.valueOf());
 
 const displayName = allPosts.flatMap((p: typeof allPosts[0]) => p.data.tags).find((t: string) => tagToSlug(t) === slug) ?? tag;
+const description = `Posts about ${displayName.toLowerCase()} by Kevin Pei.`;
 ---
 
-<AppShell title={`${displayName} — Kevin Pei`} firstHref={posts[0]?.id ? `/posts/${posts[0].id}` : undefined}>
+<AppShell
+  title={`${displayName} — Kevin Pei`}
+  description={description}
+  firstHref={posts[0]?.id ? `/posts/${posts[0].id}` : undefined}
+>
   <TrackList posts={posts} heading={displayName} />
 </AppShell>

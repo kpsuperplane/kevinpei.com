@@ -23,7 +23,7 @@ const socialLinks: NavLink[] = [
 
 <aside class="sidebar">
   <a href="/" class="profile" style="display: flex;">
-    <img class="avatar" src="https://raw.githubusercontent.com/kpsuperplane/kevinpei.com/2020/src/favicon/safari-pinned-tab.svg" alt="Kevin Pei" />
+    <img class="avatar" src="/favicon.svg" alt="Kevin Pei" width="40" height="40" decoding="async" />
     <div class="profile-info">
       <span class="name">Kevin Pei</span>
       <span class="subtitle">Let's build awesome</span>
@@ -89,7 +89,7 @@ const socialLinks: NavLink[] = [
       {tags.map(tag => (
         <li>
           <a href={tagPath(tag)} class="sheet-item">
-            <img class="nav-icon-img" src="/icons/music.png" alt="" width="26" height="26" loading="eager" />
+            <img class="nav-icon-img" src="/icons/music.png" alt="" width="26" height="26" loading="lazy" decoding="async" />
             {tag}
           </a>
         </li>
@@ -107,7 +107,7 @@ const socialLinks: NavLink[] = [
         <li>
           <a href={link.href} class="sheet-item" target="_blank" rel="noopener noreferrer">
             {link.iconSrc
-              ? <img class="nav-icon-img" src={link.iconSrc} alt="" width="26" height="26" loading="eager" />
+              ? <img class="nav-icon-img" src={link.iconSrc} alt="" width="26" height="26" loading="lazy" decoding="async" />
               : <span class="nav-icon">{link.iconChar ?? '→'}</span>
             }
             {link.label}
@@ -120,7 +120,7 @@ const socialLinks: NavLink[] = [
 
 <header class="mobile-header">
   <a href="/" class="mobile-profile">
-    <img class="mobile-avatar" src="https://raw.githubusercontent.com/kpsuperplane/kevinpei.com/2020/src/favicon/safari-pinned-tab.svg" alt="Kevin Pei" />
+    <img class="mobile-avatar" src="/favicon.svg" alt="Kevin Pei" width="32" height="32" decoding="async" />
     <div class="mobile-profile-info">
       <span class="mobile-name">Kevin Pei</span>
       <span class="mobile-subtitle">Let's build awesome</span>

@@ -7,7 +7,11 @@ const { title = "Hey, I'm Kevin.", description } = Astro.props;
 ---
 
 <a href="/about" class="featured-banner">
-  <img class="banner-art" src="/cover.png" alt="Kevin Pei" />
+  <picture class="banner-art-wrap">
+    <source media="(max-width: 768px)" srcset="/cover-144.png" />
+    <source srcset="/cover-280.png" />
+    <img class="banner-art" src="/cover.png" alt="Kevin Pei" width="140" height="140" decoding="async" fetchpriority="high" />
+  </picture>
   <div class="banner-content">
     <p class="banner-label">Featured Track</p>
     <h2 class="banner-title">{title}</h2>
@@ -32,14 +36,18 @@ const { title = "Hey, I'm Kevin.", description } = Astro.props;
     filter: brightness(0.96);
   }
 
-  .banner-art {
+  .banner-art-wrap {
     grid-column: 1;
     grid-row: 1 / 3;
+    align-self: start;
+  }
+
+  .banner-art {
     width: 140px;
     height: 140px;
     border-radius: 6px;
-    align-self: start;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    display: block;
   }
 
   .banner-content {
@@ -84,11 +92,13 @@ const { title = "Hey, I'm Kevin.", description } = Astro.props;
       margin: 0 16px 8px;
     }
 
-    .banner-art {
+    .banner-art-wrap {
       grid-row: 1;
+    }
+
+    .banner-art {
       width: 72px;
       height: 72px;
-      align-self: start;
     }
 
     .banner-content {

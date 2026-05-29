@@ -1,20 +1,23 @@
 ---
 import { formatDuration } from '../utils/readTime';
+import { tagPath } from '../utils/tags';
 
 interface Props {
   Content: any;
   title?: string;
   description?: string;
   tags?: string[];
+  linkTags?: boolean;
   date?: Date;
   readTime?: number;
 }
-const { Content, title, description, tags, date, readTime } = Astro.props;
+const { Content, title, description, tags, linkTags = true, date, readTime } = Astro.props;
 
 const formattedDate = date?.toLocaleDateString('en-US', {
   year: 'numeric',
   month: 'long',
   day: 'numeric',
+  timeZone: 'UTC',
 });
 ---
 
@@ -23,8 +26,10 @@ const formattedDate = date?.toLocaleDateString('en-US', {
     <header class="post-header">
       {tags?.length && (
         <div class="tag-list">
-          {tags.map((tag: string) => (
-            <a href={`/tags/${tag.toLowerCase()}`} class="tag">{tag}</a>
+          {tags.map((tag: string) => linkTags ? (
+            <a href={tagPath(tag)} class="tag">{tag}</a>
+          ) : (
+            <span class="tag">{tag}</span>
           ))}
         </div>
       )}

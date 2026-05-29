@@ -6,8 +6,10 @@ interface Props {
   nextSlug?: string;
   active?: boolean;
   firstHref?: string;
+  audioSrc?: string;
+  timingSrc?: string;
 }
-const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astro.props;
+const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
 ---
 
 <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -33,7 +35,10 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
   data-prev={prevSlug ? `/posts/${prevSlug}` : undefined}
   data-next={nextSlug ? `/posts/${nextSlug}` : undefined}
   data-first={firstHref ?? undefined}
+  data-audio={audioSrc ?? undefined}
+  data-timing={timingSrc ?? undefined}
 >
+  <audio id="np-audio" preload="metadata"></audio>
   <div class="progress-bar" aria-hidden="true">
     <div class="progress-fill"></div>
   </div>
@@ -182,15 +187,17 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
     _controller = new AbortController();
     const { signal } = _controller;
 
-  const footer   = document.querySelector('.nowplaying') as HTMLElement | null;
-  const scrubber = document.getElementById('scrubber')   as HTMLInputElement | null;
-  const elapsedEl = document.getElementById('time-elapsed');
-  const totalEl   = document.getElementById('time-total');
-  const btnPlay   = document.querySelector('.btn-play')   as HTMLButtonElement | null;
-  const btnPrev   = document.querySelector('.btn-prev')   as HTMLButtonElement | null;
-  const btnNext   = document.querySelector('.btn-next')   as HTMLButtonElement | null;
-  const readLabel = document.getElementById('read-label') as HTMLElement | null;
+  const footer     = document.querySelector('.nowplaying') as HTMLElement | null;
+  const scrubber   = document.getElementById('scrubber')   as HTMLInputElement | null;
+  const elapsedEl  = document.getElementById('time-elapsed');
+  const totalEl    = document.getElementById('time-total');
+  const btnPlay    = document.querySelector('.btn-play')   as HTMLButtonElement | null;
+  const btnPrev    = document.querySelector('.btn-prev')   as HTMLButtonElement | null;
+  const btnNext    = document.querySelector('.btn-next')   as HTMLButtonElement | null;
+  const readLabel  = document.getElementById('read-label') as HTMLElement | null;
   const playStatus = document.getElementById('play-status') as HTMLElement | null;
+  const audio      = document.getElementById('np-audio')   as HTMLAudioElement | null;
+  const hasAudio   = !!(footer?.dataset.audio && audio);
 
   // Prev/next always wire up (cheap), but everything else only on post pages
   btnPrev?.addEventListener('click', () => {
@@ -211,16 +218,15 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
     });
   }
 
-  const formatTime = (pct: number, readTime: number) => {
-    const sec = Math.round(pct * readTime * 60);
+  const formatTime = (pct: number) => {
+    const sec = Math.round(pct * totalSeconds);
     const m = Math.floor(sec / 60);
     const s = sec % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  const formatTimeSpoken = (pct: number, readTime: number) => {
-    const sec = Math.round(pct * readTime * 60);
-    const totalSec = readTime * 60;
+  const formatTimeSpoken = (pct: number) => {
+    const sec = Math.round(pct * totalSeconds);
     const fmt = (s: number) => {
       const m = Math.floor(s / 60);
       const r = s % 60;
@@ -228,14 +234,14 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
       if (r === 0) return `${m} minute${m === 1 ? '' : 's'}`;
       return `${m} minute${m === 1 ? '' : 's'} ${r} second${r === 1 ? '' : 's'}`;
     };
-    return `${fmt(sec)} of ${fmt(totalSec)}`;
+    return `${fmt(sec)} of ${fmt(totalSeconds)}`;
   };
 
-  const updateScrubberAria = (pct: number, rt: number) => {
+  const updateScrubberAria = (pct: number) => {
     if (!scrubber) return;
     const val = Math.round(pct * 100);
     scrubber.setAttribute('aria-valuenow', String(val));
-    scrubber.setAttribute('aria-valuetext', formatTimeSpoken(pct, rt));
+    scrubber.setAttribute('aria-valuetext', formatTimeSpoken(pct));
   };
 
   // ── Lyric sentences ──────────────────────────────────────────────────────────
@@ -277,6 +283,62 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
     return result;
   }
 
+  // ── Audio timing ─────────────────────────────────────────────────────────────
+  // Fetches the alignment JSON for this post and overrides the word-count-based
+  // data-t / data-dur values with real timestamps from the recording.
+  // Sentences with null timestamps keep their word-count fallback.
+  async function loadAudioTiming(timingSrc: string, sents: HTMLElement[]) {
+    try {
+      const data: { duration: number; sentences: Array<{ start: number | null; end: number | null; words?: number[] }> }
+        = await fetch(timingSrc).then(r => r.json());
+
+      // Set audio src first so the browser starts loading metadata in parallel
+      if (audio) audio.src = footer!.dataset.audio!;
+
+      // Wait for loadedmetadata so audio.duration reflects the real file length.
+      // Whisper's duration estimate can differ from the actual encoded file by 1–2 s,
+      // which causes data-t (s.start / duration) to use the wrong scale compared to
+      // pct = audio.currentTime / audio.duration — making every sentence activate
+      // late and the sweep appear to start mid-line.
+      let realDuration = data.duration;
+      if (audio) {
+        if (audio.readyState >= 1 && isFinite(audio.duration) && audio.duration > 0) {
+          realDuration = audio.duration;
+        } else {
+          await new Promise<void>(resolve => {
+            audio!.addEventListener('loadedmetadata', () => resolve(), { once: true, signal });
+          });
+          if (isFinite(audio.duration) && audio.duration > 0) realDuration = audio.duration;
+        }
+      }
+
+      totalSeconds = Math.round(realDuration);
+
+      // Update total-time display now that we know the real duration
+      const totalM = Math.floor(totalSeconds / 60);
+      const totalS = totalSeconds % 60;
+      if (totalEl) totalEl.textContent = `${totalM}:${totalS.toString().padStart(2, '0')}`;
+
+      data.sentences.forEach((s, i) => {
+        if (s.start != null && s.end != null && sents[i]) {
+          // Use realDuration (audio.duration) — NOT data.duration — so that
+          // data-t = s.start / realDuration stays on the same pct scale as
+          // audio.currentTime / audio.duration in playTick.
+          sents[i].dataset.t   = (s.start / realDuration).toFixed(5);
+          sents[i].dataset.dur = (s.end - s.start).toFixed(3);
+          if (s.words && s.words.length > 1) {
+            // Flat comma-separated list of word-boundary timestamps (absolute seconds)
+            sents[i].dataset.wordTimes = s.words.join(',');
+          }
+        }
+        // null → word-count fallback already in place
+      });
+    } catch (e) {
+      // Timing fetch failed — fall back to word-count simulation silently
+      console.warn('Audio timing load failed, using word-count fallback', e);
+    }
+  }
+
   // Split each sentence span into per-line <span class="lyric-line"> children
   // so each line can animate independently with a staggered delay.
   // Works for both plain text and sentences with inline HTML (em, strong, code, etc.)
@@ -293,6 +355,8 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
 
     const wrapSingle = () => {
       span.innerHTML = `<span class="lyric-line" style="--line-dur:${dur.toFixed(3)}s;--line-delay:0s;${randVars()}">${span.innerHTML}</span>`;
+      // Single-line sentence: assign the whole word range
+      assignLineWordTimes(span);
     };
 
     if (!span.textContent?.trim()) return;
@@ -353,6 +417,39 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
       delayAccum += lineDur;
       return `<span class="lyric-line" style="--line-dur:${lineDur.toFixed(3)}s;--line-delay:${delay.toFixed(3)}s;${randVars()}">${lineHTML}</span>`;
     }).join('');
+
+    // After building lines: map each line's word count to real timestamps
+    assignLineWordTimes(span);
+  }
+
+  /**
+   * If the sentence has data-word-times (from audio alignment), assign
+   * data-line-start / data-line-end to each .lyric-line so playTick can
+   * drive the sweep in real-time from audio.currentTime.
+   *
+   * wordTimes = [w0.start, w1.start, …, wN.end]  (length = numWords + 1)
+   */
+  function assignLineWordTimes(sentenceEl: HTMLElement): void {
+    const raw = sentenceEl.dataset.wordTimes;
+    if (!raw) return;
+    const wordTimes = raw.split(',').map(Number);
+    const numWords  = wordTimes.length - 1;
+    if (numWords < 1) return;
+
+    const lines = sentenceEl.querySelectorAll<HTMLElement>('.lyric-line');
+    let wordOffset = 0;
+
+    lines.forEach(line => {
+      // Use \w+ tokenisation to match Python's re.findall(r'\w+') which generated
+      // the wordTimes array — important for contractions ("it's" → 2 tokens) and
+      // punctuation-only tokens ("—" → 0 tokens) that split(/\s+/) counts differently.
+      const lineWordCount = ((line.textContent ?? '').trim().match(/\w+/g) ?? []).length;
+      const t0 = wordTimes[Math.min(wordOffset, numWords - 1)];
+      const t1 = wordTimes[Math.min(wordOffset + lineWordCount, numWords)];
+      line.dataset.lineStart = String(t0);
+      line.dataset.lineEnd   = String(t1);
+      wordOffset += lineWordCount;
+    });
   }
 
   // ── Play state ───────────────────────────────────────────────────────────────
@@ -458,22 +555,42 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
   // Throttle scrubber aria updates — every ~5% is enough for SR users
   let lastAriaPct = -1;
 
+  /**
+   * Drive the sweep highlight for each line of the active sentence based on
+   * the real audio time. Lines with data-line-start / data-line-end have their
+   * --sweep-pct set here instead of via CSS @keyframes.
+   */
+  function updateLineSweep(t: number): void {
+    if (!activeSentence) return;
+    activeSentence.querySelectorAll<HTMLElement>('.lyric-line[data-line-start]').forEach(line => {
+      const lineStart = parseFloat(line.dataset.lineStart!);
+      const lineEnd   = parseFloat(line.dataset.lineEnd!);
+      if (lineEnd <= lineStart) return;
+      const pct = Math.max(0, Math.min(110, (t - lineStart) / (lineEnd - lineStart) * 110));
+      // --js-sweep is unregistered so it inherits to ::before from the host element
+      line.style.setProperty('--js-sweep', `${pct.toFixed(1)}%`);
+    });
+  }
+
   function playTick() {
-    const elapsedSec = (performance.now() - playStartMs) / 1000;
-    const pct = Math.min(1, playStartPct + elapsedSec / totalSeconds);
+    const pct = hasAudio && audio && audio.duration > 0
+      ? Math.min(1, audio.currentTime / audio.duration)
+      : Math.min(1, playStartPct + (performance.now() - playStartMs) / 1000 / totalSeconds);
 
     if (scrubber) {
       scrubber.value = String(pct * 100);
       footer.style.setProperty('--pct',`${pct * 100}%`);
     }
-    if (elapsedEl) elapsedEl.textContent = formatTime(pct, readTime);
+    if (elapsedEl) elapsedEl.textContent = formatTime(pct);
     if (Math.abs(pct - lastAriaPct) > 0.05) {
-      updateScrubberAria(pct, readTime);
+      updateScrubberAria(pct);
       lastAriaPct = pct;
     }
 
     const target = getSentenceAtPct(pct);
     if (target) activateSentence(target);
+
+    if (hasAudio && audio) updateLineSweep(audio.currentTime);
 
     if (pct < 1) {
       _rafId = requestAnimationFrame(playTick);
@@ -487,29 +604,45 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
 
   function startPlay() {
     if (!linesReady) { sentences.forEach(splitSentenceIntoLines); linesReady = true; }
-    playStartMs  = performance.now();
-    playStartPct = scrubber ? Number(scrubber.value) / 100 : 0;
-    syncLyricToPct(playStartPct);
+    if (hasAudio && audio) {
+      audio.play().catch(() => {/* autoplay policy — user tapped play so this should never fire */});
+    } else {
+      playStartMs  = performance.now();
+      playStartPct = scrubber ? Number(scrubber.value) / 100 : 0;
+    }
+    const currentPct = hasAudio && audio && audio.duration > 0
+      ? audio.currentTime / audio.duration
+      : (scrubber ? Number(scrubber.value) / 100 : 0);
+    syncLyricToPct(currentPct);
+    // Pre-set --js-sweep before the first paint so the mask starts at the correct
+    // position rather than flashing the CSS fallback (--sweep-pct: 110%).
+    if (hasAudio && audio) updateLineSweep(audio.currentTime);
     document.body.classList.add('playing');
     document.body.classList.remove('paused');
     if (btnPlay) btnPlay.setAttribute('aria-pressed', 'true');
     if (readLabel) readLabel.textContent = 'Reading';
     if (playStatus) playStatus.textContent = 'Playing';
-    window.addEventListener('wheel',     pauseOnScroll, { passive: true, signal });
-    window.addEventListener('touchmove', pauseOnScroll, { passive: true, signal });
+    // Scroll/wheel only pauses in simulation mode; audio has its own transport
+    if (!hasAudio) {
+      window.addEventListener('wheel',     pauseOnScroll, { passive: true, signal });
+      window.addEventListener('touchmove', pauseOnScroll, { passive: true, signal });
+    }
     _rafId = requestAnimationFrame(playTick);
   }
 
   function pausePlay() {
     if (_rafId !== null) { cancelAnimationFrame(_rafId); _rafId = null; }
+    if (hasAudio && audio) audio.pause();
     clearLyrics();
     document.body.classList.remove('playing');
     document.body.classList.add('paused');
     if (btnPlay) btnPlay.setAttribute('aria-pressed', 'false');
     if (readLabel) readLabel.textContent = '';
     if (playStatus) playStatus.textContent = 'Paused';
-    window.removeEventListener('wheel',     pauseOnScroll);
-    window.removeEventListener('touchmove', pauseOnScroll);
+    if (!hasAudio) {
+      window.removeEventListener('wheel',     pauseOnScroll);
+      window.removeEventListener('touchmove', pauseOnScroll);
+    }
   }
 
   // ── Wire up ──────────────────────────────────────────────────────────────────
@@ -524,37 +657,54 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
 
     sentences = initLyrics(totalSeconds);
 
+    // If this post has a recording, fetch real timing and wire up the audio element
+    if (hasAudio && audio && footer?.dataset.timing) {
+      loadAudioTiming(footer.dataset.timing, sentences);
+      audio.addEventListener('ended', pausePlay, { signal });
+    }
+
     // Initial aria
-    updateScrubberAria(0, readTime);
+    updateScrubberAria(0);
 
-    // Scroll → scrubber (only when not playing)
-    window.addEventListener('scroll', () => {
-      if (document.body.classList.contains('playing')) return;
-      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-      if (scrollable <= 0 || !scrubber) return;
-      const pct = Math.min(1, Math.max(0, window.scrollY / scrollable));
-      scrubber.value = String(pct * 100);
-      footer.style.setProperty('--pct',`${pct * 100}%`);
-      if (elapsedEl) elapsedEl.textContent = formatTime(pct, readTime);
-      if (Math.abs(pct - lastAriaPct) > 0.05) {
-        updateScrubberAria(pct, readTime);
-        lastAriaPct = pct;
-      }
-    }, { passive: true, signal });
+    // Scroll → scrubber (simulation mode only; audio mode uses audio.currentTime)
+    if (!hasAudio) {
+      window.addEventListener('scroll', () => {
+        if (document.body.classList.contains('playing')) return;
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        if (scrollable <= 0 || !scrubber) return;
+        const pct = Math.min(1, Math.max(0, window.scrollY / scrollable));
+        scrubber.value = String(pct * 100);
+        footer.style.setProperty('--pct',`${pct * 100}%`);
+        if (elapsedEl) elapsedEl.textContent = formatTime(pct);
+        if (Math.abs(pct - lastAriaPct) > 0.05) {
+          updateScrubberAria(pct);
+          lastAriaPct = pct;
+        }
+      }, { passive: true, signal });
+    }
 
-    // Scrubber drag → scroll only; lyric sync only when playing
+    // Scrubber drag
     scrubber.addEventListener('input', () => {
       const pct = Number(scrubber.value) / 100;
-      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-      window.scrollTo(0, pct * scrollable);
       footer.style.setProperty('--pct',`${pct * 100}%`);
-      if (elapsedEl) elapsedEl.textContent = formatTime(pct, readTime);
-      updateScrubberAria(pct, readTime);
+      if (elapsedEl) elapsedEl.textContent = formatTime(pct);
+      updateScrubberAria(pct);
       lastAriaPct = pct;
-      if (document.body.classList.contains('playing')) {
-        playStartMs  = performance.now();
-        playStartPct = pct;
-        syncLyricToPct(pct);
+      if (hasAudio && audio) {
+        // Seek audio; lyric sync happens via playTick
+        if (audio.duration > 0) audio.currentTime = pct * audio.duration;
+        if (document.body.classList.contains('playing')) {
+          syncLyricToPct(pct);
+          updateLineSweep(audio.currentTime);
+        }
+      } else {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        window.scrollTo(0, pct * scrollable);
+        if (document.body.classList.contains('playing')) {
+          playStartMs  = performance.now();
+          playStartPct = pct;
+          syncLyricToPct(pct);
+        }
       }
     });
 
@@ -609,8 +759,11 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
     border-radius: 3px;
     transform: skewX(var(--line-skew, -7deg)) scaleY(1.075);
     --sweep-pct: 0%;
-    mask-image: linear-gradient(to right, black calc(var(--sweep-pct) - 3px), transparent var(--sweep-pct));
-    -webkit-mask-image: linear-gradient(to right, black calc(var(--sweep-pct) - 3px), transparent var(--sweep-pct));
+    /* --js-sweep is an unregistered var (inherits: true by default), set by JS on the
+       host .lyric-line element.  Fallback to --sweep-pct for simulation-mode lines
+       where JS never touches --js-sweep. */
+    mask-image: linear-gradient(to right, black calc(var(--js-sweep, var(--sweep-pct)) - 3px), transparent var(--js-sweep, var(--sweep-pct)));
+    -webkit-mask-image: linear-gradient(to right, black calc(var(--js-sweep, var(--sweep-pct)) - 3px), transparent var(--js-sweep, var(--sweep-pct)));
     opacity: 0;
     transition: opacity 0.25s ease;
     filter: url(#lyric-roughen);
@@ -659,7 +812,8 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .lyric-sentence.lyric-active .lyric-line::before {
+    /* Default (simulation mode): CSS-animated sweep */
+    .lyric-sentence.lyric-active .lyric-line:not([data-line-start])::before {
       animation:
         lyric-sweep var(--line-dur, 2s) cubic-bezier(0.4, 0, 0.8, 1) var(--line-delay, 0s) forwards,
         lyric-fade-in 0.25s ease var(--line-delay, 0s) both;
@@ -668,6 +822,11 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref } = Astr
     .lyric-sentence.lyric-active .lyric-line::after {
       animation: lyric-accent-in 0.25s ease var(--line-delay, 0s) both;
     }
+  }
+
+  /* Audio-driven lines: JS sweeps --js-sweep each frame; just fade the opacity in quickly */
+  .lyric-sentence.lyric-active .lyric-line[data-line-start]::before {
+    animation: lyric-fade-in 0.05s ease both;
   }
 
   .lyric-sentence.lyric-active .lyric-line[data-done]::after {

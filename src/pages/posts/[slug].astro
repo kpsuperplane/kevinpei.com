@@ -17,23 +17,34 @@ export async function getStaticPaths() {
   }));
 }
 
+// Detect co-located .m4a files — the audioPlugin Vite plugin handles URL resolution
+const audioModules = import.meta.glob<string>(
+  '../../content/posts/*.m4a',
+  { import: 'default', eager: true }
+);
+
 const { post, prevPost, nextPost } = Astro.props;
 const { Content } = await render(post);
 const readTime = getReadTime(post.body ?? '');
+
+const audioSrc  = audioModules[`../../content/posts/${post.id}.m4a`] ?? null;
+const timingSrc = audioSrc ? `/audio/${post.id}.json` : null;
 ---
 
 <AppShell
   title={`${post.data.title} — Kevin Pei`}
+  description={post.data.description ?? post.data.title}
+  type="article"
+  publishedDate={post.data.date}
   playing={true}
   nowPlayingTitle={post.data.title}
   nowPlayingTags={post.data.tags}
   prevSlug={prevPost?.id}
   nextSlug={nextPost?.id}
   readTime={readTime}
+  audioSrc={audioSrc}
+  timingSrc={timingSrc}
 >
-  <Fragment slot="head">
-    <meta name="description" content={post.data.description ?? post.data.title} />
-  </Fragment>
   <PostView
     Content={Content}
     title={post.data.title}
@@ -43,4 +54,3 @@ const readTime = getReadTime(post.body ?? '');
     readTime={readTime}
   />
 </AppShell>
-

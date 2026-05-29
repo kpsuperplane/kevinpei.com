@@ -3,7 +3,12 @@
  * URL generation and active-state matching always agree on casing.
  */
 export function tagToSlug(tag: string): string {
-  return tag.toLowerCase();
+  return tag
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 /**

@@ -9,7 +9,7 @@ const allPosts = await getCollection('posts');
 const posts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 ---
 
-<AppShell title="Kevin Pei" firstHref="/about">
+<AppShell title="Kevin Pei" description={aboutFrontmatter.description} firstHref="/about">
   <TrackList heading="Now Streaming" posts={posts}>
     <FeaturedBanner slot="feature" title={aboutFrontmatter.title} description={aboutFrontmatter.description} />
   </TrackList>
