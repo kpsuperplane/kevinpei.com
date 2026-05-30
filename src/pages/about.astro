@@ -1,8 +1,8 @@
 ---
 import AppShell from '../layouts/AppShell.astro';
 import PostView from '../components/PostView.astro';
-import AboutContent, { frontmatter } from '../content/about.md';
-import aboutRaw from '../content/about.md?raw';
+import AboutContent, { frontmatter } from '../content/about.mdx';
+import aboutRaw from '../content/about.mdx?raw';
 import { getReadTime } from '../utils/readTime';
 
 const readTime = getReadTime(aboutRaw.replace(/^---[\s\S]*?---\n?/, ''));

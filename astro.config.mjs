@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
 import { execFileSync } from 'child_process';
 import { readFileSync, mkdtempSync, rmSync, mkdirSync, readdirSync, existsSync, copyFileSync } from 'fs';
 import ffmpegPath from 'ffmpeg-static';
@@ -105,7 +106,7 @@ function audioAstroIntegration() {
 // https://astro.build/config
 export default defineConfig({
   site: 'https://kevinpei.com',
-  integrations: [audioAstroIntegration()],
+  integrations: [mdx(), audioAstroIntegration()],
   vite: {
     plugins: [audioVitePlugin()],
   },

@@ -1,0 +1,303 @@
+---
+const totalYears = 80;
+const weeksPerYear = 52;
+const totalWeeks = totalYears * weeksPerYear;
+---
+
+<section class="life-weeks" data-life-weeks-widget data-total-years={totalYears} data-weeks-per-year={weeksPerYear}>
+  <div class="life-weeks__header">
+    <div>
+      <p class="life-weeks__eyebrow">Life in weeks</p>
+      <h2 class="life-weeks__title">80 years, one square at a time</h2>
+    </div>
+
+    <div class="life-weeks__field">
+      <label for="life-weeks-birth-year">Birth year</label>
+      <input
+        id="life-weeks-birth-year"
+        type="number"
+        value="1998"
+        min="1900"
+        step="1"
+        inputmode="numeric"
+        data-life-weeks-input
+        aria-describedby="life-weeks-summary"
+      />
+    </div>
+  </div>
+
+  <div class="life-weeks__summary" id="life-weeks-summary" data-life-weeks-summary aria-live="polite">
+    Enter a birth year to color the calendar.
+  </div>
+
+  <div class="life-weeks__legend" aria-hidden="true">
+    <span><i class="life-weeks__key life-weeks__key--past"></i> Lived</span>
+    <span><i class="life-weeks__key life-weeks__key--current"></i> This week</span>
+    <span><i class="life-weeks__key life-weeks__key--future"></i> Ahead</span>
+  </div>
+
+  <svg
+    class="life-weeks__chart"
+    data-life-weeks-chart
+    role="img"
+    aria-labelledby="life-weeks-chart-title life-weeks-chart-desc"
+    preserveAspectRatio="xMidYMid meet"
+  >
+    <title id="life-weeks-chart-title">80 years grouped into weekly squares</title>
+    <desc id="life-weeks-chart-desc" data-life-weeks-chart-desc>
+      {totalWeeks} weeks grouped into {totalYears} years.
+    </desc>
+    <path data-life-weeks-path="past" fill="#d8d8d8"></path>
+    <path data-life-weeks-path="current" fill="#111111"></path>
+    <path data-life-weeks-path="future" fill="#1db954"></path>
+  </svg>
+</section>
+
+<script>
+  const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
+  const YEAR_COLUMNS = 10;
+  const WEEKS_PER_ROW = 13;
+  const WEEK_SIZE = 2;
+  const WEEK_GAP = 0.7;
+  const YEAR_GAP = 4.4;
+  const YEAR_WIDTH = (WEEKS_PER_ROW * WEEK_SIZE) + ((WEEKS_PER_ROW - 1) * WEEK_GAP);
+  const YEAR_HEIGHT = (4 * WEEK_SIZE) + (3 * WEEK_GAP);
+  const CHART_WIDTH = (YEAR_COLUMNS * YEAR_WIDTH) + ((YEAR_COLUMNS - 1) * YEAR_GAP);
+  const CHART_HEIGHT = (8 * YEAR_HEIGHT) + (7 * YEAR_GAP);
+
+  function parseBirthYear(value, maxYear) {
+    const year = Number(value);
+    if (!Number.isInteger(year) || year < 1900 || year > maxYear) return null;
+    return year;
+  }
+
+  function getTodayUtc() {
+    const now = new Date();
+    return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  }
+
+  function squarePath(x, y) {
+    const xValue = x.toFixed(2);
+    const yValue = y.toFixed(2);
+    return `M${xValue} ${yValue}h${WEEK_SIZE}v${WEEK_SIZE}h-${WEEK_SIZE}z`;
+  }
+
+  function weekCoordinates(absoluteWeek, weeksPerYear) {
+    const yearIndex = Math.floor(absoluteWeek / weeksPerYear);
+    const weekIndex = absoluteWeek % weeksPerYear;
+    const yearColumn = yearIndex % YEAR_COLUMNS;
+    const yearRow = Math.floor(yearIndex / YEAR_COLUMNS);
+    const weekColumn = weekIndex % WEEKS_PER_ROW;
+    const weekRow = Math.floor(weekIndex / WEEKS_PER_ROW);
+
+    return {
+      x: (yearColumn * (YEAR_WIDTH + YEAR_GAP)) + (weekColumn * (WEEK_SIZE + WEEK_GAP)),
+      y: (yearRow * (YEAR_HEIGHT + YEAR_GAP)) + (weekRow * (WEEK_SIZE + WEEK_GAP)),
+    };
+  }
+
+  function renderChart(chart, desc, hasBirthYear, elapsedWeeks, totalWeeks, weeksPerYear) {
+    const paths = {
+      past: [],
+      current: [],
+      future: [],
+    };
+
+    for (let absoluteWeek = 0; absoluteWeek < totalWeeks; absoluteWeek += 1) {
+      const { x, y } = weekCoordinates(absoluteWeek, weeksPerYear);
+      const path = squarePath(x, y);
+
+      if (!hasBirthYear) {
+        paths.future.push(path);
+      } else if (absoluteWeek < elapsedWeeks) {
+        paths.past.push(path);
+      } else if (absoluteWeek === elapsedWeeks && elapsedWeeks < totalWeeks) {
+        paths.current.push(path);
+      } else {
+        paths.future.push(path);
+      }
+    }
+
+    chart.setAttribute('viewBox', `0 0 ${CHART_WIDTH.toFixed(2)} ${CHART_HEIGHT.toFixed(2)}`);
+    chart.querySelector('[data-life-weeks-path="past"]').setAttribute('d', paths.past.join(''));
+    chart.querySelector('[data-life-weeks-path="current"]').setAttribute('d', paths.current.join(''));
+    chart.querySelector('[data-life-weeks-path="future"]').setAttribute('d', paths.future.join(''));
+    desc.textContent = hasBirthYear
+      ? `${elapsedWeeks.toLocaleString()} weeks lived and ${(totalWeeks - elapsedWeeks).toLocaleString()} weeks remaining in an 80-year span.`
+      : `${totalWeeks.toLocaleString()} weeks grouped into 80 years.`;
+  }
+
+  function initLifeWeeksWidget() {
+    document.querySelectorAll('[data-life-weeks-widget]').forEach((widget) => {
+      if (widget.dataset.lifeWeeksReady === 'true') return;
+      widget.dataset.lifeWeeksReady = 'true';
+
+      const input = widget.querySelector('[data-life-weeks-input]');
+      const chart = widget.querySelector('[data-life-weeks-chart]');
+      const chartDesc = widget.querySelector('[data-life-weeks-chart-desc]');
+      const summary = widget.querySelector('[data-life-weeks-summary]');
+      const totalYears = Number(widget.dataset.totalYears);
+      const weeksPerYear = Number(widget.dataset.weeksPerYear);
+      const totalWeeks = totalYears * weeksPerYear;
+      const today = getTodayUtc();
+      const currentYear = today.getUTCFullYear();
+
+      input.max = String(currentYear);
+
+      const render = () => {
+        const birthYear = parseBirthYear(input.value, currentYear);
+        const birthDate = birthYear ? new Date(Date.UTC(birthYear, 0, 1)) : null;
+        const hasBirthYear = birthYear != null;
+        const rawElapsed = hasBirthYear ? Math.floor((today - birthDate) / MS_PER_WEEK) : 0;
+        const elapsedWeeks = Math.min(Math.max(rawElapsed, 0), totalWeeks);
+        const remainingWeeks = totalWeeks - elapsedWeeks;
+
+        renderChart(chart, chartDesc, hasBirthYear, elapsedWeeks, totalWeeks, weeksPerYear);
+
+        if (!hasBirthYear) {
+          summary.textContent = 'Enter a birth year to color the calendar.';
+          return;
+        }
+
+        const ageYears = Math.floor(elapsedWeeks / weeksPerYear);
+        const endYear = birthYear + totalYears;
+        summary.textContent = `${remainingWeeks.toLocaleString()} weeks left in an 80-year span ending in ${endYear}. ${elapsedWeeks.toLocaleString()} weeks lived so far, about ${ageYears} years.`;
+      };
+
+      input.addEventListener('input', render);
+      render();
+    });
+  }
+
+  document.addEventListener('astro:page-load', initLifeWeeksWidget);
+  initLifeWeeksWidget();
+</script>
+
+<style is:global>
+  .life-weeks {
+    padding: 0 0 28px;
+    margin: 0 0 32px;
+  }
+
+  .life-weeks__header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 18px;
+    align-items: end;
+    margin-bottom: 12px;
+  }
+
+  .life-weeks .life-weeks__eyebrow {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    margin: 0 0 8px !important;
+  }
+
+  .life-weeks .life-weeks__title {
+    font-size: 28px;
+    line-height: 1.15;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 !important;
+  }
+
+  .life-weeks__field {
+    display: grid;
+    gap: 6px;
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .life-weeks__field input {
+    width: 156px;
+    min-height: 36px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+    padding: 7px 9px;
+  }
+
+  .life-weeks__summary {
+    min-height: 22px;
+    margin-bottom: 10px;
+    color: var(--text-muted);
+    font-size: var(--text-base);
+    line-height: 1.5;
+  }
+
+  .life-weeks__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 12px;
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+    font-weight: 600;
+  }
+
+  .life-weeks__legend span {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .life-weeks__key {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+
+  .life-weeks__key--past {
+    background: #d8d8d8;
+  }
+
+  .life-weeks__key--current {
+    background: var(--text);
+  }
+
+  .life-weeks__key--future {
+    background: var(--accent);
+  }
+
+  .life-weeks__chart {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  @media (max-width: 768px) {
+    .life-weeks {
+      padding: 0 0 20px;
+      margin-bottom: 22px;
+    }
+
+    .life-weeks__header {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      align-items: start;
+      margin-bottom: 10px;
+    }
+
+    .life-weeks__title {
+      font-size: 23px;
+    }
+
+    .life-weeks__field input {
+      width: 100%;
+      max-width: 220px;
+    }
+
+    .life-weeks__legend {
+      margin-bottom: 10px;
+    }
+  }
+</style>
