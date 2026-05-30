@@ -179,6 +179,12 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
   document.addEventListener('astro:before-swap', () => {
     if (_rafId !== null) { cancelAnimationFrame(_rafId); _rafId = null; }
     document.body.classList.remove('playing', 'paused');
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = null;
+      navigator.mediaSession.playbackState = 'none';
+      navigator.mediaSession.setActionHandler('play', null);
+      navigator.mediaSession.setActionHandler('pause', null);
+    }
     _controller.abort();
   });
 
@@ -602,14 +608,33 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
   // Listeners registered only while playing (saves work when idle)
   const pauseOnScroll = () => { if (document.body.classList.contains('playing')) pausePlay(); };
 
-  function startPlay() {
+  function startAnimationLoop() {
+    if (_rafId !== null) cancelAnimationFrame(_rafId);
+    _rafId = requestAnimationFrame(playTick);
+  }
+
+  function setPlayingUi() {
+    document.body.classList.add('playing');
+    document.body.classList.remove('paused');
+    if (btnPlay) btnPlay.setAttribute('aria-pressed', 'true');
+    if (readLabel) readLabel.textContent = 'Reading';
+    if (playStatus) playStatus.textContent = 'Playing';
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+  }
+
+  function setPausedUi() {
+    if (_rafId !== null) { cancelAnimationFrame(_rafId); _rafId = null; }
+    clearLyrics();
+    document.body.classList.remove('playing');
+    document.body.classList.add('paused');
+    if (btnPlay) btnPlay.setAttribute('aria-pressed', 'false');
+    if (readLabel) readLabel.textContent = '';
+    if (playStatus) playStatus.textContent = 'Paused';
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+  }
+
+  function startPlayUi() {
     if (!linesReady) { sentences.forEach(splitSentenceIntoLines); linesReady = true; }
-    if (hasAudio && audio) {
-      audio.play().catch(() => {/* autoplay policy — user tapped play so this should never fire */});
-    } else {
-      playStartMs  = performance.now();
-      playStartPct = scrubber ? Number(scrubber.value) / 100 : 0;
-    }
     const currentPct = hasAudio && audio && audio.duration > 0
       ? audio.currentTime / audio.duration
       : (scrubber ? Number(scrubber.value) / 100 : 0);
@@ -617,28 +642,31 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     // Pre-set --js-sweep before the first paint so the mask starts at the correct
     // position rather than flashing the CSS fallback (--sweep-pct: 110%).
     if (hasAudio && audio) updateLineSweep(audio.currentTime);
-    document.body.classList.add('playing');
-    document.body.classList.remove('paused');
-    if (btnPlay) btnPlay.setAttribute('aria-pressed', 'true');
-    if (readLabel) readLabel.textContent = 'Reading';
-    if (playStatus) playStatus.textContent = 'Playing';
+    setPlayingUi();
     // Scroll/wheel only pauses in simulation mode; audio has its own transport
     if (!hasAudio) {
       window.addEventListener('wheel',     pauseOnScroll, { passive: true, signal });
       window.addEventListener('touchmove', pauseOnScroll, { passive: true, signal });
     }
-    _rafId = requestAnimationFrame(playTick);
+    startAnimationLoop();
+  }
+
+  function startPlay() {
+    if (hasAudio && audio) {
+      audio.play().catch(() => {/* Play can be blocked if it was not user-initiated. */});
+      return;
+    }
+    playStartMs  = performance.now();
+    playStartPct = scrubber ? Number(scrubber.value) / 100 : 0;
+    startPlayUi();
   }
 
   function pausePlay() {
-    if (_rafId !== null) { cancelAnimationFrame(_rafId); _rafId = null; }
-    if (hasAudio && audio) audio.pause();
-    clearLyrics();
-    document.body.classList.remove('playing');
-    document.body.classList.add('paused');
-    if (btnPlay) btnPlay.setAttribute('aria-pressed', 'false');
-    if (readLabel) readLabel.textContent = '';
-    if (playStatus) playStatus.textContent = 'Paused';
+    if (hasAudio && audio && !audio.paused) {
+      audio.pause();
+      return;
+    }
+    setPausedUi();
     if (!hasAudio) {
       window.removeEventListener('wheel',     pauseOnScroll);
       window.removeEventListener('touchmove', pauseOnScroll);
@@ -660,7 +688,27 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     // If this post has a recording, fetch real timing and wire up the audio element
     if (hasAudio && audio && footer?.dataset.timing) {
       loadAudioTiming(footer.dataset.timing, sentences);
-      audio.addEventListener('ended', pausePlay, { signal });
+      audio.addEventListener('play', startPlayUi, { signal });
+      audio.addEventListener('pause', setPausedUi, { signal });
+      audio.addEventListener('ended', setPausedUi, { signal });
+
+      if ('mediaSession' in navigator) {
+        if (typeof MediaMetadata !== 'undefined') {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: footer.querySelector('.track-title')?.textContent?.trim() ?? document.title,
+            artist: 'Kevin Pei',
+            album: 'Kevin Pei',
+          });
+        }
+        try {
+          navigator.mediaSession.setActionHandler('play', () => {
+            audio.play().catch(() => {/* Native media controls can still be blocked by policy. */});
+          });
+          navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); });
+        } catch {
+          // Some browsers expose Media Session partially; native audio events still sync the UI.
+        }
+      }
     }
 
     // Initial aria
