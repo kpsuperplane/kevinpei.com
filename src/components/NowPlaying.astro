@@ -628,6 +628,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
       const pct = getWordTimedSweepPct(line, t, lineStart, lineEnd);
       // --js-sweep is unregistered so it inherits to ::before from the host element
       line.style.setProperty('--js-sweep', `${pct.toFixed(1)}%`);
+      line.toggleAttribute('data-line-active', t >= lineStart);
       line.toggleAttribute('data-done', pct >= 109.5);
     });
   }
@@ -980,7 +981,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
         lyric-fade-in 0.25s ease var(--line-delay, 0s) both;
     }
 
-    .lyric-highlight-line.is-visible::after {
+    .lyric-highlight-line.is-visible:not([data-line-start])::after {
       animation: lyric-accent-in 0.25s ease var(--line-delay, 0s) both;
     }
   }
@@ -988,6 +989,15 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
   /* Audio-driven lines: JS sweeps --js-sweep each frame; just fade the opacity in quickly */
   .lyric-highlight-line.is-visible[data-line-start]::before {
     animation: lyric-fade-in 0.05s ease both;
+  }
+
+  .lyric-highlight-line.is-visible[data-line-start]::after {
+    animation: none;
+    opacity: 0;
+  }
+
+  .lyric-highlight-line.is-visible[data-line-start][data-line-active]::after {
+    opacity: 0.8;
   }
 
   .lyric-highlight-line.is-visible[data-done]::after {

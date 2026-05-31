@@ -7,11 +7,13 @@ import aboutTimingData from '../content/about.json';
 import aboutTiming from '../content/about.json?url';
 
 const duration = aboutTimingData.duration / 60;
+const aboutImage = frontmatter.image?.src;
 ---
 
 <AppShell
   title="About — Kevin Pei"
   description={frontmatter.description}
+  image={aboutImage}
   playing={true}
   nowPlayingTitle={frontmatter.title}
   nowPlayingTags={frontmatter.tags}

@@ -2,15 +2,49 @@
 interface Props {
   title?: string;
   description?: string;
+  image?: {
+    src: string;
+    alt: string;
+    width?: number;
+    height?: number;
+    sources?: {
+      mobile?: string;
+      desktop?: string;
+    };
+  };
 }
-const { title = "Hey, I'm Kevin.", description } = Astro.props;
+const {
+  title = "Hey, I'm Kevin.",
+  description,
+  image = {
+    src: '/cover.png',
+    alt: 'Kevin Pei',
+    width: 140,
+    height: 140,
+    sources: {
+      mobile: '/cover-144.png',
+      desktop: '/cover-280.png',
+    },
+  },
+} = Astro.props;
+
+const imageWidth = image.width ?? 140;
+const imageHeight = image.height ?? imageWidth;
 ---
 
 <a href="/about" class="featured-banner">
   <picture class="banner-art-wrap">
-    <source media="(max-width: 768px)" srcset="/cover-144.png" />
-    <source srcset="/cover-280.png" />
-    <img class="banner-art" src="/cover.png" alt="Kevin Pei" width="140" height="140" decoding="async" fetchpriority="high" />
+    <source media="(max-width: 768px)" srcset={image.sources?.mobile ?? image.src} />
+    <source srcset={image.sources?.desktop ?? image.src} />
+    <img
+      class="banner-art"
+      src={image.src}
+      alt={image.alt}
+      width={imageWidth}
+      height={imageHeight}
+      decoding="async"
+      fetchpriority="high"
+    />
   </picture>
   <div class="banner-content">
     <p class="banner-label">Featured Track</p>
