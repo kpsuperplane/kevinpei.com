@@ -13,7 +13,7 @@ Usage:
   python scripts/align.py \
     --post src/content/posts/notes-on-fast-software.md \
     --whisper scripts/whisper-out/notes-on-fast-software.json \
-    --out public/audio/notes-on-fast-software.json \
+    --out src/content/posts/notes-on-fast-software.json \
     --force
 """
 
@@ -28,6 +28,8 @@ from pathlib import Path
 # ── Markdown stripping ────────────────────────────────────────────────────────
 
 def strip_markdown(text: str) -> str:
+    text = re.sub(r'^\s*(import|export)\s+.*$', ' ', text, flags=re.MULTILINE)
+    text = re.sub(r'^\s*<[A-Z][^>\n]*(?:/>|>.*?</[A-Z][^>]*>)\s*$', ' ', text, flags=re.MULTILINE)
     text = re.sub(r'```[\s\S]*?```', ' ', text)
     text = re.sub(r'`[^`]+`', ' ', text)
     text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
@@ -38,7 +40,8 @@ def strip_markdown(text: str) -> str:
     text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
     text = re.sub(r'^[-*_]{3,}\s*$', '', text, flags=re.MULTILINE)
     text = re.sub(r'^\s*[-*+]\s+', '', text, flags=re.MULTILINE)
-    text = re.sub(r'^\s*\d+\.\s+', '', text, flags=re.MULTILINE)
+    text = re.sub(r'^\s*\d{1,3}\.\s+', '', text, flags=re.MULTILINE)
+    text = re.sub(r'\\([\\`*_{}\[\]()#+\-.!>])', r'\1', text)
     return text
 
 
@@ -201,11 +204,13 @@ def main():
             mdx_path = root / 'src/content/posts' / f'{args.slug}.mdx'
             if mdx_path.exists():
                 post_path = mdx_path
-        whisper_path = whisper_path or root / 'scripts/whisper-out' / f'{args.slug}.json'
-        out_path = out_path or root / 'public/audio' / f'{args.slug}.json'
+
+    if post_path:
+        whisper_path = whisper_path or root / 'scripts/whisper-out' / f'{post_path.stem}.json'
+        out_path = out_path or post_path.with_suffix('.json')
 
     if not post_path or not whisper_path or not out_path:
-        parser.error('provide a slug, or provide --post, --whisper, and --out')
+        parser.error('provide a slug, or provide --post with optional --whisper/--out')
 
     if not post_path.exists():
         parser.error(f'post file not found: {post_path}')

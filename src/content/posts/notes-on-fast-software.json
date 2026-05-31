@@ -2,6 +2,7 @@
   "duration": 102.44,
   "sentences": [
     {
+      "text": "Fast software feels different.",
       "start": 0.84,
       "end": 2.82,
       "words": [
@@ -13,6 +14,7 @@
       ]
     },
     {
+      "text": "Not just better \u2014 actually different, like a different category of experience.",
       "start": 3.28,
       "end": 7.5,
       "words": [
@@ -31,6 +33,7 @@
       ]
     },
     {
+      "text": "There's a threshold somewhere around 100ms where software stops feeling like it's responding to you and starts feeling like it's part of you.",
       "start": 8.36,
       "end": 15.14,
       "words": [
@@ -62,6 +65,7 @@
       ]
     },
     {
+      "text": "Below that threshold, the interface disappears.",
       "start": 15.66,
       "end": 17.8,
       "words": [
@@ -75,6 +79,7 @@
       ]
     },
     {
+      "text": "Above it, you're always waiting \u2014 a little, just enough to remind you that the computer is doing something and you are not.",
       "start": 18.52,
       "end": 24.34,
       "words": [
@@ -104,6 +109,7 @@
       ]
     },
     {
+      "text": "The tax on thought",
       "start": 25.48,
       "end": 26.68,
       "words": [
@@ -115,6 +121,7 @@
       ]
     },
     {
+      "text": "Latency is a tax on thought.",
       "start": 27.26,
       "end": 28.94,
       "words": [
@@ -128,6 +135,7 @@
       ]
     },
     {
+      "text": "Every time you wait for a response, your train of thought has the opportunity to derail.",
       "start": 29.38,
       "end": 33.46,
       "words": [
@@ -151,6 +159,7 @@
       ]
     },
     {
+      "text": "You're reminded that you're using a tool, that the tool is separate from you, that this whole thing is mediated.",
       "start": 34.06,
       "end": 39.1,
       "words": [
@@ -178,6 +187,7 @@
       ]
     },
     {
+      "text": "The best software erases that mediation.",
       "start": 39.88,
       "end": 42.12,
       "words": [
@@ -191,6 +201,7 @@
       ]
     },
     {
+      "text": "The worst software makes you feel it constantly.",
       "start": 42.74,
       "end": 44.86,
       "words": [
@@ -206,6 +217,7 @@
       ]
     },
     {
+      "text": "Why fast software is rare",
       "start": 46.24,
       "end": 48.04,
       "words": [
@@ -218,6 +230,7 @@
       ]
     },
     {
+      "text": "Making software fast requires caring about it at every level of the stack.",
       "start": 48.9,
       "end": 52.9,
       "words": [
@@ -238,6 +251,7 @@
       ]
     },
     {
+      "text": "The database query, the API call, the render path, the bundle size, the parse time \u2014 all of it.",
       "start": 53.48,
       "end": 59.44,
       "words": [
@@ -263,6 +277,7 @@
       ]
     },
     {
+      "text": "You can't outsource this to a framework or a CDO network and call it done.",
       "start": 59.96,
       "end": 63.46,
       "words": [
@@ -285,6 +300,7 @@
       ]
     },
     {
+      "text": "Most software is slow because making it fast is expensive and the people paying for it don't feel the cost.",
       "start": 64.22,
       "end": 70.0,
       "words": [
@@ -312,6 +328,7 @@
       ]
     },
     {
+      "text": "They use the software occasionally, on fast machines, with fast connections.",
       "start": 70.6,
       "end": 74.4,
       "words": [
@@ -330,6 +347,7 @@
       ]
     },
     {
+      "text": "The user feels the slowness; the builder rarely does.",
       "start": 75.08,
       "end": 77.86,
       "words": [
@@ -346,6 +364,7 @@
       ]
     },
     {
+      "text": "Static sites",
       "start": 78.72,
       "end": 79.42,
       "words": [
@@ -355,6 +374,7 @@
       ]
     },
     {
+      "text": "One of the reasons I like static sites is that they're fast by default.",
       "start": 80.04,
       "end": 83.12,
       "words": [
@@ -376,6 +396,7 @@
       ]
     },
     {
+      "text": "There's no database query, no server render, no API call between the user and the content.",
       "start": 83.64,
       "end": 88.26,
       "words": [
@@ -399,6 +420,7 @@
       ]
     },
     {
+      "text": "It's just files.",
       "start": 88.86,
       "end": 89.78,
       "words": [
@@ -409,6 +431,7 @@
       ]
     },
     {
+      "text": "This site is a static site.",
       "start": 90.48,
       "end": 92.24,
       "words": [
@@ -423,6 +446,7 @@
       ]
     },
     {
+      "text": "It builds in seconds and loads in milliseconds.",
       "start": 92.64,
       "end": 94.5,
       "words": [
@@ -438,6 +462,7 @@
       ]
     },
     {
+      "text": "This is not a technical achievement \u2014 it's a consequence of keeping the thing simple.",
       "start": 95.2,
       "end": 99.36,
       "words": [
@@ -459,6 +484,7 @@
       ]
     },
     {
+      "text": "Simple is fast.",
       "start": 100.12,
       "end": 101.18,
       "words": [
@@ -469,6 +495,7 @@
       ]
     },
     {
+      "text": "Fast is kind.",
       "start": 101.64,
       "end": 102.44,
       "words": [

@@ -10,7 +10,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "align": "python3 scripts/align.py"
+    "align": "python3 scripts/align.py",
+    "transcribe": "python3 scripts/transcribe.py"
   },
   "dependencies": {
     "@astrojs/mdx": "^6.0.1",

@@ -26,4 +26,5 @@ pnpm-debug.log*
 # editor & tool configs
 .vscode/
 .claude/
+scripts/__pycache__/
 scripts/whisper-out/

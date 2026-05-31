@@ -3,6 +3,8 @@ import AppShell from '../layouts/AppShell.astro';
 import PostView from '../components/PostView.astro';
 import AboutContent, { frontmatter } from '../content/about.mdx';
 import aboutRaw from '../content/about.mdx?raw';
+import aboutAudio from '../content/about.m4a';
+import aboutTiming from '../content/about.json?url';
 import { getReadTime } from '../utils/readTime';
 
 const readTime = getReadTime(aboutRaw.replace(/^---[\s\S]*?---\n?/, ''));
@@ -15,6 +17,8 @@ const readTime = getReadTime(aboutRaw.replace(/^---[\s\S]*?---\n?/, ''));
   nowPlayingTitle={frontmatter.title}
   nowPlayingTags={frontmatter.tags}
   readTime={readTime}
+  audioSrc={aboutAudio}
+  timingSrc={aboutTiming}
 >
   <PostView
     Content={AboutContent}
