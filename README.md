@@ -37,6 +37,20 @@ All commands are run from the root of the project, from a terminal:
 | `bun preview`         | Preview your build locally, before deploying     |
 | `bun astro ...`       | Run CLI commands like `astro add`, `astro check` |
 | `bun astro -- --help` | Get help using the Astro CLI                     |
+| `bun run align -- <slug> --force` | Generate `public/audio/<slug>.json` timing data from `scripts/whisper-out/<slug>.json` |
+
+## Audio timing
+
+Audio timing files are manually generated and committed. The site only uses
+`public/audio/<slug>.json` when that file exists, which keeps hand-tuned timings
+out of the build pipeline.
+
+```sh
+bun run align -- notes-on-fast-software --force
+```
+
+The align script refuses to overwrite an existing timing file unless `--force`
+is passed, so manually adjusted JSON is protected by default.
 
 ## 👀 Want to learn more?
 

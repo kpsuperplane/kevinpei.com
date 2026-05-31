@@ -295,11 +295,8 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
   // Sentences with null timestamps keep their word-count fallback.
   async function loadAudioTiming(timingSrc: string, sents: HTMLElement[]) {
     try {
-      const data: { duration: number; sentences: Array<{ start: number | null; end: number | null; words?: number[] }> }
+      const data: { duration: number; sentences: Array<{ text?: string; start: number | null; end: number | null; words?: number[] }> }
         = await fetch(timingSrc).then(r => r.json());
-
-      // Set audio src first so the browser starts loading metadata in parallel
-      if (audio) audio.src = footer!.dataset.audio!;
 
       // Wait for loadedmetadata so audio.duration reflects the real file length.
       // Whisper's duration estimate can differ from the actual encoded file by 1–2 s,
@@ -445,11 +442,19 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     const lines = sentenceEl.querySelectorAll<HTMLElement>('.lyric-line');
     let wordOffset = 0;
 
+    const wordPattern = /[\p{L}\p{N}_]+/gu;
+
     lines.forEach(line => {
-      // Use \w+ tokenisation to match Python's re.findall(r'\w+') which generated
-      // the wordTimes array — important for contractions ("it's" → 2 tokens) and
-      // punctuation-only tokens ("—" → 0 tokens) that split(/\s+/) counts differently.
-      const lineWordCount = ((line.textContent ?? '').trim().match(/\w+/g) ?? []).length;
+      // Match Python's Unicode re.findall(r'\w+') tokenisation that generated
+      // the wordTimes array. Punctuation-only visual lines should not become
+      // audio-driven, because their start/end times would be identical.
+      const lineWordCount = ((line.textContent ?? '').trim().match(wordPattern) ?? []).length;
+      if (lineWordCount === 0) {
+        line.removeAttribute('data-line-start');
+        line.removeAttribute('data-line-end');
+        line.style.removeProperty('--js-sweep');
+        return;
+      }
       const t0 = wordTimes[Math.min(wordOffset, numWords - 1)];
       const t1 = wordTimes[Math.min(wordOffset + lineWordCount, numWords)];
       line.dataset.lineStart = String(t0);
@@ -608,6 +613,15 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
   // Listeners registered only while playing (saves work when idle)
   const pauseOnScroll = () => { if (document.body.classList.contains('playing')) pausePlay(); };
 
+  function syncAudioDurationUi() {
+    if (!audio || !isFinite(audio.duration) || audio.duration <= 0) return;
+    totalSeconds = Math.round(audio.duration);
+    const totalM = Math.floor(totalSeconds / 60);
+    const totalS = totalSeconds % 60;
+    if (totalEl) totalEl.textContent = `${totalM}:${totalS.toString().padStart(2, '0')}`;
+    updateScrubberAria(scrubber ? Number(scrubber.value) / 100 : 0);
+  }
+
   function startAnimationLoop() {
     if (_rafId !== null) cancelAnimationFrame(_rafId);
     _rafId = requestAnimationFrame(playTick);
@@ -685,9 +699,19 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
 
     sentences = initLyrics(totalSeconds);
 
-    // If this post has a recording, fetch real timing and wire up the audio element
-    if (hasAudio && audio && footer?.dataset.timing) {
-      loadAudioTiming(footer.dataset.timing, sentences);
+    // If this post has a recording, wire up audio. Timing JSON is optional:
+    // checked-in files provide exact highlights, otherwise lyrics use fallback pacing.
+    if (hasAudio && audio) {
+      audio.src = footer!.dataset.audio!;
+      if (audio.readyState >= 1) {
+        syncAudioDurationUi();
+      } else {
+        audio.addEventListener('loadedmetadata', syncAudioDurationUi, { once: true, signal });
+      }
+
+      if (footer?.dataset.timing) {
+        loadAudioTiming(footer.dataset.timing, sentences);
+      }
       audio.addEventListener('play', startPlayUi, { signal });
       audio.addEventListener('pause', setPausedUi, { signal });
       audio.addEventListener('ended', setPausedUi, { signal });
@@ -790,8 +814,9 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
 
   /* Per-line highlight element — just a positioning anchor, no background */
   .lyric-line {
-    display: inline;
+    display: inline-block;
     position: relative;
+    line-height: 1.25;
     /* z-index: 0 creates a stacking context so ::before at z:-1 stays behind the text */
     z-index: 0;
     -webkit-box-decoration-break: clone;
@@ -802,10 +827,10 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
   .lyric-line::before {
     content: '';
     position: absolute;
-    inset: 0 -5px;
+    inset: 0.08em -5px 0.02em;
     background: rgba(255, 100, 180, var(--line-opacity, 0.45));
     border-radius: 3px;
-    transform: skewX(var(--line-skew, -7deg)) scaleY(1.075);
+    transform: skewX(var(--line-skew, -7deg));
     --sweep-pct: 0%;
     /* --js-sweep is an unregistered var (inherits: true by default), set by JS on the
        host .lyric-line element.  Fallback to --sweep-pct for simulation-mode lines
@@ -852,7 +877,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     /* reduced-motion default: just appear at full sweep, no animation */
     --sweep-pct: 110%;
     opacity: 1;
-    transform: skewX(var(--line-skew, -7deg)) scaleY(1.075);
+    transform: skewX(var(--line-skew, -7deg));
   }
 
   .lyric-sentence.lyric-active .lyric-line::after {

@@ -133,14 +133,33 @@ const formattedDate = date?.toLocaleDateString('en-US', {
   }
 
   .post-body :global(a) {
-    color: var(--accent);
-    text-decoration: underline;
-    text-decoration-color: transparent;
-    transition: text-decoration-color 0.1s;
+    position: relative;
+    color: #333333;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.1s;
   }
 
-  .post-body :global(a:hover) {
-    text-decoration-color: var(--accent);
+  .post-body :global(a::after) {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.12em;
+    height: 2px;
+    background: #b8b8b8;
+    border-radius: 999px;
+    transition: background 0.1s;
+  }
+
+  .post-body :global(a:hover),
+  .post-body :global(a:focus-visible) {
+    color: var(--text);
+  }
+
+  .post-body :global(a:hover::after),
+  .post-body :global(a:focus-visible::after) {
+    background: var(--accent);
   }
 
   .post-body :global(code) {

@@ -3,6 +3,8 @@ import AppShell from '../../layouts/AppShell.astro';
 import PostView from '../../components/PostView.astro';
 import { getCollection, render } from 'astro:content';
 import { getReadTime } from '../../utils/readTime';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
@@ -28,7 +30,8 @@ const { Content } = await render(post);
 const readTime = getReadTime(post.body ?? '');
 
 const audioSrc  = audioModules[`../../content/posts/${post.id}.m4a`] ?? null;
-const timingSrc = audioSrc ? `/audio/${post.id}.json` : null;
+const timingPath = join(process.cwd(), 'public/audio', `${post.id}.json`);
+const timingSrc = audioSrc && existsSync(timingPath) ? `/audio/${post.id}.json` : null;
 ---
 
 <AppShell
