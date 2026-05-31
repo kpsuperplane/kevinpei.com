@@ -425,12 +425,13 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
 
     const totalChars = span.textContent?.length || 1;
     let delayAccum = 0;
-    span.innerHTML = lineHTMLs.map(lineHTML => {
+    span.innerHTML = lineHTMLs.map((lineHTML, i) => {
       const chars = lineHTML.replace(/<[^>]+>/g, '').length;
       const lineDur = Math.max(0.2, (chars / totalChars) * dur);
       const delay = delayAccum;
       delayAccum += lineDur;
-      return `<span class="lyric-line" style="--line-dur:${lineDur.toFixed(3)}s;--line-delay:${delay.toFixed(3)}s;${randVars()}">${lineHTML}</span>`;
+      const lineBreak = i < lineHTMLs.length - 1 ? '<br class="lyric-line-break">' : '';
+      return `<span class="lyric-line" style="--line-dur:${lineDur.toFixed(3)}s;--line-delay:${delay.toFixed(3)}s;${randVars()}">${lineHTML}</span>${lineBreak}`;
     }).join('');
 
     // After building lines: map each line's word count to real timestamps
