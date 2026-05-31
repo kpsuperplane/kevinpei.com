@@ -120,7 +120,7 @@ const socialLinks: NavLink[] = [
 
 <header class="mobile-header">
   <a href="/" class="mobile-profile">
-    <img class="mobile-avatar" src="/favicon.svg" alt="Kevin Pei" width="32" height="32" decoding="async" />
+    <img class="mobile-avatar" src="/icon.png" alt="Kevin Pei" width="32" height="32" decoding="async" />
     <div class="mobile-profile-info">
       <span class="mobile-name">Kevin Pei</span>
       <span class="mobile-subtitle">Let's build awesome</span>
@@ -253,25 +253,25 @@ const socialLinks: NavLink[] = [
     height: 100vh;
     overflow-y: auto;
     scrollbar-gutter: stable;
-    padding: 32px 12px;
+    padding: var(--space-8) var(--space-3);
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: var(--space-6);
   }
 
   .profile {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 0px 8px 6px;
-    border-radius: 6px;
+    gap: var(--space-3);
+    padding: 0 var(--space-2) var(--space-1-5);
+    border-radius: var(--radius-md);
     transition: background 0.1s;
   }
 
   .avatar {
     width: 40px;
     height: 40px;
-    border-radius: 10px;
+    border-radius: var(--radius-avatar);
     object-fit: cover;
     display: block;
     flex-shrink: 0;
@@ -303,7 +303,7 @@ const socialLinks: NavLink[] = [
   nav {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-1);
   }
 
   .section-label {
@@ -312,7 +312,7 @@ const socialLinks: NavLink[] = [
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    padding: 8px 8px 4px;
+    padding: var(--space-2) var(--space-2) var(--space-1);
   }
 
   .nav-list {
@@ -324,9 +324,9 @@ const socialLinks: NavLink[] = [
   .nav-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 7px 8px;
-    border-radius: 6px;
+    gap: var(--space-2-5);
+    padding: 7px var(--space-2);
+    border-radius: var(--radius-md);
     font-size: var(--text-base);
     color: var(--text-muted);
     transition: background 0.1s, color 0.1s;
@@ -383,20 +383,20 @@ const socialLinks: NavLink[] = [
       background: var(--bg);
       border-bottom: 1px solid var(--border);
       align-items: center;
-      padding: 0 16px;
+      padding-inline: var(--page-gutter);
       z-index: var(--z-mobile-nav);
     }
 
     .mobile-profile {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: var(--space-2-5);
     }
 
     .mobile-avatar {
       width: 32px;
       height: 32px;
-      border-radius: 8px;
+      border-radius: var(--radius-lg);
       object-fit: cover;
       flex-shrink: 0;
     }
@@ -483,7 +483,7 @@ const socialLinks: NavLink[] = [
       right: 0;
       background: var(--bg);
       border-top: 1px solid var(--border);
-      padding: 8px 0 4px;
+      padding: var(--space-2) 0 var(--space-1);
       animation: sheet-up 0.2s ease;
     }
 
@@ -516,7 +516,7 @@ const socialLinks: NavLink[] = [
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      padding: 4px 16px 8px;
+      padding: var(--space-1) var(--page-gutter) var(--space-2);
     }
 
     .sheet-list {
@@ -527,8 +527,8 @@ const socialLinks: NavLink[] = [
     .sheet-item {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--page-gutter);
       font-size: var(--text-lg);
       color: var(--text);
     }

@@ -197,16 +197,16 @@ const totalWeeks = totalYears * weeksPerYear;
 
 <style is:global>
   .life-weeks {
-    padding: 0 0 28px;
-    margin: 0 0 32px;
+    padding: 0;
+    margin: 0 0 var(--space-8);
   }
 
   .life-weeks__header {
     display: grid;
     grid-template-columns: 1fr auto;
-    gap: 18px;
+    gap: var(--space-5);
     align-items: end;
-    margin-bottom: 12px;
+    margin-block-end: var(--space-3);
   }
 
   .life-weeks .life-weeks__eyebrow {
@@ -216,7 +216,7 @@ const totalWeeks = totalYears * weeksPerYear;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     line-height: 1.2;
-    margin: 0 0 8px !important;
+    margin: 0 0 var(--space-2);
   }
 
   .life-weeks .life-weeks__title {
@@ -224,12 +224,12 @@ const totalWeeks = totalYears * weeksPerYear;
     line-height: 1.15;
     font-weight: 700;
     color: var(--text);
-    margin: 0 !important;
+    margin: 0;
   }
 
   .life-weeks__field {
     display: grid;
-    gap: 6px;
+    gap: var(--space-1-5);
     color: var(--text-muted);
     font-size: var(--text-sm);
     font-weight: 600;
@@ -239,7 +239,7 @@ const totalWeeks = totalYears * weeksPerYear;
     width: 156px;
     min-height: 36px;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     background: var(--bg);
     color: var(--text);
     font: inherit;
@@ -248,7 +248,7 @@ const totalWeeks = totalYears * weeksPerYear;
 
   .life-weeks__summary {
     min-height: 22px;
-    margin-bottom: 10px;
+    margin-block-end: var(--space-2-5);
     color: var(--text-muted);
     font-size: var(--text-base);
     line-height: 1.5;
@@ -257,8 +257,8 @@ const totalWeeks = totalYears * weeksPerYear;
   .life-weeks__legend {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: var(--space-3);
+    margin-block-end: var(--space-3);
     color: var(--text-muted);
     font-size: var(--text-xs);
     font-weight: 600;
@@ -266,7 +266,7 @@ const totalWeeks = totalYears * weeksPerYear;
 
   .life-weeks__legend span {
     display: inline-flex;
-    gap: 6px;
+    gap: var(--space-1-5);
     align-items: center;
   }
 
@@ -298,15 +298,14 @@ const totalWeeks = totalYears * weeksPerYear;
 
   @media (max-width: 768px) {
     .life-weeks {
-      padding: 0 0 20px;
-      margin-bottom: 22px;
+      margin-block-end: var(--space-6);
     }
 
     .life-weeks__header {
       grid-template-columns: 1fr;
-      gap: 10px;
+      gap: var(--space-2-5);
       align-items: start;
-      margin-bottom: 10px;
+      margin-block-end: var(--space-2-5);
     }
 
     .life-weeks__title {
@@ -319,7 +318,7 @@ const totalWeeks = totalYears * weeksPerYear;
     }
 
     .life-weeks__legend {
-      margin-bottom: 10px;
+      margin-block-end: var(--space-2-5);
     }
   }
 </style>

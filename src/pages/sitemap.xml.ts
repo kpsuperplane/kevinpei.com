@@ -6,8 +6,7 @@ import { tagToSlug } from '../utils/tags';
 export const GET: APIRoute = async () => {
   const posts = await getCollection('posts');
   const tagLastmod = new Map<string, Date>();
-
-  const urls = [
+  const urls: Array<{ loc: string; lastmod?: Date }> = [
     { loc: absoluteUrl('/') },
     { loc: absoluteUrl('/about') },
     ...posts.map(post => ({

@@ -2,7 +2,7 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import { execFileSync } from 'child_process';
-import { readFileSync, mkdtempSync, rmSync, mkdirSync, readdirSync, existsSync, copyFileSync } from 'fs';
+import { readFileSync, mkdtempSync, rmdirSync, mkdirSync, readdirSync, existsSync, copyFileSync } from 'fs';
 import ffmpegPath from 'ffmpeg-static';
 import { tmpdir } from 'os';
 import { join, basename, extname } from 'path';
@@ -95,7 +95,7 @@ function audioAstroIntegration() {
             const message = e instanceof Error ? e.message : String(e);
             throw new Error(`[audio] ffmpeg failed for ${file}: ${message}`);
           } finally {
-            rmSync(tmpDir, { recursive: true, force: true });
+            rmdirSync(tmpDir, { recursive: true });
           }
         }
       },

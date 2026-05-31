@@ -35,9 +35,9 @@ const { index, title, tags, readTime, slug, active = false, description } = Astr
     display: grid;
     grid-template-columns: var(--grid-cols-track);
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 6px;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--list-gutter);
+    border-radius: var(--radius-md);
     transition: background 0.1s;
     cursor: pointer;
   }
@@ -54,7 +54,7 @@ const { index, title, tags, readTime, slug, active = false, description } = Astr
     font-size: var(--text-md);
     color: var(--text-muted);
     text-align: right;
-    padding-right: 8px;
+    padding-inline-end: var(--space-2);
     font-variant-numeric: tabular-nums;
   }
 
@@ -133,7 +133,7 @@ const { index, title, tags, readTime, slug, active = false, description } = Astr
   @media (max-width: 768px) {
     .track-row a {
       grid-template-columns: var(--grid-cols-track-mobile);
-      padding: 8px 16px;
+      padding: var(--space-2) var(--list-gutter);
     }
 
     .track-category {

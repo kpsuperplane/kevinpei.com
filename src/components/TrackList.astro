@@ -41,29 +41,29 @@ const { posts, activeSlug, heading } = Astro.props;
 
 <style>
   .track-list-wrap {
-    padding: 0px 16px;
+    padding-inline: var(--list-gutter);
   }
 
   .heading {
     font-size: var(--text-2xl);
     font-weight: 700;
-    margin-bottom: 24px;
-    padding: 0 16px;
+    margin-block-end: var(--space-6);
+    padding-inline: var(--list-gutter);
   }
 
   .col-headers {
     display: grid;
     grid-template-columns: var(--grid-cols-track);
-    gap: 8px;
-    padding: 4px 16px;
-    margin-bottom: 4px;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--list-gutter);
+    margin-block-end: var(--space-1);
   }
 
   .col-num {
     font-size: var(--text-sm);
     color: var(--text-muted);
     text-align: right;
-    padding-right: 8px;
+    padding-inline-end: var(--space-2);
   }
 
   .col-title,
@@ -83,7 +83,7 @@ const { posts, activeSlug, heading } = Astro.props;
   .divider {
     border: none;
     border-top: 1px solid var(--border);
-    margin: 4px 16px 8px;
+    margin: var(--space-1) var(--list-gutter) var(--space-2);
   }
 
   .track-list {
