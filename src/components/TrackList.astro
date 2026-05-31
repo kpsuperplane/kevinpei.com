@@ -9,6 +9,16 @@ interface Props {
   heading?: string;
 }
 const { posts, activeSlug, heading } = Astro.props;
+
+const timingDataModules = import.meta.glob<{ duration?: number }>(
+  ['../content/posts/*.json', '!../content/posts/*.whisper.json'],
+  { import: 'default', eager: true }
+);
+
+function getPostDuration(post: Post): number {
+  const timingData = timingDataModules[`../content/posts/${post.id}.json`];
+  return timingData?.duration ? timingData.duration / 60 : getReadTime(post.body ?? '');
+}
 ---
 
 <div class="track-list-wrap">
@@ -30,7 +40,7 @@ const { posts, activeSlug, heading } = Astro.props;
         index={i + 1}
         title={post.data.title}
         tags={post.data.tags}
-        readTime={getReadTime(post.body ?? '')}
+        readTime={getPostDuration(post)}
         slug={post.id}
         active={post.id === activeSlug}
         description={post.data.description}

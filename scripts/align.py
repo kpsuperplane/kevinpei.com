@@ -20,9 +20,12 @@ Usage:
 import argparse
 import json
 import re
+import shutil
+import subprocess
 import sys
 from difflib import SequenceMatcher
 from pathlib import Path
+from typing import Optional
 
 
 # ── Markdown stripping ────────────────────────────────────────────────────────
@@ -98,6 +101,41 @@ def flatten_words(whisper_data: dict) -> list[dict]:
                     'raw':   w.get('word', ''),
                 })
     return words
+
+
+def whisper_duration(whisper_data: dict, trans_words: list[dict]) -> float:
+    segments = whisper_data.get('segments', [])
+    return segments[-1]['end'] if segments else (
+        trans_words[-1]['end'] if trans_words else 0.0)
+
+
+def find_ffmpeg(root: Path) -> Optional[str]:
+    bundled = root / 'node_modules/ffmpeg-static/ffmpeg'
+    if bundled.exists():
+        return str(bundled)
+    return shutil.which('ffmpeg')
+
+
+def probe_audio_duration(audio_path: Path, root: Path) -> Optional[float]:
+    ffmpeg = find_ffmpeg(root)
+    if not ffmpeg or not audio_path.exists():
+        return None
+
+    proc = subprocess.run(
+        [ffmpeg, '-i', str(audio_path)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    output = f'{proc.stdout}\n{proc.stderr}'
+    match = re.search(r'Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)', output)
+    if not match:
+        return None
+
+    hours = int(match.group(1))
+    minutes = int(match.group(2))
+    seconds = float(match.group(3))
+    return (hours * 3600) + (minutes * 60) + seconds
 
 
 def best_window(
@@ -185,6 +223,7 @@ def main():
         help='Post slug, e.g. notes-on-fast-software. Defaults paths from the slug.'
     )
     parser.add_argument('--post', help='Path to the source Markdown/MDX post')
+    parser.add_argument('--audio', help='Path to the encoded audio file')
     parser.add_argument('--whisper', help='Path to Whisper JSON with word timestamps')
     parser.add_argument('--out', help='Output timing JSON path')
     parser.add_argument(
@@ -197,6 +236,7 @@ def main():
     root = Path(__file__).resolve().parents[1]
 
     post_path = Path(args.post) if args.post else None
+    audio_path = Path(args.audio) if args.audio else None
     whisper_path = Path(args.whisper) if args.whisper else None
     out_path = Path(args.out) if args.out else None
 
@@ -208,6 +248,7 @@ def main():
                 post_path = mdx_path
 
     if post_path:
+        audio_path = audio_path or post_path.with_suffix('.m4a')
         whisper_path = whisper_path or root / 'scripts/whisper-out' / f'{post_path.stem}.json'
         out_path = out_path or post_path.with_suffix('.json')
 
@@ -228,9 +269,9 @@ def main():
         whisper_data = json.load(f)
 
     trans_words = flatten_words(whisper_data)
-    segments    = whisper_data.get('segments', [])
-    duration    = segments[-1]['end'] if segments else (
-                  trans_words[-1]['end'] if trans_words else 0.0)
+    duration    = probe_audio_duration(audio_path, root) if audio_path else None
+    if duration is None:
+        duration = whisper_duration(whisper_data, trans_words)
 
     post_sentences = extract_sentences(str(post_path))
     alignments     = align(post_sentences, trans_words)

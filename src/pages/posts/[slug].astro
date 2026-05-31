@@ -26,6 +26,10 @@ const timingModules = import.meta.glob<string>(
   ['../../content/posts/*.json', '!../../content/posts/*.whisper.json'],
   { query: '?url', import: 'default', eager: true }
 );
+const timingDataModules = import.meta.glob<{ duration?: number }>(
+  ['../../content/posts/*.json', '!../../content/posts/*.whisper.json'],
+  { import: 'default', eager: true }
+);
 
 const { post, prevPost, nextPost } = Astro.props;
 const { Content } = await render(post);
@@ -33,6 +37,8 @@ const readTime = getReadTime(post.body ?? '');
 
 const audioSrc  = audioModules[`../../content/posts/${post.id}.m4a`] ?? null;
 const timingSrc = audioSrc ? timingModules[`../../content/posts/${post.id}.json`] ?? null : null;
+const timingData = audioSrc ? timingDataModules[`../../content/posts/${post.id}.json`] : null;
+const duration = timingData?.duration ? timingData.duration / 60 : readTime;
 ---
 
 <AppShell
@@ -45,7 +51,7 @@ const timingSrc = audioSrc ? timingModules[`../../content/posts/${post.id}.json`
   nowPlayingTags={post.data.tags}
   prevSlug={prevPost?.id}
   nextSlug={nextPost?.id}
-  readTime={readTime}
+  readTime={duration}
   audioSrc={audioSrc}
   timingSrc={timingSrc}
 >
@@ -55,6 +61,6 @@ const timingSrc = audioSrc ? timingModules[`../../content/posts/${post.id}.json`
     description={post.data.description}
     tags={post.data.tags}
     date={post.data.date}
-    readTime={readTime}
+    readTime={duration}
   />
 </AppShell>

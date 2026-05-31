@@ -2,7 +2,7 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import { execFileSync } from 'child_process';
-import { readFileSync, mkdtempSync, rmdirSync, mkdirSync, readdirSync, existsSync, copyFileSync, unlinkSync } from 'fs';
+import { readFileSync, mkdtempSync, rmdirSync, mkdirSync, readdirSync, existsSync, copyFileSync, unlinkSync, statSync } from 'fs';
 import ffmpegPath from 'ffmpeg-static';
 import { tmpdir } from 'os';
 import { join, basename, extname } from 'path';
@@ -20,6 +20,25 @@ function audioAssetName(filePath) {
   const hash = createHash('sha256').update(raw).digest('hex').slice(0, 8);
   const name = basename(filePath, '.m4a');
   return `${name}-${hash}.m4a`;
+}
+
+/**
+ * @param {string} dir
+ * @returns {string[]}
+ */
+function findAudioFiles(dir) {
+  if (!existsSync(dir)) return [];
+
+  const files = [];
+  for (const entry of readdirSync(dir)) {
+    const entryPath = join(dir, entry);
+    if (statSync(entryPath).isDirectory()) {
+      files.push(...findAudioFiles(entryPath));
+    } else if (extname(entryPath) === '.m4a') {
+      files.push(entryPath);
+    }
+  }
+  return files;
 }
 
 /**
@@ -50,7 +69,7 @@ function audioVitePlugin() {
 }
 
 /**
- * Astro integration — after the build, transcode every .m4a in src/content/posts/
+ * Astro integration — after the build, transcode every .m4a in src/content/
  * to AAC 128kbps and write it to dist/audio/<name>-<hash>.m4a.
  * Skips files that are already present (idempotent).
  * @returns {import('astro').AstroIntegration}
@@ -61,17 +80,14 @@ function audioAstroIntegration() {
     hooks: {
       /** @param {{ dir: URL }} opts */
       'astro:build:done': ({ dir }) => {
-        const postsDir = join(process.cwd(), 'src/content/posts');
-        if (!existsSync(postsDir)) return;
-
-        const m4aFiles = readdirSync(postsDir).filter(f => f.endsWith('.m4a'));
+        const contentDir = join(process.cwd(), 'src/content');
+        const m4aFiles = findAudioFiles(contentDir);
         if (m4aFiles.length === 0) return;
 
         const outDir = fileURLToPath(new URL('audio/', dir));
         mkdirSync(outDir, { recursive: true });
 
-        for (const file of m4aFiles) {
-          const srcPath = join(postsDir, file);
+        for (const srcPath of m4aFiles) {
           const assetName = audioAssetName(srcPath);
           const destPath = join(outDir, assetName);
 
@@ -86,14 +102,14 @@ function audioAstroIntegration() {
             if (!ffmpegPath) {
               throw new Error('ffmpeg-static does not provide a binary for this platform');
             }
-            console.log(`[audio] transcoding ${file} → ${assetName}`);
+            console.log(`[audio] transcoding ${srcPath} → ${assetName}`);
             execFileSync(ffmpegPath, ['-i', srcPath, '-c:a', 'aac', '-b:a', '128k', '-y', tmpOut], {
               stdio: 'ignore',
             });
             copyFileSync(tmpOut, destPath);
           } catch (e) {
             const message = e instanceof Error ? e.message : String(e);
-            throw new Error(`[audio] ffmpeg failed for ${file}: ${message}`);
+            throw new Error(`[audio] ffmpeg failed for ${srcPath}: ${message}`);
           } finally {
             if (existsSync(tmpOut)) unlinkSync(tmpOut);
             rmdirSync(tmpDir);
