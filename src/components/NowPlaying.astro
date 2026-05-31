@@ -171,6 +171,18 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
 </footer>
 
 <script>
+  type TimingSentence = {
+    text?: string;
+    start: number | null;
+    end: number | null;
+    words?: number[];
+  };
+
+  type TimingData = {
+    duration: number;
+    sentences: TimingSentence[];
+  };
+
   // ── Module-level: persists across navigations ─────────────────────────────────
   let _rafId: number | null = null;
   let _controller = new AbortController();
@@ -224,16 +236,16 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     });
   }
 
-  const formatTime = (pct: number) => {
+  const formatTime = (pct: number): string => {
     const sec = Math.round(pct * totalSeconds);
     const m = Math.floor(sec / 60);
     const s = sec % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  const formatTimeSpoken = (pct: number) => {
+  const formatTimeSpoken = (pct: number): string => {
     const sec = Math.round(pct * totalSeconds);
-    const fmt = (s: number) => {
+    const fmt = (s: number): string => {
       const m = Math.floor(s / 60);
       const r = s % 60;
       if (m === 0) return `${r} second${r === 1 ? '' : 's'}`;
@@ -243,7 +255,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     return `${fmt(sec)} of ${fmt(totalSeconds)}`;
   };
 
-  const updateScrubberAria = (pct: number) => {
+  const updateScrubberAria = (pct: number): void => {
     if (!scrubber) return;
     const val = Math.round(pct * 100);
     scrubber.setAttribute('aria-valuenow', String(val));
@@ -253,7 +265,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
   // ── Lyric sentences ──────────────────────────────────────────────────────────
   let sentences: HTMLElement[] = [];
 
-  function initLyrics(totalSeconds: number) {
+  function initLyrics(totalSeconds: number): HTMLElement[] {
     const body = document.querySelector('.post-body');
     if (!body) return [];
 
@@ -294,10 +306,9 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
   // Fetches the alignment JSON for this post and overrides the word-count-based
   // data-t / data-dur values with real timestamps from the recording.
   // Sentences with null timestamps keep their word-count fallback.
-  async function loadAudioTiming(timingSrc: string, sents: HTMLElement[]) {
+  async function loadAudioTiming(timingSrc: string, sents: HTMLElement[]): Promise<void> {
     try {
-      const data: { duration: number; sentences: Array<{ text?: string; start: number | null; end: number | null; words?: number[] }> }
-        = await fetch(timingSrc).then(r => r.json());
+      const data: TimingData = await fetch(timingSrc).then(r => r.json());
 
       // Wait for loadedmetadata so audio.duration reflects the real file length.
       // Whisper's duration estimate can differ from the actual encoded file by 1–2 s,
@@ -350,14 +361,14 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     const dur = parseFloat(span.dataset.dur ?? '2');
     span.dataset.original = span.innerHTML;
 
-    const randVars = () => {
+    const randVars = (): string => {
       const skew    = -(5 + Math.random() * 4);          // -5 to -9 deg
       const opacity = 0.38 + Math.random() * 0.14;       // 0.38 to 0.52
       const left    = -6 + Math.random() * 2;            // -6 to -4 px
       return `--line-skew:${skew.toFixed(1)}deg;--line-opacity:${opacity.toFixed(3)};--after-left:${left.toFixed(1)}px`;
     };
 
-    const wrapSingle = () => {
+    const wrapSingle = (): void => {
       span.innerHTML = `<span class="lyric-line" style="--line-dur:${dur.toFixed(3)}s;--line-delay:0s;${randVars()}">${span.innerHTML}</span>`;
       // Single-line sentence: assign the whole word range
       assignLineWordTimes(span);
@@ -453,15 +464,62 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
       if (lineWordCount === 0) {
         line.removeAttribute('data-line-start');
         line.removeAttribute('data-line-end');
+        line.removeAttribute('data-line-times');
+        line.removeAttribute('data-line-stops');
         line.style.removeProperty('--js-sweep');
         return;
       }
+      const boundedWordCount = Math.min(lineWordCount, numWords - wordOffset);
+      if (boundedWordCount <= 0) return;
+
       const t0 = wordTimes[Math.min(wordOffset, numWords - 1)];
-      const t1 = wordTimes[Math.min(wordOffset + lineWordCount, numWords)];
+      const t1 = wordTimes[Math.min(wordOffset + boundedWordCount, numWords)];
       line.dataset.lineStart = String(t0);
       line.dataset.lineEnd   = String(t1);
-      wordOffset += lineWordCount;
+      line.dataset.lineTimes = wordTimes
+        .slice(wordOffset, wordOffset + boundedWordCount + 1)
+        .join(',');
+      line.dataset.lineStops = getLineWordStops(line, boundedWordCount).join(',');
+      wordOffset += boundedWordCount;
     });
+  }
+
+  function getLineWordStops(line: HTMLElement, wordCount: number): number[] {
+    if (wordCount <= 0) return [0, 110];
+
+    const fallbackStops = () => Array.from({ length: wordCount + 1 }, (_, i) =>
+      i === wordCount ? 110 : Number(((i / wordCount) * 100).toFixed(1))
+    );
+
+    const lineRect = line.getBoundingClientRect();
+    if (lineRect.width <= 0) return fallbackStops();
+
+    const wordRects: DOMRect[] = [];
+    const wordPattern = /[\p{L}\p{N}_]+/gu;
+    const range = document.createRange();
+    const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
+    let node: Text | null;
+
+    while ((node = walker.nextNode() as Text | null)) {
+      for (const match of node.data.matchAll(wordPattern)) {
+        if (match.index == null) continue;
+        range.setStart(node, match.index);
+        range.setEnd(node, match.index + match[0].length);
+        const rect = range.getBoundingClientRect();
+        if (rect.width > 0 || rect.height > 0) wordRects.push(rect);
+      }
+    }
+
+    if (wordRects.length < wordCount) return fallbackStops();
+
+    const stops = [0];
+    for (let i = 1; i < wordCount; i++) {
+      const rawPct = ((wordRects[i].left - lineRect.left) / lineRect.width) * 100;
+      const pct = Math.max(stops[stops.length - 1], Math.min(105, rawPct));
+      stops.push(Number(pct.toFixed(1)));
+    }
+    stops.push(110);
+    return stops;
   }
 
   // ── Play state ───────────────────────────────────────────────────────────────
@@ -496,7 +554,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     return found;
   }
 
-  function activateSentence(s: HTMLElement) {
+  function activateSentence(s: HTMLElement): void {
     if (s === activeSentence) return;
     if (activeSentence) {
       activeSentence.classList.remove('lyric-active');
@@ -507,7 +565,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     activeSentence = s;
   }
 
-  function syncLyricToPct(pct: number) {
+  function syncLyricToPct(pct: number): void {
     const target = getSentenceAtPct(pct);
     if (!target) return;
     sentences.forEach(s => {
@@ -520,7 +578,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     activeSentence = target;
   }
 
-  function clearLyrics() {
+  function clearLyrics(): void {
     sentences.forEach(s => {
       s.classList.remove('lyric-active', 'lyric-done');
       s.querySelectorAll('[data-done]').forEach(l => l.removeAttribute('data-done'));
@@ -529,7 +587,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     lastSentenceIdx = -1;
   }
 
-  function resetLines() {
+  function resetLines(): void {
     const playing = document.body.classList.contains('playing');
     sentences.forEach(s => {
       if (s.dataset.original !== undefined) s.innerHTML = s.dataset.original;
@@ -578,13 +636,38 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
       const lineStart = parseFloat(line.dataset.lineStart!);
       const lineEnd   = parseFloat(line.dataset.lineEnd!);
       if (lineEnd <= lineStart) return;
-      const pct = Math.max(0, Math.min(110, (t - lineStart) / (lineEnd - lineStart) * 110));
+      const pct = getWordTimedSweepPct(line, t, lineStart, lineEnd);
       // --js-sweep is unregistered so it inherits to ::before from the host element
       line.style.setProperty('--js-sweep', `${pct.toFixed(1)}%`);
     });
   }
 
-  function playTick() {
+  function getWordTimedSweepPct(line: HTMLElement, t: number, lineStart: number, lineEnd: number): number {
+    const linearPct = Math.max(0, Math.min(110, (t - lineStart) / (lineEnd - lineStart) * 110));
+    const times = line.dataset.lineTimes?.split(',').map(Number).filter(Number.isFinite) ?? [];
+    const stops = line.dataset.lineStops?.split(',').map(Number).filter(Number.isFinite) ?? [];
+    const wordTimingWeight = 0.62;
+
+    if (times.length >= 2 && times.length === stops.length) {
+      if (t <= times[0]) return Math.max(0, Math.min(110, stops[0]));
+      const lastIdx = times.length - 1;
+      if (t >= times[lastIdx]) return Math.max(0, Math.min(110, stops[lastIdx]));
+
+      for (let i = 0; i < lastIdx; i++) {
+        const t0 = times[i];
+        const t1 = times[i + 1];
+        if (t < t0 || t > t1) continue;
+        if (t1 <= t0) return Math.max(0, Math.min(110, stops[i + 1]));
+        const localPct = (t - t0) / (t1 - t0);
+        const wordPct = stops[i] + ((stops[i + 1] - stops[i]) * localPct);
+        return Math.max(0, Math.min(110, (wordPct * wordTimingWeight) + (linearPct * (1 - wordTimingWeight))));
+      }
+    }
+
+    return linearPct;
+  }
+
+  function playTick(): void {
     const pct = hasAudio && audio && audio.duration > 0
       ? Math.min(1, audio.currentTime / audio.duration)
       : Math.min(1, playStartPct + (performance.now() - playStartMs) / 1000 / totalSeconds);
@@ -612,23 +695,25 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
   }
 
   // Listeners registered only while playing (saves work when idle)
-  const pauseOnScroll = () => { if (document.body.classList.contains('playing')) pausePlay(); };
+  const pauseOnScroll = (): void => { if (document.body.classList.contains('playing')) pausePlay(); };
 
-  function syncAudioDurationUi() {
+  function syncAudioDurationUi(): void {
     if (!audio || !isFinite(audio.duration) || audio.duration <= 0) return;
     totalSeconds = Math.round(audio.duration);
+    const pct = scrubber ? Number(scrubber.value) / 100 : 0;
+    if (pct > 0 && audio.currentTime === 0) audio.currentTime = pct * audio.duration;
     const totalM = Math.floor(totalSeconds / 60);
     const totalS = totalSeconds % 60;
     if (totalEl) totalEl.textContent = `${totalM}:${totalS.toString().padStart(2, '0')}`;
-    updateScrubberAria(scrubber ? Number(scrubber.value) / 100 : 0);
+    updateScrubberAria(pct);
   }
 
-  function startAnimationLoop() {
+  function startAnimationLoop(): void {
     if (_rafId !== null) cancelAnimationFrame(_rafId);
     _rafId = requestAnimationFrame(playTick);
   }
 
-  function setPlayingUi() {
+  function setPlayingUi(): void {
     document.body.classList.add('playing');
     document.body.classList.remove('paused');
     if (btnPlay) btnPlay.setAttribute('aria-pressed', 'true');
@@ -637,7 +722,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
   }
 
-  function setPausedUi() {
+  function setPausedUi(): void {
     if (_rafId !== null) { cancelAnimationFrame(_rafId); _rafId = null; }
     clearLyrics();
     document.body.classList.remove('playing');
@@ -648,7 +733,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
   }
 
-  function startPlayUi() {
+  function startPlayUi(): void {
     if (!linesReady) { sentences.forEach(splitSentenceIntoLines); linesReady = true; }
     const currentPct = hasAudio && audio && audio.duration > 0
       ? audio.currentTime / audio.duration
@@ -666,7 +751,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     startAnimationLoop();
   }
 
-  function startPlay() {
+  function startPlay(): void {
     if (hasAudio && audio) {
       audio.play().catch(() => {/* Play can be blocked if it was not user-initiated. */});
       return;
@@ -676,7 +761,7 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     startPlayUi();
   }
 
-  function pausePlay() {
+  function pausePlay(): void {
     if (hasAudio && audio && !audio.paused) {
       audio.pause();
       return;
@@ -739,22 +824,22 @@ const { title, tags = [], prevSlug, nextSlug, active = false, firstHref, audioSr
     // Initial aria
     updateScrubberAria(0);
 
-    // Scroll → scrubber (simulation mode only; audio mode uses audio.currentTime)
-    if (!hasAudio) {
-      window.addEventListener('scroll', () => {
-        if (document.body.classList.contains('playing')) return;
-        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-        if (scrollable <= 0 || !scrubber) return;
-        const pct = Math.min(1, Math.max(0, window.scrollY / scrollable));
-        scrubber.value = String(pct * 100);
-        footer.style.setProperty('--pct',`${pct * 100}%`);
-        if (elapsedEl) elapsedEl.textContent = formatTime(pct);
-        if (Math.abs(pct - lastAriaPct) > 0.05) {
-          updateScrubberAria(pct);
-          lastAriaPct = pct;
-        }
-      }, { passive: true, signal });
-    }
+    // Scroll → scrubber while paused. Audio pages also seek so playback starts
+    // from the visible reading position.
+    window.addEventListener('scroll', () => {
+      if (document.body.classList.contains('playing')) return;
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollable <= 0 || !scrubber) return;
+      const pct = Math.min(1, Math.max(0, window.scrollY / scrollable));
+      scrubber.value = String(pct * 100);
+      footer.style.setProperty('--pct',`${pct * 100}%`);
+      if (hasAudio && audio && audio.duration > 0) audio.currentTime = pct * audio.duration;
+      if (elapsedEl) elapsedEl.textContent = formatTime(pct);
+      if (Math.abs(pct - lastAriaPct) > 0.05) {
+        updateScrubberAria(pct);
+        lastAriaPct = pct;
+      }
+    }, { passive: true, signal });
 
     // Scrubber drag
     scrubber.addEventListener('input', () => {

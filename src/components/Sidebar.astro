@@ -23,7 +23,7 @@ const socialLinks: NavLink[] = [
 
 <aside class="sidebar">
   <a href="/" class="profile" style="display: flex;">
-    <img class="avatar" src="/favicon.svg" alt="Kevin Pei" width="40" height="40" decoding="async" />
+    <img class="avatar" src="/icon.png" alt="Kevin Pei" width="40" height="40" decoding="async" />
     <div class="profile-info">
       <span class="name">Kevin Pei</span>
       <span class="subtitle">Let's build awesome</span>
@@ -168,7 +168,7 @@ const socialLinks: NavLink[] = [
     document.addEventListener('keydown', () => { usingKeyboard = true; }, { capture: true, signal });
     document.addEventListener('pointerdown', () => { usingKeyboard = false; }, { capture: true, signal });
 
-    function openSheet(sheet: HTMLElement, btn: HTMLElement) {
+    function openSheet(sheet: HTMLElement, btn: HTMLElement): void {
       sheet.classList.remove('closing');
       sheet.classList.add('open');
       sheet.setAttribute('aria-hidden', 'false');
@@ -183,20 +183,20 @@ const socialLinks: NavLink[] = [
       }
     }
 
-    function closeSheet(sheet: HTMLElement, btn: HTMLElement, restoreFocus = true) {
+    function closeSheet(sheet: HTMLElement, btn: HTMLElement, restoreFocus = true): void {
       if (!sheet.classList.contains('open') || sheet.classList.contains('closing')) return;
       sheet.classList.add('closing');
       sheet.setAttribute('aria-hidden', 'true');
       btn.setAttribute('aria-expanded', 'false');
       btn.classList.remove('active');
-      sheet.querySelector('.sheet-content')?.addEventListener('animationend', () => {
+      sheet.querySelector<HTMLElement>('.sheet-content')?.addEventListener('animationend', () => {
         sheet.classList.remove('open', 'closing');
       }, { once: true });
       if (restoreFocus) btn.focus();
       if (openSheetEl === sheet) { openSheetEl = null; openBtnEl = null; }
     }
 
-    function toggleSheet(sheet: HTMLElement, btn: HTMLElement, other: HTMLElement, otherBtn: HTMLElement) {
+    function toggleSheet(sheet: HTMLElement, btn: HTMLElement, other: HTMLElement, otherBtn: HTMLElement): void {
       if (sheet.classList.contains('open') && !sheet.classList.contains('closing')) {
         closeSheet(sheet, btn);
       } else {
@@ -213,15 +213,15 @@ const socialLinks: NavLink[] = [
     );
 
     // Close on backdrop click
-    sheetPlaylists.querySelector('.sheet-backdrop')?.addEventListener('click', () =>
+    sheetPlaylists.querySelector<HTMLElement>('.sheet-backdrop')?.addEventListener('click', () =>
       closeSheet(sheetPlaylists, btnPlaylists)
     );
-    sheetSocial.querySelector('.sheet-backdrop')?.addEventListener('click', () =>
+    sheetSocial.querySelector<HTMLElement>('.sheet-backdrop')?.addEventListener('click', () =>
       closeSheet(sheetSocial, btnSocial)
     );
 
     // Escape closes the open sheet; Tab traps focus inside
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
       if (!openSheetEl || !openBtnEl) return;
       if (e.key === 'Escape') {
         e.preventDefault();

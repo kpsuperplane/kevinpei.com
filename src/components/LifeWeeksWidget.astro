@@ -54,6 +54,14 @@ const totalWeeks = totalYears * weeksPerYear;
 </section>
 
 <script>
+  type WeekCoordinates = {
+    x: number;
+    y: number;
+  };
+
+  type WeekPathKind = 'past' | 'current' | 'future';
+  type WeekPaths = Record<WeekPathKind, string[]>;
+
   const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
   const YEAR_COLUMNS = 10;
   const WEEKS_PER_ROW = 13;
@@ -65,24 +73,24 @@ const totalWeeks = totalYears * weeksPerYear;
   const CHART_WIDTH = (YEAR_COLUMNS * YEAR_WIDTH) + ((YEAR_COLUMNS - 1) * YEAR_GAP);
   const CHART_HEIGHT = (8 * YEAR_HEIGHT) + (7 * YEAR_GAP);
 
-  function parseBirthYear(value, maxYear) {
+  function parseBirthYear(value: string, maxYear: number): number | null {
     const year = Number(value);
     if (!Number.isInteger(year) || year < 1900 || year > maxYear) return null;
     return year;
   }
 
-  function getTodayUtc() {
+  function getTodayUtc(): Date {
     const now = new Date();
     return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
   }
 
-  function squarePath(x, y) {
+  function squarePath(x: number, y: number): string {
     const xValue = x.toFixed(2);
     const yValue = y.toFixed(2);
     return `M${xValue} ${yValue}h${WEEK_SIZE}v${WEEK_SIZE}h-${WEEK_SIZE}z`;
   }
 
-  function weekCoordinates(absoluteWeek, weeksPerYear) {
+  function weekCoordinates(absoluteWeek: number, weeksPerYear: number): WeekCoordinates {
     const yearIndex = Math.floor(absoluteWeek / weeksPerYear);
     const weekIndex = absoluteWeek % weeksPerYear;
     const yearColumn = yearIndex % YEAR_COLUMNS;
@@ -96,8 +104,15 @@ const totalWeeks = totalYears * weeksPerYear;
     };
   }
 
-  function renderChart(chart, desc, hasBirthYear, elapsedWeeks, totalWeeks, weeksPerYear) {
-    const paths = {
+  function renderChart(
+    chart: SVGSVGElement,
+    desc: SVGDescElement,
+    hasBirthYear: boolean,
+    elapsedWeeks: number,
+    totalWeeks: number,
+    weeksPerYear: number,
+  ): void {
+    const paths: WeekPaths = {
       past: [],
       current: [],
       future: [],
@@ -119,36 +134,43 @@ const totalWeeks = totalYears * weeksPerYear;
     }
 
     chart.setAttribute('viewBox', `0 0 ${CHART_WIDTH.toFixed(2)} ${CHART_HEIGHT.toFixed(2)}`);
-    chart.querySelector('[data-life-weeks-path="past"]').setAttribute('d', paths.past.join(''));
-    chart.querySelector('[data-life-weeks-path="current"]').setAttribute('d', paths.current.join(''));
-    chart.querySelector('[data-life-weeks-path="future"]').setAttribute('d', paths.future.join(''));
+    (Object.keys(paths) as WeekPathKind[]).forEach(kind => {
+      chart.querySelector<SVGPathElement>(`[data-life-weeks-path="${kind}"]`)
+        ?.setAttribute('d', paths[kind].join(''));
+    });
     desc.textContent = hasBirthYear
       ? `${elapsedWeeks.toLocaleString()} weeks lived and ${(totalWeeks - elapsedWeeks).toLocaleString()} weeks remaining in an 80-year span.`
       : `${totalWeeks.toLocaleString()} weeks grouped into 80 years.`;
   }
 
-  function initLifeWeeksWidget() {
-    document.querySelectorAll('[data-life-weeks-widget]').forEach((widget) => {
+  function initLifeWeeksWidget(): void {
+    document.querySelectorAll<HTMLElement>('[data-life-weeks-widget]').forEach((widget) => {
       if (widget.dataset.lifeWeeksReady === 'true') return;
       widget.dataset.lifeWeeksReady = 'true';
 
-      const input = widget.querySelector('[data-life-weeks-input]');
-      const chart = widget.querySelector('[data-life-weeks-chart]');
-      const chartDesc = widget.querySelector('[data-life-weeks-chart-desc]');
-      const summary = widget.querySelector('[data-life-weeks-summary]');
+      const input = widget.querySelector<HTMLInputElement>('[data-life-weeks-input]');
+      const chart = widget.querySelector<SVGSVGElement>('[data-life-weeks-chart]');
+      const chartDesc = widget.querySelector<SVGDescElement>('[data-life-weeks-chart-desc]');
+      const summary = widget.querySelector<HTMLElement>('[data-life-weeks-summary]');
+      if (!input || !chart || !chartDesc || !summary) return;
+
       const totalYears = Number(widget.dataset.totalYears);
       const weeksPerYear = Number(widget.dataset.weeksPerYear);
+      if (!Number.isFinite(totalYears) || !Number.isFinite(weeksPerYear)) return;
+
       const totalWeeks = totalYears * weeksPerYear;
       const today = getTodayUtc();
       const currentYear = today.getUTCFullYear();
 
       input.max = String(currentYear);
 
-      const render = () => {
+      const render = (): void => {
         const birthYear = parseBirthYear(input.value, currentYear);
         const birthDate = birthYear ? new Date(Date.UTC(birthYear, 0, 1)) : null;
         const hasBirthYear = birthYear != null;
-        const rawElapsed = hasBirthYear ? Math.floor((today - birthDate) / MS_PER_WEEK) : 0;
+        const rawElapsed = birthDate
+          ? Math.floor((today.getTime() - birthDate.getTime()) / MS_PER_WEEK)
+          : 0;
         const elapsedWeeks = Math.min(Math.max(rawElapsed, 0), totalWeeks);
         const remainingWeeks = totalWeeks - elapsedWeeks;
 

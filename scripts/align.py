@@ -29,6 +29,8 @@ from pathlib import Path
 
 def strip_markdown(text: str) -> str:
     text = re.sub(r'^\s*(import|export)\s+.*$', ' ', text, flags=re.MULTILINE)
+    text = re.sub(r'^\s*<img\b[\s\S]*?/>\s*$', ' ', text, flags=re.IGNORECASE)
+    text = re.sub(r'^\s*<[A-Z][\s\S]*?/>\s*$', ' ', text)
     text = re.sub(r'^\s*<[A-Z][^>\n]*(?:/>|>.*?</[A-Z][^>]*>)\s*$', ' ', text, flags=re.MULTILINE)
     text = re.sub(r'```[\s\S]*?```', ' ', text)
     text = re.sub(r'`[^`]+`', ' ', text)
