@@ -47,8 +47,8 @@ and audio files. Raw Whisper transcripts are cached in ignored
 file exists, which keeps hand-tuned timings out of the build pipeline.
 
 ```sh
-bun run transcribe -- src/content/posts/notes-on-fast-software.m4a
-bun run align -- notes-on-fast-software --force
+bun run transcribe -- src/content/about.m4a
+bun run align -- --post src/content/about.mdx --whisper scripts/whisper-out/about.json --out src/content/about.json --force
 ```
 
 The align script refuses to overwrite an existing timing file unless `--force`

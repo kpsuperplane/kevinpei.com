@@ -65,6 +65,30 @@ function getPostDuration(post: Post): number {
       />
     ))}
   </ul>
+
+  <div class="coming-soon" aria-label="More posts coming soon">
+    <svg class="coming-soon-art" viewBox="0 0 160 120" width="112" height="84" role="img" aria-hidden="true">
+      <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path class="steam" d="M58 28c-8-8 8-12 0-20" />
+        <path class="steam" d="M80 30c-8-9 9-14 0-24" />
+        <path class="steam" d="M102 28c-8-8 8-12 0-20" />
+        <path class="lid" d="M46 48h68" />
+        <path class="lid" d="M70 41h20" />
+        <path d="M40 54h80l-7 40H47z" />
+        <path d="M33 62c-12 1-12 15 2 16" />
+        <path d="M127 62c12 1 12 15-2 16" />
+        <path d="M52 94h56" />
+        <path d="M60 104h40" />
+        <path d="M124 29l16 48" />
+        <path d="M132 27c6-2 11 1 12 6s-2 10-8 12" />
+        <path class="spark" d="M25 34h10" />
+        <path class="spark" d="M30 29v10" />
+        <path class="spark" d="M131 92h10" />
+        <path class="spark" d="M136 87v10" />
+      </g>
+    </svg>
+    <p>More posts coming soon!</p>
+  </div>
 </div>
 
 <style>
@@ -127,6 +151,37 @@ function getPostDuration(post: Post): number {
     flex-direction: column;
   }
 
+  .coming-soon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-8) var(--list-gutter) var(--space-2);
+    color: rgba(255, 255, 255, 0.62);
+    text-align: center;
+  }
+
+  .coming-soon-art {
+    width: 112px;
+    height: 84px;
+    flex: 0 0 auto;
+    color: #66727a;
+  }
+
+  .coming-soon-art g {
+    stroke-width: 5;
+  }
+
+  .coming-soon-art .steam,
+  .coming-soon-art .spark {
+    stroke-width: 4;
+  }
+
+  .coming-soon p {
+    font-size: var(--text-base);
+    font-weight: 600;
+  }
+
   @media (max-width: 768px) {
     .track-list-wrap {
       margin-inline: var(--page-gutter);
@@ -136,6 +191,15 @@ function getPostDuration(post: Post): number {
 
     .col-headers {
       grid-template-columns: var(--grid-cols-track-mobile);
+    }
+
+    .coming-soon {
+      padding-block-start: var(--space-6);
+    }
+
+    .coming-soon-art {
+      width: 96px;
+      height: 72px;
     }
   }
 </style>

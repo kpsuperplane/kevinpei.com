@@ -7,13 +7,13 @@ sentence starts and ends in the audio, tolerating small deviations between
 the written text and the narration (fillers, paraphrasing, minor skips).
 
 Usage:
-  python scripts/align.py notes-on-fast-software --force
+  python scripts/align.py about --force
 
   # Equivalent explicit form:
   python scripts/align.py \
-    --post src/content/posts/notes-on-fast-software.md \
-    --whisper scripts/whisper-out/notes-on-fast-software.json \
-    --out src/content/posts/notes-on-fast-software.json \
+    --post src/content/about.mdx \
+    --whisper scripts/whisper-out/about.json \
+    --out src/content/about.json \
     --force
 """
 
@@ -220,7 +220,7 @@ def main():
     parser.add_argument(
         'slug',
         nargs='?',
-        help='Post slug, e.g. notes-on-fast-software. Defaults paths from the slug.'
+        help='Content slug, e.g. about. Defaults paths from the slug.'
     )
     parser.add_argument('--post', help='Path to the source Markdown/MDX post')
     parser.add_argument('--audio', help='Path to the encoded audio file')
