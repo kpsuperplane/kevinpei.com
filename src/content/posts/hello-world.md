@@ -1,7 +1,6 @@
 ---
 title: Hello World
 date: 2026-01-15
-tags: [Writing]
 readTime: 3
 description: The first post. Every blog starts somewhere.
 ---
@@ -16,7 +15,7 @@ The music player interface is the opposite of that. It's familiar — everyone h
 
 ## What this site is
 
-This is where I write about things I find interesting: software, systems, ideas, occasional tangents. The "tracks" are posts. The "playlists" are categories. The scrubber at the bottom tracks your reading progress, and yes, you can drag it to jump around.
+This is where I write about things I find interesting: software, systems, ideas, occasional tangents. The "tracks" are posts. The scrubber at the bottom tracks your reading progress, and yes, you can drag it to jump around.
 
 No algorithms. No recommendations. Just a weird music player that contains thoughts.
 

@@ -4,17 +4,18 @@ import { formatDuration } from '../utils/readTime';
 interface Props {
   index: number;
   title: string;
-  tags: string[];
   readTime: number;
-  slug: string;
+  slug?: string;
+  href?: string;
   active?: boolean;
   description?: string;
 }
-const { index, title, tags, readTime, slug, active = false, description } = Astro.props;
+const { index, title, readTime, slug, href, active = false, description } = Astro.props;
+const trackHref = href ?? `/posts/${slug}`;
 ---
 
 <li class:list={['track-row', { active }]}>
-  <a href={`/posts/${slug}`} aria-current={active ? 'true' : undefined}>
+  <a href={trackHref} aria-current={active ? 'true' : undefined}>
     <span class="track-num">
       {active
         ? <span class="equalizer" role="img" aria-label="Now playing"><span/><span/><span/></span>
@@ -25,7 +26,6 @@ const { index, title, tags, readTime, slug, active = false, description } = Astr
       <span class="track-title truncate">{title}</span>
       {description && <span class="track-desc truncate">{description}</span>}
     </span>
-    <span class="track-category truncate">{tags.join(', ')}</span>
     <span class="track-duration">{formatDuration(readTime)}</span>
   </a>
 </li>
@@ -84,11 +84,6 @@ const { index, title, tags, readTime, slug, active = false, description } = Astr
     color: var(--text-muted);
   }
 
-  .track-category {
-    font-size: var(--text-base);
-    color: var(--text-muted);
-  }
-
   .track-duration {
     font-size: var(--text-base);
     color: var(--text-muted);
@@ -136,8 +131,5 @@ const { index, title, tags, readTime, slug, active = false, description } = Astr
       padding: var(--space-2) var(--list-gutter);
     }
 
-    .track-category {
-      display: none;
-    }
   }
 </style>

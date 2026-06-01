@@ -1,16 +1,10 @@
 ---
-import { tagPath } from '../utils/tags';
 import type { NavLink } from '../types';
 
 interface Props {
   currentPath?: string;
-  tags?: string[];
 }
-const { currentPath = '/', tags = [] } = Astro.props;
-
-const navLinks: NavLink[] = [
-  { href: '/', label: 'Home', iconSrc: '/icons/home.png' },
-];
+const { currentPath = '/' } = Astro.props;
 
 const socialLinks: NavLink[] = [
   { href: 'https://github.com/kpsuperplane',            label: 'GitHub',   iconSrc: '/icons/github.png' },
@@ -31,38 +25,6 @@ const socialLinks: NavLink[] = [
   </a>
 
   <nav>
-    <ul class="nav-list">
-      {navLinks.map(link => (
-        <li>
-          <a
-            href={link.href}
-            class:list={['nav-item', { active: currentPath === link.href }]}
-          >
-            {link.iconSrc
-              ? <img class="nav-icon-img" src={link.iconSrc} alt="" width="22" height="22" loading="eager" />
-              : <span class="nav-icon">{link.iconChar ?? '◎'}</span>
-            }
-            {link.label}
-          </a>
-        </li>
-      ))}
-    </ul>
-
-    <p class="section-label">Playlists</p>
-    <ul class="nav-list">
-      {tags.map(tag => (
-        <li>
-          <a
-            href={tagPath(tag)}
-            class:list={['nav-item', { active: currentPath === tagPath(tag) }]}
-          >
-            <img class="nav-icon-img" src="/icons/music.png" alt="" width="22" height="22" loading="eager" />
-            {tag}
-          </a>
-        </li>
-      ))}
-    </ul>
-
     <p class="section-label">Social</p>
     <ul class="nav-list">
       {socialLinks.map(link => (
@@ -81,23 +43,6 @@ const socialLinks: NavLink[] = [
 </aside>
 
 <!-- Mobile sheets -->
-<div class="mobile-sheet" id="sheet-playlists" role="dialog" aria-modal="true" aria-labelledby="sheet-playlists-label" aria-hidden="true">
-  <div class="sheet-backdrop"></div>
-  <div class="sheet-content">
-    <p class="sheet-label" id="sheet-playlists-label">Playlists</p>
-    <ul class="sheet-list">
-      {tags.map(tag => (
-        <li>
-          <a href={tagPath(tag)} class="sheet-item">
-            <img class="nav-icon-img" src="/icons/music.png" alt="" width="26" height="26" loading="lazy" decoding="async" />
-            {tag}
-          </a>
-        </li>
-      ))}
-    </ul>
-  </div>
-</div>
-
 <div class="mobile-sheet" id="sheet-social" role="dialog" aria-modal="true" aria-labelledby="sheet-social-label" aria-hidden="true">
   <div class="sheet-backdrop"></div>
   <div class="sheet-content">
@@ -133,10 +78,6 @@ const socialLinks: NavLink[] = [
     <img class="mobile-nav-icon" src="/icons/home.png" alt="" width="22" height="22" loading="eager" />
     <span>Home</span>
   </a>
-  <button class="mobile-nav-item" id="btn-playlists" aria-expanded="false">
-    <img class="mobile-nav-icon" src="/icons/music.png" alt="" width="22" height="22" loading="eager" />
-    <span>Playlists</span>
-  </button>
   <button class="mobile-nav-item" id="btn-social" aria-expanded="false">
     <img class="mobile-nav-icon" src="/icons/email.png" alt="" width="22" height="22" loading="eager" />
     <span>Social</span>
@@ -156,11 +97,9 @@ const socialLinks: NavLink[] = [
     _sidebarController = new AbortController();
     const { signal } = _sidebarController;
 
-    const btnPlaylists   = document.getElementById('btn-playlists')   as HTMLButtonElement | null;
-    const btnSocial      = document.getElementById('btn-social')      as HTMLButtonElement | null;
-    const sheetPlaylists = document.getElementById('sheet-playlists') as HTMLElement | null;
-    const sheetSocial    = document.getElementById('sheet-social')    as HTMLElement | null;
-    if (!btnPlaylists || !btnSocial || !sheetPlaylists || !sheetSocial) return;
+    const btnSocial   = document.getElementById('btn-social')   as HTMLButtonElement | null;
+    const sheetSocial = document.getElementById('sheet-social') as HTMLElement | null;
+    if (!btnSocial || !sheetSocial) return;
 
     let openSheetEl: HTMLElement | null = null;
     let openBtnEl:   HTMLElement | null = null;
@@ -196,26 +135,19 @@ const socialLinks: NavLink[] = [
       if (openSheetEl === sheet) { openSheetEl = null; openBtnEl = null; }
     }
 
-    function toggleSheet(sheet: HTMLElement, btn: HTMLElement, other: HTMLElement, otherBtn: HTMLElement): void {
+    function toggleSheet(sheet: HTMLElement, btn: HTMLElement): void {
       if (sheet.classList.contains('open') && !sheet.classList.contains('closing')) {
         closeSheet(sheet, btn);
       } else {
-        closeSheet(other, otherBtn, false);
         openSheet(sheet, btn);
       }
     }
 
-    btnPlaylists.addEventListener('click', () =>
-      toggleSheet(sheetPlaylists, btnPlaylists, sheetSocial, btnSocial)
-    );
     btnSocial.addEventListener('click', () =>
-      toggleSheet(sheetSocial, btnSocial, sheetPlaylists, btnPlaylists)
+      toggleSheet(sheetSocial, btnSocial)
     );
 
     // Close on backdrop click
-    sheetPlaylists.querySelector<HTMLElement>('.sheet-backdrop')?.addEventListener('click', () =>
-      closeSheet(sheetPlaylists, btnPlaylists)
-    );
     sheetSocial.querySelector<HTMLElement>('.sheet-backdrop')?.addEventListener('click', () =>
       closeSheet(sheetSocial, btnSocial)
     );

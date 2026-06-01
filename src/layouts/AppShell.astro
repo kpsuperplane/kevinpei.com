@@ -1,7 +1,6 @@
 ---
 import Sidebar from '../components/Sidebar.astro';
 import NowPlaying from '../components/NowPlaying.astro';
-import { getCollection } from 'astro:content';
 import ClientRouter from 'astro/components/ClientRouter.astro';
 import { absoluteUrl, SITE } from '../utils/site';
 
@@ -13,7 +12,6 @@ interface Props {
   publishedDate?: Date;
   playing?: boolean;
   nowPlayingTitle?: string;
-  nowPlayingTags?: string[];
   prevSlug?: string;
   nextSlug?: string;
   firstHref?: string;
@@ -30,7 +28,6 @@ const {
   publishedDate,
   playing = false,
   nowPlayingTitle,
-  nowPlayingTags,
   prevSlug,
   nextSlug,
   firstHref,
@@ -39,8 +36,6 @@ const {
   timingSrc,
 } = Astro.props;
 
-const allPosts = await getCollection('posts');
-const tags = [...new Set(allPosts.flatMap(p => p.data.tags))].sort();
 const currentPath = Astro.url.pathname;
 const canonicalUrl = absoluteUrl(currentPath);
 const imageUrl = absoluteUrl(image);
@@ -78,14 +73,13 @@ const imageUrl = absoluteUrl(image);
   <body data-playing={playing ? 'true' : undefined} data-readtime={readTime != null ? String(readTime) : undefined}>
     <a href="#main" class="skip-link">Skip to content</a>
     <div class="layout">
-      <Sidebar currentPath={currentPath} tags={tags} />
+      <Sidebar currentPath={currentPath} />
       <main id="main" class="main-panel">
         <slot />
       </main>
     </div>
     <NowPlaying
       title={nowPlayingTitle}
-      tags={nowPlayingTags}
       prevSlug={prevSlug}
       nextSlug={nextSlug}
       active={playing}
@@ -132,7 +126,7 @@ const imageUrl = absoluteUrl(image);
     --text-muted:    #5a5a5a;
     --accent:        #1db954;
     --nowplaying-h:  90px;
-    --sidebar-w:     260px;
+    --sidebar-w:     220px;
     --mobile-nav-h:    56px;
     --mobile-header-h: 56px;
     --content-w:     720px;
@@ -176,7 +170,7 @@ const imageUrl = absoluteUrl(image);
     --z-mobile-nav: 110;
 
     /* Track grid */
-    --grid-cols-track:        40px 1fr 120px 60px;
+    --grid-cols-track:        40px 1fr 60px;
     --grid-cols-track-mobile: 32px 1fr 50px;
   }
 

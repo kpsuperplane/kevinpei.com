@@ -1,17 +1,14 @@
 ---
 import { formatDuration } from '../utils/readTime';
-import { tagPath } from '../utils/tags';
 
 interface Props {
   Content: any;
   title?: string;
   description?: string;
-  tags?: string[];
-  linkTags?: boolean;
   date?: Date;
   readTime?: number;
 }
-const { Content, title, description, tags, linkTags = true, date, readTime } = Astro.props;
+const { Content, title, description, date, readTime } = Astro.props;
 
 const formattedDate = date?.toLocaleDateString('en-US', {
   year: 'numeric',
@@ -22,30 +19,23 @@ const formattedDate = date?.toLocaleDateString('en-US', {
 ---
 
 <article class="post-view">
-  {(tags?.length || title || description || date) && (
+  {(title || description || date || readTime) && (
     <header class="post-header">
-      {tags?.length && (
-        <div class="tag-list">
-          {tags.map((tag: string) => linkTags ? (
-            <a href={tagPath(tag)} class="tag">{tag}</a>
-          ) : (
-            <span class="tag">{tag}</span>
-          ))}
+      {(date || readTime) && (
+        <div class="post-kicker">
+          <div class="post-meta">
+            {formattedDate && <span>{formattedDate}</span>}
+            {formattedDate && readTime && <span class="dot">·</span>}
+            {readTime && <span>{formatDuration(readTime)} read</span>}
+          </div>
         </div>
       )}
       {title && <h1 class="post-title">{title}</h1>}
       {description && <p class="post-description">{description}</p>}
-      {(date || readTime) && (
-        <div class="post-meta">
-          {formattedDate && <span>{formattedDate}</span>}
-          {formattedDate && readTime && <span class="dot">·</span>}
-          {readTime && <span>{formatDuration(readTime)} read</span>}
-        </div>
-      )}
     </header>
   )}
 
-  {(tags?.length || title || description || date) && <hr class="post-header-rule" />}
+  {(title || description || date || readTime) && <hr class="post-header-rule" />}
 
   <div class="post-body">
     <Content />
@@ -61,31 +51,19 @@ const formattedDate = date?.toLocaleDateString('en-US', {
     margin-block-end: var(--space-5);
   }
 
+  .post-kicker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--space-2);
+    row-gap: var(--space-1);
+    margin-block-end: var(--space-3);
+  }
+
   .post-header-rule {
     border: none;
     border-top: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
     margin: 0 0 var(--space-6);
-  }
-
-  .tag-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1-5);
-    margin-block-end: var(--space-3);
-  }
-
-  .tag {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-    transition: opacity 0.1s;
-  }
-
-  .tag:hover {
-    opacity: 0.7;
   }
 
   .post-title {

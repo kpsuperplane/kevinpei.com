@@ -7,7 +7,6 @@ export interface Post {
   body?: string;
   data: {
     title: string;
-    tags: string[];
     readTime?: number;
     description?: string;
   };

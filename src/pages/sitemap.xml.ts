@@ -1,11 +1,9 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { absoluteUrl, xmlEscape } from '../utils/site';
-import { tagToSlug } from '../utils/tags';
 
 export const GET: APIRoute = async () => {
   const posts = await getCollection('posts');
-  const tagLastmod = new Map<string, Date>();
   const urls: Array<{ loc: string; lastmod?: Date }> = [
     { loc: absoluteUrl('/') },
     { loc: absoluteUrl('/about') },
@@ -14,18 +12,6 @@ export const GET: APIRoute = async () => {
       lastmod: post.data.date,
     })),
   ];
-
-  for (const post of posts) {
-    for (const tag of post.data.tags) {
-      const slug = tagToSlug(tag);
-      const existing = tagLastmod.get(slug);
-      if (!existing || post.data.date > existing) tagLastmod.set(slug, post.data.date);
-    }
-  }
-
-  for (const [slug, lastmod] of [...tagLastmod].sort(([a], [b]) => a.localeCompare(b))) {
-    urls.push({ loc: absoluteUrl(`/tags/${slug}`), lastmod });
-  }
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
     .map(

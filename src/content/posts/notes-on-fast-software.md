@@ -1,7 +1,6 @@
 ---
 title: Notes on Fast Software
 date: 2026-03-12
-tags: [Writing, Engineering]
 readTime: 5
 description: Speed is a feature. Latency is a tax. Some thoughts on why fast software feels different.
 ---

@@ -1,7 +1,6 @@
 ---
 title: On Building Things
 date: 2026-02-03
-tags: [Projects, Writing]
 readTime: 7
 description: Notes on the gap between making something and making something good.
 ---

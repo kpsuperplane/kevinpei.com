@@ -16,7 +16,6 @@ const aboutImage = frontmatter.image?.src;
   image={aboutImage}
   playing={true}
   nowPlayingTitle={frontmatter.title}
-  nowPlayingTags={frontmatter.tags}
   readTime={duration}
   audioSrc={aboutAudio}
   timingSrc={aboutTiming}
@@ -25,8 +24,6 @@ const aboutImage = frontmatter.image?.src;
     Content={AboutContent}
     title={frontmatter.title}
     description={frontmatter.description}
-    tags={frontmatter.tags}
-    linkTags={false}
     readTime={duration}
   />
 </AppShell>

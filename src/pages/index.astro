@@ -4,13 +4,20 @@ import TrackList from '../components/TrackList.astro';
 import FeaturedBanner from '../components/FeaturedBanner.astro';
 import { getCollection } from 'astro:content';
 import { frontmatter as aboutFrontmatter } from '../content/about.mdx';
+import aboutTimingData from '../content/about.json';
 
 const allPosts = await getCollection('posts');
 const posts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const aboutTrack = {
+  href: '/about',
+  title: aboutFrontmatter.title,
+  readTime: aboutTimingData.duration / 60,
+  description: aboutFrontmatter.description,
+};
 ---
 
 <AppShell title="Kevin Pei" description={aboutFrontmatter.description} firstHref="/about">
-  <TrackList heading="Now Streaming" posts={posts}>
+  <TrackList heading="Now Streaming" posts={posts} pinnedTracks={[aboutTrack]}>
     <FeaturedBanner
       slot="feature"
       title={aboutFrontmatter.title}

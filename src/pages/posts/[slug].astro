@@ -44,11 +44,11 @@ const duration = timingData?.duration ? timingData.duration / 60 : readTime;
 <AppShell
   title={`${post.data.title} — Kevin Pei`}
   description={post.data.description ?? post.data.title}
+  image={post.data.image?.src}
   type="article"
   publishedDate={post.data.date}
   playing={true}
   nowPlayingTitle={post.data.title}
-  nowPlayingTags={post.data.tags}
   prevSlug={prevPost?.id}
   nextSlug={nextPost?.id}
   readTime={duration}
@@ -59,7 +59,6 @@ const duration = timingData?.duration ? timingData.duration / 60 : readTime;
     Content={Content}
     title={post.data.title}
     description={post.data.description}
-    tags={post.data.tags}
     date={post.data.date}
     readTime={duration}
   />

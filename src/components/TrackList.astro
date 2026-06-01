@@ -3,12 +3,21 @@ import TrackRow from './TrackRow.astro';
 import { getReadTime } from '../utils/readTime';
 import type { Post } from '../types';
 
+type TrackListItem = {
+  href: string;
+  title: string;
+  readTime: number;
+  description?: string;
+  active?: boolean;
+};
+
 interface Props {
   posts: Post[];
+  pinnedTracks?: TrackListItem[];
   activeSlug?: string;
   heading?: string;
 }
-const { posts, activeSlug, heading } = Astro.props;
+const { posts, pinnedTracks = [], activeSlug, heading } = Astro.props;
 
 const timingDataModules = import.meta.glob<{ duration?: number }>(
   ['../content/posts/*.json', '!../content/posts/*.whisper.json'],
@@ -28,18 +37,26 @@ function getPostDuration(post: Post): number {
     <div class="col-headers">
       <span class="col-num">#</span>
       <span class="col-title">Title</span>
-      <span class="col-category">Category</span>
       <span class="col-duration">Time</span>
     </div>
     <hr class="divider" />
   </div>
 
   <ul class="track-list">
-    {posts.map((post, i) => (
+    {pinnedTracks.map((track, i) => (
       <TrackRow
         index={i + 1}
+        title={track.title}
+        readTime={track.readTime}
+        href={track.href}
+        active={track.active}
+        description={track.description}
+      />
+    ))}
+    {posts.map((post, i) => (
+      <TrackRow
+        index={i + pinnedTracks.length + 1}
         title={post.data.title}
-        tags={post.data.tags}
         readTime={getPostDuration(post)}
         slug={post.id}
         active={post.id === activeSlug}
@@ -77,7 +94,6 @@ function getPostDuration(post: Post): number {
   }
 
   .col-title,
-  .col-category,
   .col-duration {
     font-size: var(--text-xs);
     font-weight: 600;
@@ -110,8 +126,5 @@ function getPostDuration(post: Post): number {
       grid-template-columns: var(--grid-cols-track-mobile);
     }
 
-    .col-category {
-      display: none;
-    }
   }
 </style>

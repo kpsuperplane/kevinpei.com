@@ -11,9 +11,6 @@ export const GET: APIRoute = async () => {
   const items = posts
     .map(post => {
       const link = absoluteUrl(`/posts/${post.id}`);
-      const categories = post.data.tags
-        .map(tag => `      <category>${xmlEscape(tag)}</category>`)
-        .join('\n');
 
       return `    <item>
       <title>${xmlEscape(post.data.title)}</title>
@@ -21,7 +18,6 @@ export const GET: APIRoute = async () => {
       <guid>${xmlEscape(link)}</guid>
       <pubDate>${post.data.date.toUTCString()}</pubDate>
       <description>${xmlEscape(post.data.description ?? post.data.title)}</description>
-${categories}
     </item>`;
     })
     .join('\n');
