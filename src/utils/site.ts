@@ -2,7 +2,7 @@ export const SITE = {
   url: 'https://kevinpei.com',
   title: 'Kevin Pei',
   description:
-    'Kevin Pei writes about software, product craft, building things, and the occasional tangent.',
+    "Hey, I'm Kevin. A personal site about product craft, engineering, mountain detours, and building things with care.",
   image: '/cover.png',
   author: 'Kevin Pei',
 };

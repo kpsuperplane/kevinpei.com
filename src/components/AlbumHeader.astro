@@ -22,8 +22,8 @@ const {
   image = {
     src: '/cover.png',
     alt: 'Kevin Pei',
-    width: 140,
-    height: 140,
+    width: 1200,
+    height: 1200,
     sources: {
       mobile: '/cover-144.png',
       desktop: '/cover-280.png',
@@ -50,7 +50,7 @@ const imageHeight = image.height ?? 1200;
   <div class="album-info">
     <h1 class="album-title" id="album-title">{title}</h1>
     {description && <p class="album-description">{description}</p>}
-    <a class="play-button" href={playHref} aria-label={`Play ${title}`}>
+    <a class="play-button" href={playHref} aria-label="About Me">
       <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M8 5v14l11-7L8 5z" fill="currentColor" />
       </svg>

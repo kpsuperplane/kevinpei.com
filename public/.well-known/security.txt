@@ -1,0 +1,4 @@
+Contact: mailto:hello@kevinpei.com
+Expires: 2027-06-01T00:00:00Z
+Preferred-Languages: en
+Canonical: https://kevinpei.com/.well-known/security.txt

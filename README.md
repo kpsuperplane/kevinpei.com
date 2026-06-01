@@ -37,7 +37,7 @@ All commands are run from the root of the project, from a terminal:
 | `bun preview`         | Preview your build locally, before deploying     |
 | `bun astro ...`       | Run CLI commands like `astro add`, `astro check` |
 | `bun astro -- --help` | Get help using the Astro CLI                     |
-| `bun run align -- <slug> --force` | Generate `src/content/posts/<slug>.json` timing data from `scripts/whisper-out/<slug>.json` |
+| `bun run align -- <slug> --force` | Generate timing data for a post in `src/content/posts/` |
 
 ## Audio timing
 
@@ -50,6 +50,9 @@ file exists, which keeps hand-tuned timings out of the build pipeline.
 bun run transcribe -- src/content/about.m4a
 bun run align -- --post src/content/about.mdx --whisper scripts/whisper-out/about.json --out src/content/about.json --force
 ```
+
+For root-level content like `about.mdx`, pass `--post`, `--whisper`, and
+`--out` explicitly. The slug shortcut is only for files in `src/content/posts/`.
 
 The align script refuses to overwrite an existing timing file unless `--force`
 is passed, so manually adjusted JSON is protected by default.

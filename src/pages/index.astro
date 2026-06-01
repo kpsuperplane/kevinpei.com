@@ -2,15 +2,14 @@
 import AppShell from '../layouts/AppShell.astro';
 import TrackList from '../components/TrackList.astro';
 import AlbumHeader from '../components/AlbumHeader.astro';
-import { getCollection } from 'astro:content';
+import { getSortedPosts } from '../utils/posts';
 import { frontmatter as aboutFrontmatter } from '../content/about.mdx';
 import aboutTimingData from '../content/about.json';
 
 const albumTitle = "Hey, I'm Kevin.";
 const albumDescription = "From mountain trails to pixel-perfect interfaces, Kevin's debut album features tracks on UX craft, engineering philosophy, and the quiet joy of a good powder day.";
 
-const allPosts = await getCollection('posts');
-const posts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const posts = await getSortedPosts();
 const aboutTrack = {
   href: '/about',
   title: aboutFrontmatter.title,
@@ -19,7 +18,7 @@ const aboutTrack = {
 };
 ---
 
-<AppShell title="Kevin Pei" description={aboutFrontmatter.description} firstHref="/about" showNowPlaying={false}>
+<AppShell title={`${albumTitle} — Kevin Pei`} description={albumDescription} firstHref="/about" showNowPlaying={false}>
   <TrackList posts={posts} pinnedTracks={[aboutTrack]}>
     <AlbumHeader
       slot="feature"

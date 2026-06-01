@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { getSortedPosts } from '../utils/posts';
 import { absoluteUrl, xmlEscape } from '../utils/site';
 
 export const GET: APIRoute = async () => {
-  const posts = await getCollection('posts');
+  const posts = await getSortedPosts();
   const urls: Array<{ loc: string; lastmod?: Date }> = [
     { loc: absoluteUrl('/') },
     { loc: absoluteUrl('/about') },

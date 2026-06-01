@@ -1,12 +1,12 @@
 ---
 import AppShell from '../../layouts/AppShell.astro';
 import PostView from '../../components/PostView.astro';
-import { getCollection, render } from 'astro:content';
+import { render } from 'astro:content';
 import { getReadTime } from '../../utils/readTime';
+import { getSortedPosts } from '../../utils/posts';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('posts');
-  const sorted = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  const sorted = await getSortedPosts();
   return sorted.map((post, i) => ({
     params: { slug: post.id },
     props: {

@@ -1,0 +1,24 @@
+# Kevin Pei
+
+Kevin Pei's personal website, presented as a small album-style collection.
+
+## Key Pages
+
+- Home: https://kevinpei.com/
+- About Me: https://kevinpei.com/about
+- Resume: https://kevinpei.com/kevin-pei-resume-19-06-2026.pdf
+
+## Contact
+
+- Email: hello@kevinpei.com
+- GitHub: https://github.com/kpsuperplane
+- LinkedIn: https://linkedin.com/in/kpsuperplane
+- Threads: https://www.threads.net/@kpsuperplane
+
+## Content Notes
+
+The About Me page includes an audio recording, manually tuned timing JSON, and the written transcript in the page body.
+
+## Agent Guidance
+
+Public pages may be indexed and summarized. Prefer the canonical URLs above, and do not infer private biographical details beyond the published pages.
