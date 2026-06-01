@@ -18,6 +18,7 @@ interface Props {
   heading?: string;
 }
 const { posts, pinnedTracks = [], activeSlug, heading } = Astro.props;
+const trackOffset = pinnedTracks.length;
 
 const timingDataModules = import.meta.glob<{ duration?: number }>(
   ['../content/posts/*.json', '!../content/posts/*.whisper.json'],
@@ -32,7 +33,7 @@ function getPostDuration(post: Post): number {
 
 <div class="track-list-wrap">
   <div class="track-list-header">
-    <h1 class="heading">{heading}</h1>
+    {heading && <h1 class="heading">{heading}</h1>}
     <slot name="feature" />
     <div class="col-headers">
       <span class="col-num">#</span>
@@ -55,7 +56,7 @@ function getPostDuration(post: Post): number {
     ))}
     {posts.map((post, i) => (
       <TrackRow
-        index={i + pinnedTracks.length + 1}
+        index={i + trackOffset + 1}
         title={post.data.title}
         readTime={getPostDuration(post)}
         slug={post.id}
@@ -68,7 +69,15 @@ function getPostDuration(post: Post): number {
 
 <style>
   .track-list-wrap {
+    --text: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.7);
+    --border: rgba(255, 255, 255, 0.18);
+    background: #15364a;
+    border-radius: var(--radius-lg);
+    margin-inline: var(--page-gutter);
     padding-inline: var(--list-gutter);
+    padding-block-end: var(--space-6);
+    overflow: hidden;
   }
 
   .heading {
@@ -82,8 +91,9 @@ function getPostDuration(post: Post): number {
     display: grid;
     grid-template-columns: var(--grid-cols-track);
     gap: var(--space-2);
-    padding: var(--space-1) var(--list-gutter);
+    padding: var(--space-4) var(--list-gutter) var(--space-1);
     margin-block-end: var(--space-1);
+    color: var(--text-muted);
   }
 
   .col-num {
@@ -119,12 +129,13 @@ function getPostDuration(post: Post): number {
 
   @media (max-width: 768px) {
     .track-list-wrap {
-      padding: 0;
+      margin-inline: var(--page-gutter);
+      padding-inline: 0;
+      padding-block-end: var(--space-6);
     }
 
     .col-headers {
       grid-template-columns: var(--grid-cols-track-mobile);
     }
-
   }
 </style>

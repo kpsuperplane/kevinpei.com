@@ -21,15 +21,6 @@ const formattedDate = date?.toLocaleDateString('en-US', {
 <article class="post-view">
   {(title || description || date || readTime) && (
     <header class="post-header">
-      {(date || readTime) && (
-        <div class="post-kicker">
-          <div class="post-meta">
-            {formattedDate && <span>{formattedDate}</span>}
-            {formattedDate && readTime && <span class="dot">·</span>}
-            {readTime && <span>{formatDuration(readTime)} read</span>}
-          </div>
-        </div>
-      )}
       {title && <h1 class="post-title">{title}</h1>}
       {description && <p class="post-description">{description}</p>}
     </header>

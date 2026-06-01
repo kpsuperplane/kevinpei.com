@@ -1,10 +1,13 @@
 ---
 import AppShell from '../layouts/AppShell.astro';
 import TrackList from '../components/TrackList.astro';
-import FeaturedBanner from '../components/FeaturedBanner.astro';
+import AlbumHeader from '../components/AlbumHeader.astro';
 import { getCollection } from 'astro:content';
 import { frontmatter as aboutFrontmatter } from '../content/about.mdx';
 import aboutTimingData from '../content/about.json';
+
+const albumTitle = "Hey, I'm Kevin.";
+const albumDescription = "From mountain trails to pixel-perfect interfaces, Kevin's debut album features tracks on UX craft, engineering philosophy, and the quiet joy of a good powder day.";
 
 const allPosts = await getCollection('posts');
 const posts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -17,11 +20,12 @@ const aboutTrack = {
 ---
 
 <AppShell title="Kevin Pei" description={aboutFrontmatter.description} firstHref="/about">
-  <TrackList heading="Now Streaming" posts={posts} pinnedTracks={[aboutTrack]}>
-    <FeaturedBanner
+  <TrackList posts={posts} pinnedTracks={[aboutTrack]}>
+    <AlbumHeader
       slot="feature"
-      title={aboutFrontmatter.title}
-      description={aboutFrontmatter.description}
+      title={albumTitle}
+      description={albumDescription}
+      playHref="/about"
       image={aboutFrontmatter.image}
     />
   </TrackList>
