@@ -11,6 +11,7 @@ interface Props {
   type?: 'website' | 'article';
   publishedDate?: Date;
   playing?: boolean;
+  showNowPlaying?: boolean;
   nowPlayingTitle?: string;
   prevSlug?: string;
   nextSlug?: string;
@@ -27,6 +28,7 @@ const {
   type = 'website',
   publishedDate,
   playing = false,
+  showNowPlaying = true,
   nowPlayingTitle,
   prevSlug,
   nextSlug,
@@ -70,7 +72,11 @@ const imageUrl = absoluteUrl(image);
     <ClientRouter />
     <slot name="head" />
   </head>
-  <body data-playing={playing ? 'true' : undefined} data-readtime={readTime != null ? String(readTime) : undefined}>
+  <body
+    data-playing={playing ? 'true' : undefined}
+    data-nowplaying={showNowPlaying ? 'true' : undefined}
+    data-readtime={readTime != null ? String(readTime) : undefined}
+  >
     <a href="#main" class="skip-link">Skip to content</a>
     <div class="layout">
       <Sidebar currentPath={currentPath} />
@@ -78,15 +84,17 @@ const imageUrl = absoluteUrl(image);
         <slot />
       </main>
     </div>
-    <NowPlaying
-      title={nowPlayingTitle}
-      prevSlug={prevSlug}
-      nextSlug={nextSlug}
-      active={playing}
-      firstHref={firstHref}
-      audioSrc={audioSrc ?? undefined}
-      timingSrc={timingSrc ?? undefined}
-    />
+    {showNowPlaying && (
+      <NowPlaying
+        title={nowPlayingTitle}
+        prevSlug={prevSlug}
+        nextSlug={nextSlug}
+        active={playing}
+        firstHref={firstHref}
+        audioSrc={audioSrc ?? undefined}
+        timingSrc={timingSrc ?? undefined}
+      />
+    )}
   </body>
 </html>
 
@@ -270,6 +278,10 @@ const imageUrl = absoluteUrl(image);
     padding-block-end: calc(var(--nowplaying-h) + var(--space-10));
   }
 
+  body:not([data-nowplaying]) .main-panel {
+    padding-block-end: var(--space-10);
+  }
+
   @media (max-width: 768px) {
     :root {
       --page-gutter: var(--space-4);
@@ -284,6 +296,10 @@ const imageUrl = absoluteUrl(image);
     .main-panel {
       padding-block-start: calc(var(--mobile-header-h) + var(--space-4));
       padding-block-end: calc(var(--nowplaying-h) + var(--mobile-nav-h) + var(--space-6));
+    }
+
+    body:not([data-nowplaying]) .main-panel {
+      padding-block-end: calc(var(--mobile-nav-h) + var(--space-6));
     }
   }
 </style>

@@ -19,7 +19,7 @@ const aboutTrack = {
 };
 ---
 
-<AppShell title="Kevin Pei" description={aboutFrontmatter.description} firstHref="/about">
+<AppShell title="Kevin Pei" description={aboutFrontmatter.description} firstHref="/about" showNowPlaying={false}>
   <TrackList posts={posts} pinnedTracks={[aboutTrack]}>
     <AlbumHeader
       slot="feature"
