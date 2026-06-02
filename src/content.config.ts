@@ -7,10 +7,6 @@ const imageSchema = z.object({
   alt: z.string(),
   width: z.number().optional(),
   height: z.number().optional(),
-  sources: z.object({
-    mobile: z.string().optional(),
-    desktop: z.string().optional(),
-  }).optional(),
 }).optional();
 
 const posts = defineCollection({

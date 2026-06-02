@@ -89,13 +89,13 @@ const socialLinks: NavLink[] = [
 </nav>
 
 <script>
-  let _sidebarController = new AbortController();
+  let _sidebarInitialized = false;
 
-  document.addEventListener('astro:before-swap', () => { _sidebarController.abort(); });
-
-  document.addEventListener('astro:page-load', () => {
-    _sidebarController = new AbortController();
-    const { signal } = _sidebarController;
+  function initSidebar(): void {
+    if (_sidebarInitialized) return;
+    _sidebarInitialized = true;
+    const controller = new AbortController();
+    const { signal } = controller;
 
     const btnSocial   = document.getElementById('btn-social')   as HTMLButtonElement | null;
     const sheetSocial = document.getElementById('sheet-social') as HTMLElement | null;
@@ -174,7 +174,13 @@ const socialLinks: NavLink[] = [
         }
       }
     }, { signal });
-  }); // astro:page-load
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSidebar, { once: true });
+  } else {
+    initSidebar();
+  }
 </script>
 
 <style>
@@ -351,7 +357,6 @@ const socialLinks: NavLink[] = [
     }
 
     .mobile-nav {
-      view-transition-name: mobile-nav;
       display: flex;
       flex-direction: row;
       position: fixed;

@@ -185,9 +185,9 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
   // ── Module-level: persists across navigations ─────────────────────────────────
   let _rafId: number | null = null;
   let _controller = new AbortController();
+  let _nowPlayingInitialized = false;
 
-  // Cancel any running animation and clean up listeners before each navigation
-  document.addEventListener('astro:before-swap', () => {
+  function cleanupNowPlaying(): void {
     if (_rafId !== null) { cancelAnimationFrame(_rafId); _rafId = null; }
     document.body.classList.remove('playing', 'paused');
     if ('mediaSession' in navigator) {
@@ -197,10 +197,12 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
       navigator.mediaSession.setActionHandler('pause', null);
     }
     _controller.abort();
-  });
+  }
 
-  // ── Per-page init: re-runs on every navigation including initial load ─────────
-  document.addEventListener('astro:page-load', () => {
+  function initNowPlaying(): void {
+    if (_nowPlayingInitialized) return;
+    _nowPlayingInitialized = true;
+    cleanupNowPlaying();
     _controller = new AbortController();
     const { signal } = _controller;
 
@@ -882,7 +884,13 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
       }
     });
   }
-  }); // astro:page-load
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNowPlaying, { once: true });
+  } else {
+    initNowPlaying();
+  }
 </script>
 
 <style is:global>

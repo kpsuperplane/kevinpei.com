@@ -1,7 +1,6 @@
 ---
 import Sidebar from '../components/Sidebar.astro';
 import NowPlaying from '../components/NowPlaying.astro';
-import ClientRouter from 'astro/components/ClientRouter.astro';
 import { absoluteUrl, SITE } from '../utils/site';
 
 interface Props {
@@ -69,7 +68,6 @@ const imageUrl = absoluteUrl(image);
     {type === 'article' && publishedDate && (
       <meta property="article:published_time" content={publishedDate.toISOString()} />
     )}
-    <ClientRouter />
     <slot name="head" />
   </head>
   <body
@@ -99,25 +97,6 @@ const imageUrl = absoluteUrl(image);
 </html>
 
 <style is:global>
-  /* Disable default crossfade — keep instant client-side navigation */
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation: none;
-  }
-
-  /* Mobile nav gets its own compositing group above NowPlaying's shadow */
-  ::view-transition-group(mobile-nav) {
-    z-index: 110; /* matches --z-mobile-nav; vars don't resolve in pseudo-elements */
-  }
-  ::view-transition-old(mobile-nav) {
-    display: none;
-  }
-  ::view-transition-new(mobile-nav) {
-    animation: none;
-    opacity: 1;
-  }
-
-
   *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
