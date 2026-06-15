@@ -7,13 +7,35 @@ interface Props {
   readTime?: number;
 }
 const { Content, title, description, date, readTime } = Astro.props;
+
+const formattedDate = date?.toLocaleDateString('en-US', {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
 ---
 
 <article class="post-view">
   {(title || description || date || readTime) && (
     <header class="post-header">
       {title && <h1 class="post-title">{title}</h1>}
-      {description && <p class="post-description">{description}</p>}
+      {description && (
+        <p class="post-description">
+          {description}
+          {date && formattedDate && (
+            <>
+              <span class="post-meta-separator" aria-hidden="true"> · </span>
+              <time datetime={date.toISOString()}>{formattedDate}</time>
+            </>
+          )}
+        </p>
+      )}
+      {!description && date && formattedDate && (
+        <time class="post-date" datetime={date.toISOString()}>
+          {formattedDate}
+        </time>
+      )}
     </header>
   )}
 
@@ -24,8 +46,159 @@ const { Content, title, description, date, readTime } = Astro.props;
   </div>
 </article>
 
+<script>
+  function updateScrollState(wrapper: HTMLElement, scroller: HTMLElement): void {
+    const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+    const hasOverflow = maxScroll > 1;
+
+    wrapper.toggleAttribute('data-overflow-left', hasOverflow && scroller.scrollLeft > 1);
+    wrapper.toggleAttribute('data-overflow-right', hasOverflow && scroller.scrollLeft < maxScroll - 1);
+    if (hasOverflow) {
+      scroller.setAttribute('tabindex', '0');
+    } else {
+      scroller.removeAttribute('tabindex');
+    }
+  }
+
+  const overflowBlocks = Array.from(
+    document.querySelectorAll<HTMLElement>('.post-body > pre, .post-body > table')
+  ).filter((block) => {
+    return !(
+      block.matches('pre[data-language="mermaid"]') ||
+      block.querySelector('code.language-mermaid')
+    );
+  });
+
+  const overflowEntries = overflowBlocks.map((block) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = `post-overflow post-overflow-${block.tagName.toLowerCase()}`;
+    block.classList.add('post-overflow-scroll');
+    block.replaceWith(wrapper);
+    wrapper.append(block);
+
+    updateScrollState(wrapper, block);
+    block.addEventListener('scroll', () => updateScrollState(wrapper, block), { passive: true });
+
+    return { wrapper, scroller: block };
+  });
+
+  const mermaidBlocks = Array.from(
+    document.querySelectorAll<HTMLPreElement>(
+      '.post-body pre[data-language="mermaid"], .post-body pre > code.language-mermaid'
+    )
+  );
+
+  if (mermaidBlocks.length > 0) {
+    const mermaidUrl = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    const { default: mermaid } = await import(/* @vite-ignore */ mermaidUrl);
+
+    const diagramEntries = mermaidBlocks.map((block, index) => {
+      const pre = block.tagName.toLowerCase() === 'pre' ? block : block.closest('pre');
+      const lineEls = Array.from(block.querySelectorAll<HTMLElement>('.line'));
+      const source = lineEls.length > 0
+        ? lineEls.map((line) => line.textContent ?? '').join('\n')
+        : block.textContent ?? '';
+      const wrapper = document.createElement('div');
+      wrapper.className = 'mermaid-diagram';
+      wrapper.setAttribute('role', 'img');
+      const scroller = document.createElement('div');
+      scroller.className = 'mermaid-diagram-scroll';
+      wrapper.append(scroller);
+      pre?.replaceWith(wrapper);
+
+      return { index, source, wrapper, scroller };
+    });
+
+    const mobileDiagramQuery = window.matchMedia('(max-width: 640px)');
+    let renderPass = 0;
+
+    function getMermaidConfig() {
+      const isMobile = mobileDiagramQuery.matches;
+
+      return {
+        startOnLoad: false,
+        look: 'handDrawn',
+        theme: 'base',
+        securityLevel: 'strict',
+        handDrawnSeed: 7,
+        fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        flowchart: {
+          padding: isMobile ? 10 : 14,
+          nodeSpacing: isMobile ? 42 : 68,
+          rankSpacing: isMobile ? 46 : 72,
+          curve: 'basis',
+        },
+        themeVariables: {
+          background: '#fffdf7',
+          mainBkg: '#fff9db',
+          primaryColor: '#fff9db',
+          primaryTextColor: '#1f1f1f',
+          primaryBorderColor: '#1f1f1f',
+          lineColor: '#1f1f1f',
+          secondaryColor: '#e7f5ff',
+          tertiaryColor: '#f8f0fc',
+          clusterBkg: '#f8f9fa',
+          clusterBorder: '#1f1f1f',
+          textColor: '#1f1f1f',
+          edgeLabelBackground: '#fffdf7',
+          nodeBorder: '#1f1f1f',
+        },
+      };
+    }
+
+    function getResponsiveMermaidSource(source: string): { source: string; reflowed: boolean } {
+      return { source, reflowed: false };
+    }
+
+    async function renderDiagrams(): Promise<void> {
+      const currentRenderPass = renderPass++;
+      mermaid.initialize(getMermaidConfig());
+
+      await Promise.all(
+        diagramEntries.map(async ({ index, source, wrapper, scroller }) => {
+          try {
+            const responsiveDiagram = getResponsiveMermaidSource(source);
+            const { svg } = await mermaid.render(
+              `mermaid-diagram-${index}-${currentRenderPass}`,
+              responsiveDiagram.source
+            );
+            scroller.innerHTML = svg;
+            wrapper.classList.remove('mermaid-diagram-error');
+            wrapper.toggleAttribute('data-reflowed', responsiveDiagram.reflowed);
+            updateScrollState(wrapper, scroller);
+            scroller.addEventListener('scroll', () => updateScrollState(wrapper, scroller), { passive: true });
+          } catch (error) {
+            wrapper.classList.add('mermaid-diagram-error');
+            wrapper.removeAttribute('data-reflowed');
+            wrapper.removeAttribute('data-overflow-left');
+            wrapper.removeAttribute('data-overflow-right');
+            scroller.removeAttribute('tabindex');
+            wrapper.textContent = 'Unable to render diagram.';
+            console.error(error);
+          }
+        })
+      );
+    }
+
+    await renderDiagrams();
+    mobileDiagramQuery.addEventListener('change', () => {
+      void renderDiagrams();
+    });
+    window.addEventListener('resize', () => {
+      diagramEntries.forEach(({ wrapper, scroller }) => updateScrollState(wrapper, scroller));
+    });
+  }
+
+  if (overflowEntries.length > 0) {
+    window.addEventListener('resize', () => {
+      overflowEntries.forEach(({ wrapper, scroller }) => updateScrollState(wrapper, scroller));
+    });
+  }
+</script>
+
 <style>
   .post-view {
+    min-width: 0;
     padding: 0 var(--page-gutter) calc(var(--space-10) + var(--space-10));
   }
 
@@ -54,8 +227,21 @@ const { Content, title, description, date, readTime } = Astro.props;
     margin-block-end: var(--space-4);
   }
 
+  .post-meta-separator {
+    color: color-mix(in srgb, var(--text-muted) 60%, transparent);
+  }
+
+  .post-date {
+    display: block;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
   /* Prose styles */
   .post-body {
+    min-width: 0;
+    max-width: 100%;
     font-size: 16px;
     line-height: 1.7;
     color: var(--text);
@@ -77,6 +263,10 @@ const { Content, title, description, date, readTime } = Astro.props;
 
   .post-body > :global(p) {
     margin-block-end: var(--space-5);
+  }
+
+  .post-body :global(strong) {
+    font-weight: 600;
   }
 
   .post-body :global(a) {
@@ -125,19 +315,189 @@ const { Content, title, description, date, readTime } = Astro.props;
     border-radius: 3px;
   }
 
-  .post-body > :global(pre) {
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
+  .post-body > :global(pre),
+  .post-body :global(.post-overflow-pre > pre) {
+    background: #f6f8fa !important;
+    border: 1px solid #d0d7de;
     border-radius: var(--radius-lg);
     padding: var(--space-5);
     overflow-x: auto;
     margin-block-end: var(--space-5);
   }
 
+  .post-body :global(.post-overflow) {
+    --scrim-bg: var(--bg);
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .post-body :global(.post-overflow-pre) {
+    --scrim-bg: #f6f8fa;
+    border-radius: var(--radius-lg);
+    margin-block-end: var(--space-5);
+  }
+
+  .post-body :global(.post-overflow-table) {
+    margin: var(--space-6) 0;
+  }
+
+  .post-body :global(.post-overflow > .post-overflow-scroll) {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .post-body :global(.post-overflow-pre > pre) {
+    margin-block-end: 0;
+  }
+
+  .post-body :global(.mermaid-diagram) {
+    --scrim-bg: var(--bg);
+    box-sizing: border-box;
+    display: block;
+    position: relative;
+    width: 100%;
+    inline-size: min(100%, calc(100vw - (2 * var(--page-gutter))));
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    margin-block-end: var(--space-5);
+  }
+
+  .post-body :global(.mermaid-diagram-scroll) {
+    overflow-x: hidden;
+  }
+
+  .post-body :global(.post-overflow::before),
+  .post-body :global(.post-overflow::after),
+  .post-body :global(.mermaid-diagram::before),
+  .post-body :global(.mermaid-diagram::after) {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+    width: 80px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+  }
+
+  .post-body :global(.post-overflow::before),
+  .post-body :global(.mermaid-diagram::before) {
+    left: -6px;
+    background: linear-gradient(
+      90deg,
+      var(--scrim-bg) 0%,
+      color-mix(in srgb, var(--scrim-bg) 98%, transparent) 12%,
+      color-mix(in srgb, var(--scrim-bg) 92%, transparent) 26%,
+      color-mix(in srgb, var(--scrim-bg) 78%, transparent) 42%,
+      color-mix(in srgb, var(--scrim-bg) 52%, transparent) 62%,
+      color-mix(in srgb, var(--scrim-bg) 22%, transparent) 82%,
+      transparent 100%
+    );
+  }
+
+  .post-body :global(.post-overflow::after),
+  .post-body :global(.mermaid-diagram::after) {
+    right: -6px;
+    background: linear-gradient(
+      270deg,
+      var(--scrim-bg) 0%,
+      color-mix(in srgb, var(--scrim-bg) 98%, transparent) 12%,
+      color-mix(in srgb, var(--scrim-bg) 92%, transparent) 26%,
+      color-mix(in srgb, var(--scrim-bg) 78%, transparent) 42%,
+      color-mix(in srgb, var(--scrim-bg) 52%, transparent) 62%,
+      color-mix(in srgb, var(--scrim-bg) 22%, transparent) 82%,
+      transparent 100%
+    );
+  }
+
+  .post-body :global(.post-overflow[data-overflow-left]::before),
+  .post-body :global(.post-overflow[data-overflow-right]::after),
+  .post-body :global(.mermaid-diagram[data-overflow-left]::before),
+  .post-body :global(.mermaid-diagram[data-overflow-right]::after) {
+    opacity: 1;
+  }
+
+  .post-body :global(.mermaid-diagram svg) {
+    display: block;
+    margin-inline: auto;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-width: 0;
+  }
+
+  .post-body :global(.mermaid-diagram .label),
+  .post-body :global(.mermaid-diagram .edgeLabel),
+  .post-body :global(.mermaid-diagram .nodeLabel) {
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  .post-body :global(.mermaid-diagram-error) {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+
   .post-body :global(pre code) {
     background: none;
     padding: 0;
+    font-size: 13px;
+  }
+
+  .post-body > :global(table),
+  .post-body :global(.post-overflow-table > table) {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: var(--space-6) 0;
     font-size: 14px;
+    line-height: 1.5;
+    scrollbar-width: thin;
+  }
+
+  .post-body :global(.post-overflow-table > table) {
+    margin: 0;
+  }
+
+  .post-body :global(th),
+  .post-body :global(td) {
+    min-width: 120px;
+    padding: var(--space-2-5) var(--space-3);
+    border: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .post-body :global(th) {
+    background: var(--bg-elevated);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .post-body :global(td) {
+    color: var(--text-muted);
+  }
+
+  .post-body :global(tbody tr:nth-child(even) td) {
+    background: color-mix(in srgb, var(--bg-elevated) 45%, transparent);
+  }
+
+  .post-body :global(td > :last-child),
+  .post-body :global(th > :last-child) {
+    margin-block-end: 0;
+  }
+
+  .post-body :global(table a) {
+    white-space: normal;
   }
 
   .post-body > :global(blockquote) {
@@ -146,6 +506,50 @@ const { Content, title, description, date, readTime } = Astro.props;
     margin: var(--space-6) 0;
     color: var(--text-muted);
     font-style: italic;
+  }
+
+  .post-body > :global(.markdown-alert) {
+    --alert-color: var(--accent);
+    background: color-mix(in srgb, var(--alert-color) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--alert-color) 30%, var(--border));
+    border-left-width: 4px;
+    border-radius: var(--radius-lg);
+    color: var(--text);
+    font-style: normal;
+    margin: var(--space-6) 0;
+    padding: var(--space-4);
+  }
+
+  .post-body > :global(.markdown-alert-note) {
+    --alert-color: #0969da;
+  }
+
+  .post-body > :global(.markdown-alert-tip) {
+    --alert-color: #1a7f37;
+  }
+
+  .post-body > :global(.markdown-alert-important) {
+    --alert-color: #8250df;
+  }
+
+  .post-body > :global(.markdown-alert-warning) {
+    --alert-color: #9a6700;
+  }
+
+  .post-body > :global(.markdown-alert-caution) {
+    --alert-color: #cf222e;
+  }
+
+  .post-body > :global(.markdown-alert > :last-child) {
+    margin-block-end: 0;
+  }
+
+  .post-body :global(.markdown-alert-title) {
+    color: var(--alert-color);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-block-end: var(--space-2);
   }
 
   .post-body > :global(ul),
@@ -172,6 +576,25 @@ const { Content, title, description, date, readTime } = Astro.props;
 
     .post-title {
       font-size: 26px;
+    }
+
+    .post-body :global(.mermaid-diagram) {
+      inline-size: 100%;
+    }
+
+    .post-body :global(.mermaid-diagram-scroll) {
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .post-body :global(.mermaid-diagram-scroll::-webkit-scrollbar) {
+      display: none;
+    }
+
+    .post-body :global(.mermaid-diagram svg) {
+      width: 560px;
+      max-width: none;
+      min-width: 560px;
     }
   }
 </style>

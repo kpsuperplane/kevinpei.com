@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
+import { unified } from '@astrojs/markdown-remark';
 import { execFileSync } from 'child_process';
 import { readFileSync, mkdtempSync, rmdirSync, mkdirSync, readdirSync, existsSync, copyFileSync, unlinkSync, statSync } from 'fs';
 import ffmpegPath from 'ffmpeg-static';
@@ -8,6 +9,7 @@ import { tmpdir } from 'os';
 import { join, basename, extname } from 'path';
 import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
+import { rehypeGfmAlerts, rehypeLyricUnits } from './src/utils/lyricUnits.mjs';
 
 /**
  * Compute the content-based hash + hashed filename for an .m4a file.
@@ -123,6 +125,14 @@ function audioAstroIntegration() {
 // https://astro.build/config
 export default defineConfig({
   site: 'https://kevinpei.com',
+  markdown: {
+    shikiConfig: {
+      theme: 'github-light',
+    },
+    processor: unified({
+      rehypePlugins: [rehypeGfmAlerts, rehypeLyricUnits],
+    }),
+  },
   integrations: [mdx(), audioAstroIntegration()],
   vite: {
     plugins: [audioVitePlugin()],

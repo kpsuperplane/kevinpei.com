@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-align.py — Map Whisper transcript to post sentences using word-level alignment.
+align.py — Align rendered lyric units to Whisper word timestamps.
 
-Uses per-word timestamps from Whisper to precisely find where each post
-sentence starts and ends in the audio, tolerating small deviations between
-the written text and the narration (fillers, paraphrasing, minor skips).
+The canonical text stream comes from scripts/extract-lyrics.mjs, which uses the
+same HAST transforms as Astro rendering. That keeps the DOM lyric spans and this
+timing JSON keyed by the same stable lyric IDs instead of fragile array indexes.
 
 Usage:
-  python scripts/align.py about --force
+  python3 scripts/align.py thoughts-on-agent-privacy --force
 
-  # Equivalent explicit form:
-  python scripts/align.py \
+  python3 scripts/align.py \
     --post src/content/about.mdx \
+    --audio src/content/about.m4a \
     --whisper scripts/whisper-out/about.json \
     --out src/content/about.json \
     --force
@@ -23,82 +23,33 @@ import re
 import shutil
 import subprocess
 import sys
+from collections import Counter
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Optional
 
 
-# ── Markdown stripping ────────────────────────────────────────────────────────
+VISIBLE_THRESHOLD = 0.40
+ANCHOR_THRESHOLD = 0.62
+SKIP_TOLERANCE = 20
 
-def strip_markdown(text: str) -> str:
-    text = re.sub(r'^\s*(import|export)\s+.*$', ' ', text, flags=re.MULTILINE)
-    text = re.sub(r'^\s*<img\b[\s\S]*?/>\s*$', ' ', text, flags=re.IGNORECASE)
-    text = re.sub(r'^\s*<[A-Z][\s\S]*?/>\s*$', ' ', text)
-    text = re.sub(r'^\s*<[A-Z][^>\n]*(?:/>|>.*?</[A-Z][^>]*>)\s*$', ' ', text, flags=re.MULTILINE)
-    text = re.sub(r'```[\s\S]*?```', ' ', text)
-    text = re.sub(r'`[^`]+`', ' ', text)
-    text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
-    text = re.sub(r'\*{1,3}([^*]+)\*{1,3}', r'\1', text)
-    text = re.sub(r'_{1,3}([^_]+)_{1,3}', r'\1', text)
-    text = re.sub(r'!\[[^\]]*\]\([^)]+\)', '', text)
-    text = re.sub(r'^>\s*', '', text, flags=re.MULTILINE)
-    text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
-    text = re.sub(r'^[-*_]{3,}\s*$', '', text, flags=re.MULTILINE)
-    text = re.sub(r'^\s*[-*+]\s+', '', text, flags=re.MULTILINE)
-    text = re.sub(r'^\s*\d{1,3}\.\s+', '', text, flags=re.MULTILINE)
-    text = re.sub(r'\\([\\`*_{}\[\]()#+\-.!>])', r'\1', text)
-    return text
-
-
-# ── Sentence extraction ───────────────────────────────────────────────────────
-
-SENTENCE_SPLIT = re.compile(u"(?<=[.!?])\\s+(?=[A-Z\u2018\u2019\u201c\u201d])")
-
-def extract_sentences(md_path: str) -> list[str]:
-    with open(md_path, encoding='utf-8') as f:
-        raw = f.read()
-    raw = re.sub(r'^---[\s\S]*?---\s*', '', raw)
-
-    sentences = []
-    for para in re.split(r'\n{2,}', raw):
-        para = para.strip()
-        if not para:
-            continue
-        plain = strip_markdown(para).strip()
-        if not plain:
-            continue
-        for part in SENTENCE_SPLIT.split(plain):
-            part = part.strip()
-            if part:
-                sentences.append(part)
-    return sentences
-
-
-# ── Word normalisation ────────────────────────────────────────────────────────
 
 def tokenize(text: str) -> list[str]:
-    """Lowercase alphanumeric tokens only (strips punctuation)."""
+    """Lowercase alphanumeric tokens only."""
     return re.findall(r'\w+', text.lower())
 
 
-# ── Word-level alignment ──────────────────────────────────────────────────────
-
 def flatten_words(whisper_data: dict) -> list[dict]:
-    """
-    Flatten all per-word entries from Whisper segments into a single list.
-    Each entry: {'text': str, 'start': float, 'end': float}
-    Words with no text after stripping are skipped.
-    """
     words = []
     for seg in whisper_data.get('segments', []):
         for w in seg.get('words') or []:
             tok = re.findall(r'\w+', w.get('word', '').lower())
             if tok:
                 words.append({
-                    'text':  tok[0],
+                    'text': tok[0],
                     'start': w['start'],
-                    'end':   w['end'],
-                    'raw':   w.get('word', ''),
+                    'end': w['end'],
+                    'raw': w.get('word', ''),
                 })
     return words
 
@@ -139,25 +90,15 @@ def probe_audio_duration(audio_path: Path, root: Path) -> Optional[float]:
 
 
 def best_window(
-    post_tokens:  list[str],
-    trans_words:  list[dict],
-    start_idx:    int,
-    search_ahead: int = 60,
+    unit_tokens: list[str],
+    trans_words: list[dict],
+    start_idx: int,
+    search_ahead: int,
 ) -> tuple[int, int, float]:
-    """
-    Find the transcript window [i, j) that best matches post_tokens,
-    searching from start_idx forward by up to search_ahead words.
-
-    Tries window lengths from 50% to 200% of len(post_tokens) to handle
-    contractions, fillers, and minor omissions.
-
-    Returns (best_i, best_j, best_score).  best_i == -1 if nothing found.
-    """
-    n     = len(post_tokens)
+    n = len(unit_tokens)
     limit = min(start_idx + search_ahead, len(trans_words))
 
     best_i, best_j, best_score = -1, -1, 0.0
-
     lo = max(1, int(n * 0.5))
     hi = min(int(n * 2.0) + 1, limit - start_idx + 1)
 
@@ -165,7 +106,7 @@ def best_window(
         for i in range(start_idx, limit - length + 1):
             j = i + length
             window_tokens = [trans_words[k]['text'] for k in range(i, j)]
-            score = SequenceMatcher(None, post_tokens, window_tokens).ratio()
+            score = SequenceMatcher(None, unit_tokens, window_tokens).ratio()
             if score > best_score:
                 best_score = score
                 best_i, best_j = i, j
@@ -173,64 +114,96 @@ def best_window(
     return best_i, best_j, best_score
 
 
-MATCH_THRESHOLD = 0.40   # below this, mark as null and don't advance
-SKIP_TOLERANCE  = 20     # words the pointer can jump forward looking for a match
-
-
-def align(post_sentences: list[str], trans_words: list[dict]) -> list[dict]:
-    """
-    Greedy left-to-right word-level alignment.
-    Returns one {start, end} (or {start: null, end: null}) per post sentence.
-    """
+def align_units(units: list[dict], trans_words: list[dict]) -> list[dict]:
     results = []
     word_idx = 0
 
-    for sent in post_sentences:
-        post_toks = tokenize(sent)
+    for unit in units:
+        tokens = tokenize(unit['text'])
+        mode = unit.get('mode', 'visible')
+        threshold = ANCHOR_THRESHOLD if mode == 'anchor' else VISIBLE_THRESHOLD
 
-        if not post_toks or word_idx >= len(trans_words):
-            results.append({'start': None, 'end': None})
+        if not tokens or word_idx >= len(trans_words):
+            results.append({**unit, 'start': None, 'end': None, 'score': 0.0})
             continue
 
-        i, j, score = best_window(post_toks, trans_words, word_idx,
-                                   search_ahead=SKIP_TOLERANCE + len(post_toks) * 2)
+        search_ahead = SKIP_TOLERANCE + len(tokens) * 2
+        i, j, score = best_window(tokens, trans_words, word_idx, search_ahead)
 
-        if score < MATCH_THRESHOLD or i < 0:
-            results.append({'start': None, 'end': None})
-            # Don't advance — next sentence might still match from word_idx
-        else:
-            matched = trans_words[i:j]
-            # words = [w0.start, w1.start, …, wN.end] — boundaries for each word
-            word_times = [round(w['start'], 3) for w in matched] + [round(matched[-1]['end'], 3)]
-            results.append({
-                'start': word_times[0],
-                'end':   word_times[-1],
-                'words': word_times,
-            })
-            word_idx = j   # advance past consumed words
+        if i < 0 or score < threshold:
+            results.append({**unit, 'start': None, 'end': None, 'score': round(score, 3)})
+            continue
+
+        matched = trans_words[i:j]
+        word_times = [round(w['start'], 3) for w in matched] + [round(matched[-1]['end'], 3)]
+        results.append({
+            **unit,
+            'start': word_times[0],
+            'end': word_times[-1],
+            'words': word_times,
+            'score': round(score, 3),
+        })
+        word_idx = j
 
     return results
 
 
-# ── Main ─────────────────────────────────────────────────────────────────────
+def load_lyric_units(post_path: Path, root: Path, units_path: Optional[Path]) -> list[dict]:
+    if units_path:
+        with open(units_path, encoding='utf-8') as f:
+            manifest = json.load(f)
+    else:
+        bun = shutil.which('bun')
+        if not bun:
+            raise RuntimeError('bun not found; cannot generate lyric units')
+
+        proc = subprocess.run(
+            [bun, str(root / 'scripts/extract-lyrics.mjs'), '--post', str(post_path)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise RuntimeError(proc.stderr.strip() or proc.stdout.strip())
+        manifest = json.loads(proc.stdout)
+
+    units = manifest.get('units', manifest if isinstance(manifest, list) else [])
+    return [
+        unit
+        for unit in units
+        if unit.get('mode') in {'visible', 'anchor'}
+    ]
+
+
+def duplicate_ids(units: list[dict]) -> list[str]:
+    counts = Counter(unit.get('id') for unit in units)
+    return sorted(id_ for id_, count in counts.items() if id_ and count > 1)
+
+
+def default_post_path(root: Path, slug: str) -> Path:
+    posts_md = root / 'src/content/posts' / f'{slug}.md'
+    posts_mdx = root / 'src/content/posts' / f'{slug}.mdx'
+    if posts_md.exists():
+        return posts_md
+    if posts_mdx.exists():
+        return posts_mdx
+
+    content_md = root / 'src/content' / f'{slug}.md'
+    content_mdx = root / 'src/content' / f'{slug}.mdx'
+    if content_md.exists():
+        return content_md
+    return content_mdx
+
 
 def main():
-    parser = argparse.ArgumentParser(
-        description='Align Whisper word-level transcript to post sentences')
-    parser.add_argument(
-        'slug',
-        nargs='?',
-        help='Content slug, e.g. about. Defaults paths from the slug.'
-    )
-    parser.add_argument('--post', help='Path to the source Markdown/MDX post')
+    parser = argparse.ArgumentParser(description='Align rendered lyric units to Whisper timestamps')
+    parser.add_argument('slug', nargs='?', help='Content slug, e.g. about')
+    parser.add_argument('--post', help='Path to the source Markdown/MDX file')
     parser.add_argument('--audio', help='Path to the encoded audio file')
     parser.add_argument('--whisper', help='Path to Whisper JSON with word timestamps')
+    parser.add_argument('--units', help='Path to pre-generated lyric-unit JSON')
     parser.add_argument('--out', help='Output timing JSON path')
-    parser.add_argument(
-        '--force',
-        action='store_true',
-        help='Overwrite an existing output file. Required to protect hand-tuned timings.'
-    )
+    parser.add_argument('--force', action='store_true', help='Overwrite existing output')
     args = parser.parse_args()
 
     root = Path(__file__).resolve().parents[1]
@@ -238,14 +211,11 @@ def main():
     post_path = Path(args.post) if args.post else None
     audio_path = Path(args.audio) if args.audio else None
     whisper_path = Path(args.whisper) if args.whisper else None
+    units_path = Path(args.units) if args.units else None
     out_path = Path(args.out) if args.out else None
 
     if args.slug:
-        post_path = post_path or root / 'src/content/posts' / f'{args.slug}.md'
-        if not post_path.exists():
-            mdx_path = root / 'src/content/posts' / f'{args.slug}.mdx'
-            if mdx_path.exists():
-                post_path = mdx_path
+        post_path = post_path or default_post_path(root, args.slug)
 
     if post_path:
         audio_path = audio_path or post_path.with_suffix('.m4a')
@@ -265,30 +235,49 @@ def main():
             'Refusing to overwrite hand-tuned timings. Re-run with --force to regenerate.'
         )
 
+    try:
+        units = load_lyric_units(post_path, root, units_path)
+    except RuntimeError as error:
+        parser.error(str(error))
+
     with open(whisper_path, encoding='utf-8') as f:
         whisper_data = json.load(f)
 
     trans_words = flatten_words(whisper_data)
-    duration    = probe_audio_duration(audio_path, root) if audio_path else None
+    duration = probe_audio_duration(audio_path, root) if audio_path else None
     if duration is None:
         duration = whisper_duration(whisper_data, trans_words)
 
-    post_sentences = extract_sentences(str(post_path))
-    alignments     = align(post_sentences, trans_words)
+    aligned = align_units(units, trans_words)
+    visible = [unit for unit in aligned if unit.get('mode') == 'visible']
+    anchors = [unit for unit in aligned if unit.get('mode') == 'anchor']
+    visible_timed = sum(1 for unit in visible if unit['start'] is not None)
+    anchor_matched = sum(1 for unit in anchors if unit['start'] is not None)
+    null_visible = len(visible) - visible_timed
+    duplicates = duplicate_ids(units)
 
-    matched   = sum(1 for a in alignments if a['start'] is not None)
-    unmatched = len(alignments) - matched
-    print(f'Post sentences  : {len(post_sentences)}')
-    print(f'Transcript words: {len(trans_words)}')
-    print(f'Matched         : {matched}  ({100*matched//max(len(alignments),1)}%)')
-    print(f'Fallback (null) : {unmatched}')
-    print(f'Duration        : {duration:.1f}s')
+    print(f'Alignment units   : {len(units)}')
+    print(f'Visible units     : {len(visible)}')
+    print(f'Anchor units      : {len(anchors)}')
+    print(f'Transcript words  : {len(trans_words)}')
+    print(f'Visible timed     : {visible_timed} ({100*visible_timed//max(len(visible),1)}%)')
+    print(f'Anchor matched    : {anchor_matched}')
+    print(f'Null visible      : {null_visible}')
+    print(f'Duplicate IDs     : {len(duplicates)}')
+    print(f'Missing timing IDs: 0')
+    print(f'Duration          : {duration:.1f}s')
+    if duplicates:
+        print(f'Duplicate ID list : {", ".join(duplicates)}')
 
     output = {
         'duration': round(duration, 3),
         'sentences': [
-            {'text': sent, **alignment}
-            for sent, alignment in zip(post_sentences, alignments)
+            {
+                key: unit[key]
+                for key in ('id', 'text', 'start', 'end', 'words')
+                if key in unit
+            }
+            for unit in visible
         ],
     }
 
@@ -296,10 +285,10 @@ def main():
     with open(out_path, 'w', encoding='utf-8') as f:
         json.dump(output, f, indent=2)
         f.write('\n')
-    print(f'Written → {out_path}')
+    print(f'Written           : {out_path}')
 
-    if matched / max(len(alignments), 1) < 0.70:
-        print('\n⚠  Less than 70% matched. Try --model large-v3 for better accuracy.',
+    if visible_timed / max(len(visible), 1) < 0.70:
+        print('\n⚠  Less than 70% of visible units matched. Try a larger Whisper model.',
               file=sys.stderr)
 
 

@@ -2,7 +2,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 
 type PostEntry = CollectionEntry<'posts'>;
 
-const postModules = import.meta.glob('../content/posts/*.md');
+const postModules = import.meta.glob('../content/posts/*.{md,mdx}');
 
 function hasPostFiles(): boolean {
   return Object.keys(postModules).length > 0;

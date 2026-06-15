@@ -171,6 +171,7 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
 
 <script>
   type TimingSentence = {
+    id?: string;
     text?: string;
     start: number | null;
     end: number | null;
@@ -266,25 +267,15 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
   // ── Lyric sentences ──────────────────────────────────────────────────────────
   let sentences: HTMLElement[] = [];
 
-  function initLyrics(totalSeconds: number): HTMLElement[] {
+  function initLyrics(totalSeconds: number, useFallbackTiming: boolean): HTMLElement[] {
     const body = document.querySelector('.post-body');
     if (!body) return [];
 
-    const blocks = Array.from(body.querySelectorAll('p, h2, h3, h4'))
-      .filter(block => !block.closest('[data-lyric-skip]'));
-    const result: HTMLElement[] = [];
+    const result = Array.from(
+      body.querySelectorAll<HTMLElement>('.lyric-sentence[data-lyric-id]')
+    ).filter(sentence => !sentence.closest('[data-lyric-skip]'));
 
-    blocks.forEach(block => {
-      const html = (block as HTMLElement).innerHTML.trim();
-      if (!html) return;
-
-      const parts = html.split(new RegExp('(?<=[.!?])(?:\\s|<br\\s*/?>)+(?=[A-Z"\u2018\u2019\u201c\u201d])', 'i'));
-      (block as HTMLElement).innerHTML = parts
-        .map(s => `<span class="lyric-sentence">${s.trim()}</span>`)
-        .join(' ');
-
-      block.querySelectorAll<HTMLElement>('.lyric-sentence').forEach(s => result.push(s));
-    });
+    if (!useFallbackTiming) return result;
 
     const wordCounts = result.map(s =>
       (s.textContent ?? '').trim().split(/\s+/).filter(Boolean).length
@@ -306,7 +297,7 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
   // ── Audio timing ─────────────────────────────────────────────────────────────
   // Fetches the alignment JSON for this post and overrides the word-count-based
   // data-t / data-dur values with real timestamps from the recording.
-  // Sentences with null timestamps keep their word-count fallback.
+  // ID-based timing files exclude null timestamps from playback activation.
   async function loadAudioTiming(timingSrc: string, sents: HTMLElement[]): Promise<void> {
     try {
       const data: TimingData = await fetch(timingSrc).then(r => r.json());
@@ -335,23 +326,60 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
       const totalS = totalSeconds % 60;
       if (totalEl) totalEl.textContent = `${totalM}:${totalS.toString().padStart(2, '0')}`;
 
-      data.sentences.forEach((s, i) => {
-        if (s.start != null && s.end != null && sents[i]) {
-          // Use realDuration (audio.duration) — NOT data.duration — so that
-          // data-t = s.start / realDuration stays on the same pct scale as
-          // audio.currentTime / audio.duration in playTick.
-          sents[i].dataset.t   = (s.start / realDuration).toFixed(5);
-          sents[i].dataset.dur = (s.end - s.start).toFixed(3);
-          if (s.words && s.words.length > 1) {
-            // Flat comma-separated list of word-boundary timestamps (absolute seconds)
-            sents[i].dataset.wordTimes = s.words.join(',');
-          }
-        }
-        // null → word-count fallback already in place
+      const byId = new Map<string, HTMLElement>();
+      const duplicateDomIds = new Set<string>();
+
+      sents.forEach((sent) => {
+        const id = sent.dataset.lyricId;
+        if (!id) return;
+        if (byId.has(id)) duplicateDomIds.add(id);
+        byId.set(id, sent);
+        sent.removeAttribute('data-t');
+        sent.removeAttribute('data-dur');
+        sent.removeAttribute('data-word-times');
+        sent.removeAttribute('data-lyric-untimed');
       });
+
+      const hasIds = data.sentences.some(s => !!s.id);
+
+      data.sentences.forEach((timing, i) => {
+        const target = hasIds
+          ? (timing.id ? byId.get(timing.id) : undefined)
+          : sents[i];
+
+        if (!target) return;
+
+        if (timing.start != null && timing.end != null) {
+          target.dataset.t = (timing.start / realDuration).toFixed(5);
+          target.dataset.dur = (timing.end - timing.start).toFixed(3);
+          if (timing.words && timing.words.length > 1) {
+            target.dataset.wordTimes = timing.words.join(',');
+          }
+        } else {
+          target.setAttribute('data-lyric-untimed', '');
+        }
+      });
+
+      if (hasIds) {
+        const missingDomIds = data.sentences
+          .map(s => s.id)
+          .filter((id): id is string => !!id && !byId.has(id));
+        const missingTimingIds = sents
+          .map(s => s.dataset.lyricId)
+          .filter((id): id is string => !!id && !data.sentences.some(t => t.id === id));
+
+        if (duplicateDomIds.size > 0 || missingDomIds.length > 0 || missingTimingIds.length > 0) {
+          console.warn('Audio timing validation', {
+            duplicateDomIds: Array.from(duplicateDomIds),
+            missingDomIds,
+            missingTimingIds,
+          });
+        }
+      }
+
+      sentences = sents.filter(s => s.dataset.t != null && s.dataset.dur != null);
     } catch (e) {
-      // Timing fetch failed — fall back to word-count simulation silently
-      console.warn('Audio timing load failed, using word-count fallback', e);
+      console.warn('Audio timing load failed', e);
     }
   }
 
@@ -575,7 +603,7 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
 
   function activateSentence(s: HTMLElement): void {
     if (s === activeSentence) {
-      if (highlightLines.length === 0) renderHighlightForSentence(s);
+      if (highlightLines.length === 0) safeRenderHighlightForSentence(s);
       return;
     }
     if (activeSentence) {
@@ -583,9 +611,13 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
       activeSentence.classList.add('lyric-done');
     }
     s.classList.add('lyric-active');
-    renderHighlightForSentence(s);
-    s.scrollIntoView({ behavior: 'smooth', block: 'center' });
     activeSentence = s;
+    safeRenderHighlightForSentence(s);
+    try {
+      s.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch (error) {
+      console.warn('Unable to scroll active lyric into view', error);
+    }
   }
 
   function syncLyricToPct(pct: number): void {
@@ -599,7 +631,19 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
     target.classList.remove('lyric-done');
     target.classList.add('lyric-active');
     activeSentence = target;
-    renderHighlightForSentence(target);
+    safeRenderHighlightForSentence(target);
+  }
+
+  function safeRenderHighlightForSentence(sentenceEl: HTMLElement): void {
+    try {
+      renderHighlightForSentence(sentenceEl);
+    } catch (error) {
+      clearHighlightLayer();
+      console.warn('Unable to render lyric highlight overlay', {
+        id: sentenceEl.dataset.lyricId,
+        error,
+      });
+    }
   }
 
   function clearLyrics(): void {
@@ -674,10 +718,14 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
       lastAriaPct = pct;
     }
 
-    const target = getSentenceAtPct(pct);
-    if (target) activateSentence(target);
+    try {
+      const target = getSentenceAtPct(pct);
+      if (target) activateSentence(target);
 
-    if (hasAudio && audio) updateLineSweep(audio.currentTime);
+      if (hasAudio && audio) updateLineSweep(audio.currentTime);
+    } catch (error) {
+      console.warn('Lyric playback tick failed', error);
+    }
 
     if (pct < 1) {
       _rafId = requestAnimationFrame(playTick);
@@ -775,7 +823,9 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
     const totalS = totalSeconds % 60;
     if (totalEl) totalEl.textContent = `${totalM}:${totalS.toString().padStart(2, '0')}`;
 
-    sentences = initLyrics(totalSeconds);
+    const hasTiming = !!footer.dataset.timing;
+    const lyricSentences = initLyrics(totalSeconds, !hasAudio || !hasTiming);
+    sentences = (!hasAudio || !hasTiming) ? lyricSentences : [];
 
     // If this post has a recording, wire up audio. Timing JSON is optional:
     // checked-in files provide exact highlights, otherwise lyrics use fallback pacing.
@@ -787,8 +837,8 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
         audio.addEventListener('loadedmetadata', syncAudioDurationUi, { once: true, signal });
       }
 
-      if (footer?.dataset.timing) {
-        loadAudioTiming(footer.dataset.timing, sentences);
+      if (hasTiming) {
+        loadAudioTiming(footer.dataset.timing!, lyricSentences);
       }
       audio.addEventListener('play', startPlayUi, { signal });
       audio.addEventListener('pause', setPausedUi, { signal });

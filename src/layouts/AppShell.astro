@@ -252,6 +252,7 @@ const imageUrl = absoluteUrl(image);
 
   .main-panel {
     grid-area: main;
+    min-width: 0;
     background: var(--bg);
     padding-block-start: var(--space-8);
     padding-block-end: calc(var(--nowplaying-h) + var(--space-10));
@@ -262,6 +263,11 @@ const imageUrl = absoluteUrl(image);
   }
 
   @media (max-width: 768px) {
+    html,
+    body {
+      overflow-x: clip;
+    }
+
     :root {
       --page-gutter: var(--space-4);
     }
