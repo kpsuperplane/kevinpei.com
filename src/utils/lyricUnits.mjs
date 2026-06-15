@@ -38,7 +38,7 @@ const TEXT_SENTENCE_SPLIT = new RegExp(`(?<=[.!?])\\s+(?=${SENTENCE_START})`, 'g
 /**
  * Turn GitHub-style alert blockquotes into semantic, styleable callouts.
  * Example: > [!NOTE] ...
- * @returns {import('unified').Plugin<[], import('hast').Root>}
+ * @returns {import('unified').Transformer<import('hast').Root, import('hast').Root>}
  */
 export function rehypeGfmAlerts() {
   return (tree) => {
@@ -83,7 +83,7 @@ export function rehypeGfmAlerts() {
 /**
  * Wrap visible lyric units and expose the canonical unit manifest on vfile.data.
  * @param {{ wrapVisible?: boolean }} [options]
- * @returns {import('unified').Plugin<[], import('hast').Root>}
+ * @returns {import('unified').Transformer<import('hast').Root, import('hast').Root>}
  */
 export function rehypeLyricUnits(options = {}) {
   return (tree, file) => {

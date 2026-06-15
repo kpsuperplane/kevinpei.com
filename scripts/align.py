@@ -19,6 +19,7 @@ Usage:
 
 import argparse
 import json
+import math
 import re
 import shutil
 import subprocess
@@ -30,8 +31,10 @@ from typing import Optional
 
 
 VISIBLE_THRESHOLD = 0.40
+SHORT_VISIBLE_THRESHOLD = 0.90
 ANCHOR_THRESHOLD = 0.62
 SKIP_TOLERANCE = 20
+MIN_WINDOW_COVERAGE = 0.75
 
 
 def tokenize(text: str) -> list[str]:
@@ -43,15 +46,51 @@ def flatten_words(whisper_data: dict) -> list[dict]:
     words = []
     for seg in whisper_data.get('segments', []):
         for w in seg.get('words') or []:
-            tok = re.findall(r'\w+', w.get('word', '').lower())
-            if tok:
-                words.append({
-                    'text': tok[0],
-                    'start': w['start'],
-                    'end': w['end'],
-                    'raw': w.get('word', ''),
-                })
+            tokens = re.findall(r'\w+', w.get('word', '').lower())
+            if tokens:
+                start = w['start']
+                end = w['end']
+                step = (end - start) / max(len(tokens), 1)
+                for idx, token in enumerate(tokens):
+                    token_start = start + (idx * step)
+                    token_end = end if idx == len(tokens) - 1 else start + ((idx + 1) * step)
+                    words.append({
+                        'text': token,
+                        'start': token_start,
+                        'end': token_end,
+                        'raw': w.get('word', ''),
+                    })
     return words
+
+
+def word_boundaries(unit_tokens: list[str], matched_words: list[dict]) -> list[float]:
+    if not matched_words:
+        return []
+
+    source = [matched_words[0]['start']] + [word['end'] for word in matched_words]
+    target_word_count = len(unit_tokens)
+
+    if target_word_count <= 0:
+        return []
+    if len(matched_words) == target_word_count:
+        return [round(time, 3) for time in source]
+
+    # The fuzzy matcher can still align a lyric sentence to a transcript window
+    # with a slightly different token count. Resample to lyric-token boundaries
+    # so the browser overlay has one timing boundary per rendered word.
+    source_word_count = len(matched_words)
+    resampled = []
+    for boundary_idx in range(target_word_count + 1):
+        pos = (boundary_idx / target_word_count) * source_word_count
+        lo = min(math.floor(pos), source_word_count)
+        hi = min(math.ceil(pos), source_word_count)
+        if lo == hi:
+            resampled.append(source[lo])
+        else:
+            frac = pos - lo
+            resampled.append(source[lo] + ((source[hi] - source[lo]) * frac))
+
+    return [round(time, 3) for time in resampled]
 
 
 def whisper_duration(whisper_data: dict, trans_words: list[dict]) -> float:
@@ -99,7 +138,7 @@ def best_window(
     limit = min(start_idx + search_ahead, len(trans_words))
 
     best_i, best_j, best_score = -1, -1, 0.0
-    lo = max(1, int(n * 0.5))
+    lo = max(1, math.ceil(n * MIN_WINDOW_COVERAGE))
     hi = min(int(n * 2.0) + 1, limit - start_idx + 1)
 
     for length in range(lo, hi):
@@ -122,6 +161,8 @@ def align_units(units: list[dict], trans_words: list[dict]) -> list[dict]:
         tokens = tokenize(unit['text'])
         mode = unit.get('mode', 'visible')
         threshold = ANCHOR_THRESHOLD if mode == 'anchor' else VISIBLE_THRESHOLD
+        if mode == 'visible' and len(tokens) <= 4:
+            threshold = max(threshold, SHORT_VISIBLE_THRESHOLD)
 
         if not tokens or word_idx >= len(trans_words):
             results.append({**unit, 'start': None, 'end': None, 'score': 0.0})
@@ -135,7 +176,7 @@ def align_units(units: list[dict], trans_words: list[dict]) -> list[dict]:
             continue
 
         matched = trans_words[i:j]
-        word_times = [round(w['start'], 3) for w in matched] + [round(matched[-1]['end'], 3)]
+        word_times = word_boundaries(tokens, matched)
         results.append({
             **unit,
             'start': word_times[0],

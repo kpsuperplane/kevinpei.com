@@ -183,6 +183,14 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
     sentences: TimingSentence[];
   };
 
+  type TimingApplyResult = {
+    hasIds: boolean;
+    duplicateDomIds: Set<string>;
+    missingDomIds: string[];
+    missingTimingIds: string[];
+    timedSentences: HTMLElement[];
+  };
+
   // ── Module-level: persists across navigations ─────────────────────────────────
   let _rafId: number | null = null;
   let _controller = new AbortController();
@@ -287,11 +295,71 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
       const startPct = totalWords > 0 ? elapsed / totalWords : 0;
       const durSec   = totalWords > 0 ? (wordCounts[i] / totalWords) * totalSeconds : 1;
       s.dataset.t   = startPct.toFixed(5);
-      s.dataset.dur = Math.max(0.4, durSec).toFixed(3);
+      const duration = Math.max(0.4, durSec).toFixed(3);
+      s.dataset.dur = duration;
+      s.dataset.duration = duration;
       elapsed += wordCounts[i];
     });
 
     return result;
+  }
+
+  function applyTimingData(data: TimingData, sents: HTMLElement[], duration: number): TimingApplyResult {
+    const byId = new Map<string, HTMLElement>();
+    const duplicateDomIds = new Set<string>();
+
+    sents.forEach((sent) => {
+      const id = sent.dataset.lyricId;
+      if (!id) return;
+      if (byId.has(id)) duplicateDomIds.add(id);
+      byId.set(id, sent);
+      sent.removeAttribute('data-t');
+      sent.removeAttribute('data-dur');
+      sent.removeAttribute('data-duration');
+      sent.removeAttribute('data-word-times');
+      sent.removeAttribute('data-lyric-untimed');
+    });
+
+    const hasIds = data.sentences.some(s => !!s.id);
+
+    data.sentences.forEach((timing, i) => {
+      const target = hasIds
+        ? (timing.id ? byId.get(timing.id) : undefined)
+        : sents[i];
+
+      if (!target) return;
+
+      if (timing.start != null && timing.end != null) {
+        const timingDuration = (timing.end - timing.start).toFixed(3);
+        target.dataset.t = (timing.start / duration).toFixed(5);
+        target.dataset.dur = timingDuration;
+        target.dataset.duration = timingDuration;
+        if (timing.words && timing.words.length > 1) {
+          target.dataset.wordTimes = timing.words.join(',');
+        }
+      } else {
+        target.setAttribute('data-lyric-untimed', '');
+      }
+    });
+
+    const missingDomIds = hasIds
+      ? data.sentences
+          .map(s => s.id)
+          .filter((id): id is string => !!id && !byId.has(id))
+      : [];
+    const missingTimingIds = hasIds
+      ? sents
+          .map(s => s.dataset.lyricId)
+          .filter((id): id is string => !!id && !data.sentences.some(t => t.id === id))
+      : [];
+
+    return {
+      hasIds,
+      duplicateDomIds,
+      missingDomIds,
+      missingTimingIds,
+      timedSentences: sents.filter(s => s.dataset.t != null && s.dataset.dur != null),
+    };
   }
 
   // ── Audio timing ─────────────────────────────────────────────────────────────
@@ -301,6 +369,8 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
   async function loadAudioTiming(timingSrc: string, sents: HTMLElement[]): Promise<void> {
     try {
       const data: TimingData = await fetch(timingSrc).then(r => r.json());
+      let applyResult = applyTimingData(data, sents, data.duration);
+      sentences = applyResult.timedSentences;
 
       // Wait for loadedmetadata so audio.duration reflects the real file length.
       // Whisper's duration estimate can differ from the actual encoded file by 1–2 s,
@@ -319,6 +389,11 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
         }
       }
 
+      if (realDuration !== data.duration) {
+        applyResult = applyTimingData(data, sents, realDuration);
+        sentences = applyResult.timedSentences;
+      }
+
       totalSeconds = Math.round(realDuration);
 
       // Update total-time display now that we know the real duration
@@ -326,58 +401,19 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
       const totalS = totalSeconds % 60;
       if (totalEl) totalEl.textContent = `${totalM}:${totalS.toString().padStart(2, '0')}`;
 
-      const byId = new Map<string, HTMLElement>();
-      const duplicateDomIds = new Set<string>();
-
-      sents.forEach((sent) => {
-        const id = sent.dataset.lyricId;
-        if (!id) return;
-        if (byId.has(id)) duplicateDomIds.add(id);
-        byId.set(id, sent);
-        sent.removeAttribute('data-t');
-        sent.removeAttribute('data-dur');
-        sent.removeAttribute('data-word-times');
-        sent.removeAttribute('data-lyric-untimed');
-      });
-
-      const hasIds = data.sentences.some(s => !!s.id);
-
-      data.sentences.forEach((timing, i) => {
-        const target = hasIds
-          ? (timing.id ? byId.get(timing.id) : undefined)
-          : sents[i];
-
-        if (!target) return;
-
-        if (timing.start != null && timing.end != null) {
-          target.dataset.t = (timing.start / realDuration).toFixed(5);
-          target.dataset.dur = (timing.end - timing.start).toFixed(3);
-          if (timing.words && timing.words.length > 1) {
-            target.dataset.wordTimes = timing.words.join(',');
-          }
-        } else {
-          target.setAttribute('data-lyric-untimed', '');
-        }
-      });
-
-      if (hasIds) {
-        const missingDomIds = data.sentences
-          .map(s => s.id)
-          .filter((id): id is string => !!id && !byId.has(id));
-        const missingTimingIds = sents
-          .map(s => s.dataset.lyricId)
-          .filter((id): id is string => !!id && !data.sentences.some(t => t.id === id));
-
-        if (duplicateDomIds.size > 0 || missingDomIds.length > 0 || missingTimingIds.length > 0) {
+      if (applyResult.hasIds) {
+        if (
+          applyResult.duplicateDomIds.size > 0 ||
+          applyResult.missingDomIds.length > 0 ||
+          applyResult.missingTimingIds.length > 0
+        ) {
           console.warn('Audio timing validation', {
-            duplicateDomIds: Array.from(duplicateDomIds),
-            missingDomIds,
-            missingTimingIds,
+            duplicateDomIds: Array.from(applyResult.duplicateDomIds),
+            missingDomIds: applyResult.missingDomIds,
+            missingTimingIds: applyResult.missingTimingIds,
           });
         }
       }
-
-      sentences = sents.filter(s => s.dataset.t != null && s.dataset.dur != null);
     } catch (e) {
       console.warn('Audio timing load failed', e);
     }
