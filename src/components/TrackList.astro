@@ -7,18 +7,19 @@ type TrackListItem = {
   href: string;
   title: string;
   readTime: number;
+  sortDate?: Date | number;
   description?: string;
   active?: boolean;
 };
 
 interface Props {
-  posts: Post[];
+  posts?: Post[];
+  tracks?: TrackListItem[];
   pinnedTracks?: TrackListItem[];
   activeSlug?: string;
   heading?: string;
 }
-const { posts, pinnedTracks = [], activeSlug, heading } = Astro.props;
-const trackOffset = pinnedTracks.length;
+const { posts = [], tracks, pinnedTracks = [], activeSlug, heading } = Astro.props;
 
 const timingDataModules = import.meta.glob<{ duration?: number }>(
   ['../content/posts/*.json', '!../content/posts/*.whisper.json'],
@@ -29,6 +30,25 @@ function getPostDuration(post: Post): number {
   const timingData = timingDataModules[`../content/posts/${post.id}.json`];
   return timingData?.duration ? timingData.duration / 60 : getReadTime(post.body ?? '');
 }
+
+const trackItems = tracks ?? [
+  ...pinnedTracks.map((track) => ({
+    ...track,
+    sortDate: track.sortDate ?? 0,
+  })),
+  ...posts.map((post) => ({
+    href: `/posts/${post.id}`,
+    title: post.data.title,
+    readTime: getPostDuration(post),
+    sortDate: post.data.date,
+    active: post.id === activeSlug,
+    description: post.data.description,
+  })),
+].toSorted((a, b) => {
+  const aDate = a.sortDate instanceof Date ? a.sortDate.valueOf() : Number(a.sortDate ?? 0);
+  const bDate = b.sortDate instanceof Date ? b.sortDate.valueOf() : Number(b.sortDate ?? 0);
+  return bDate - aDate;
+});
 ---
 
 <div class="track-list-wrap">
@@ -44,7 +64,7 @@ function getPostDuration(post: Post): number {
   </div>
 
   <ul class="track-list">
-    {pinnedTracks.map((track, i) => (
+    {trackItems.map((track, i) => (
       <TrackRow
         index={i + 1}
         title={track.title}
@@ -52,16 +72,6 @@ function getPostDuration(post: Post): number {
         href={track.href}
         active={track.active}
         description={track.description}
-      />
-    ))}
-    {posts.map((post, i) => (
-      <TrackRow
-        index={i + trackOffset + 1}
-        title={post.data.title}
-        readTime={getPostDuration(post)}
-        slug={post.id}
-        active={post.id === activeSlug}
-        description={post.data.description}
       />
     ))}
   </ul>

@@ -13,7 +13,9 @@ export async function getPosts(): Promise<PostEntry[]> {
   return getCollection('posts');
 }
 
-export async function getSortedPosts(): Promise<PostEntry[]> {
+export async function getPostsReverseChronological(): Promise<PostEntry[]> {
   const posts = await getPosts();
-  return posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  return posts.toSorted((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 }
+
+export const getSortedPosts = getPostsReverseChronological;
