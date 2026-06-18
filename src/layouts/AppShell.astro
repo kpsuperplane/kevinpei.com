@@ -49,7 +49,7 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="/icon.png" sizes="192x192" />
     <link rel="apple-touch-icon" href="/icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content="#ffffff" />
     <meta name="generator" content={Astro.generator} />
@@ -116,12 +116,8 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     --nowplaying-h:  90px;
     --sidebar-w:     220px;
     --mobile-nav-h:    56px;
+    --mobile-nav-overscan: 96px;
     --mobile-header-h: 56px;
-    --safe-area-top: env(safe-area-inset-top, 0px);
-    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-    --mobile-header-total-h: calc(var(--mobile-header-h) + var(--safe-area-top));
-    --mobile-nav-total-h: calc(var(--mobile-nav-h) + var(--safe-area-bottom));
-    --mobile-chrome-bg-h: calc(var(--mobile-nav-total-h) + var(--space-6));
     --content-w:     720px;
     --font:          -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-mono:     'SFMono-Regular', Consolas, monospace;
@@ -168,7 +164,6 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
   }
 
   html {
-    background: var(--bg);
     scroll-behavior: smooth;
     touch-action: manipulation;
   }
@@ -279,18 +274,6 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
       --page-gutter: var(--space-4);
     }
 
-    body::after {
-      content: "";
-      position: fixed;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      height: var(--mobile-chrome-bg-h);
-      background: var(--bg);
-      pointer-events: none;
-      z-index: 90;
-    }
-
     .layout {
       grid-template-columns: 1fr;
       grid-template-areas: "main";
@@ -298,12 +281,12 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     }
 
     .main-panel {
-      padding-block-start: calc(var(--mobile-header-total-h) + var(--space-4));
-      padding-block-end: calc(var(--nowplaying-h) + var(--mobile-nav-total-h) + var(--space-6));
+      padding-block-start: calc(var(--mobile-header-h) + var(--space-4));
+      padding-block-end: calc(var(--nowplaying-h) + var(--mobile-nav-h) + var(--space-6));
     }
 
     body:not([data-nowplaying]) .main-panel {
-      padding-block-end: calc(var(--mobile-nav-total-h) + var(--space-6));
+      padding-block-end: calc(var(--mobile-nav-h) + var(--space-6));
     }
   }
 </style>
