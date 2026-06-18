@@ -39,7 +39,8 @@ const {
 
 const currentPath = Astro.url.pathname;
 const canonicalUrl = absoluteUrl(currentPath);
-const imageUrl = image ? absoluteUrl(image) : null;
+const fallbackImagePath = `/og${currentPath.replace(/\/$/, '')}.png`;
+const imageUrl = absoluteUrl(image ?? fallbackImagePath);
 ---
 
 <html lang="en">
@@ -60,11 +61,11 @@ const imageUrl = image ? absoluteUrl(image) : null;
     <meta property="og:description" content={description} />
     <meta property="og:type" content={type} />
     <meta property="og:url" content={canonicalUrl} />
-    {imageUrl && <meta property="og:image" content={imageUrl} />}
-    <meta name="twitter:card" content={imageUrl ? 'summary_large_image' : 'summary'} />
+    <meta property="og:image" content={imageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    {imageUrl && <meta name="twitter:image" content={imageUrl} />}
+    <meta name="twitter:image" content={imageUrl} />
     {type === 'article' && publishedDate && (
       <meta property="article:published_time" content={publishedDate.toISOString()} />
     )}
