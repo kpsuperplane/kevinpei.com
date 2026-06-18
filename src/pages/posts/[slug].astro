@@ -44,7 +44,7 @@ const duration = timingData?.duration ? timingData.duration / 60 : readTime;
 <AppShell
   title={`${post.data.title} — Kevin Pei`}
   description={post.data.description ?? post.data.title}
-  image={post.data.image?.src}
+  image={post.data.image?.src ?? null}
   type="article"
   publishedDate={post.data.date}
   playing={true}
