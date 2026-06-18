@@ -313,16 +313,12 @@ const socialLinks: NavLink[] = [
   @media (max-width: 768px) {
     .mobile-header {
       display: flex;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
+      grid-area: mobile-header;
       height: var(--mobile-header-h);
       background: var(--bg);
       border-bottom: 1px solid var(--border);
       align-items: center;
       padding-inline: var(--page-gutter);
-      z-index: var(--z-mobile-nav);
     }
 
     .mobile-profile {

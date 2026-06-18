@@ -276,12 +276,14 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
 
     .layout {
       grid-template-columns: 1fr;
-      grid-template-areas: "main";
+      grid-template-areas:
+        "mobile-header"
+        "main";
       max-width: 100%;
     }
 
     .main-panel {
-      padding-block-start: calc(var(--mobile-header-h) + var(--space-4));
+      padding-block-start: var(--space-4);
       padding-block-end: calc(var(--nowplaying-h) + var(--mobile-nav-h) + var(--space-6));
     }
 
