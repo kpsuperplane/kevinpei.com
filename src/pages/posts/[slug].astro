@@ -7,13 +7,9 @@ import { getSortedPosts } from '../../utils/posts';
 
 export async function getStaticPaths() {
   const sorted = await getSortedPosts();
-  return sorted.map((post, i) => ({
+  return sorted.map((post) => ({
     params: { slug: post.id },
-    props: {
-      post,
-      prevPost: sorted[i + 1] ?? null,
-      nextPost: sorted[i - 1] ?? null,
-    },
+    props: { post },
   }));
 }
 
@@ -31,7 +27,7 @@ const timingDataModules = import.meta.glob<{ duration?: number }>(
   { import: 'default', eager: true }
 );
 
-const { post, prevPost, nextPost } = Astro.props;
+const { post } = Astro.props;
 const { Content } = await render(post);
 const readTime = getReadTime(post.body ?? '');
 
@@ -49,8 +45,6 @@ const duration = timingData?.duration ? timingData.duration / 60 : readTime;
   publishedDate={post.data.date}
   playing={true}
   nowPlayingTitle={post.data.title}
-  prevSlug={prevPost?.id}
-  nextSlug={nextPost?.id}
   readTime={duration}
   audioSrc={audioSrc}
   timingSrc={timingSrc}

@@ -1,7 +1,14 @@
 ---
 import Sidebar from '../components/Sidebar.astro';
 import NowPlaying from '../components/NowPlaying.astro';
+import SecondaryBar from '../components/SecondaryBar.astro';
 import { absoluteUrl, SITE } from '../utils/site';
+import '@phosphor-icons/web/fill';
+import '@fontsource-variable/source-sans-3/wght.css';
+import '@fontsource-variable/source-sans-3/wght-italic.css';
+import '@fontsource/libertinus-serif/600.css';
+import '@fontsource/libertinus-serif/700.css';
+import '@phosphor-icons/web/bold';
 
 interface Props {
   title?: string;
@@ -12,8 +19,6 @@ interface Props {
   playing?: boolean;
   showNowPlaying?: boolean;
   nowPlayingTitle?: string;
-  prevSlug?: string;
-  nextSlug?: string;
   firstHref?: string;
   readTime?: number;
   audioSrc?: string | null;
@@ -29,8 +34,6 @@ const {
   playing = false,
   showNowPlaying = true,
   nowPlayingTitle,
-  prevSlug,
-  nextSlug,
   firstHref,
   readTime,
   audioSrc,
@@ -83,17 +86,17 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
         <slot />
       </main>
     </div>
-    {showNowPlaying && (
-      <NowPlaying
-        title={nowPlayingTitle}
-        prevSlug={prevSlug}
-        nextSlug={nextSlug}
-        active={playing}
-        firstHref={firstHref}
-        audioSrc={audioSrc ?? undefined}
-        timingSrc={timingSrc ?? undefined}
-      />
-    )}
+    <SecondaryBar hasNowPlaying={showNowPlaying}>
+      {showNowPlaying && (
+        <NowPlaying
+          title={nowPlayingTitle}
+          active={playing}
+          firstHref={firstHref}
+          audioSrc={audioSrc ?? undefined}
+          timingSrc={timingSrc ?? undefined}
+        />
+      )}
+    </SecondaryBar>
   </body>
 </html>
 
@@ -102,27 +105,71 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    corner-shape: var(--corner-shape);
   }
 
   :root {
-    --bg:            #ffffff;
-    --bg-elevated:   #f6f6f6;
-    --bg-hover:      #efefef;
-    --bg-selected:   #e8e8e8;
-    --border:        #e0e0e0;
-    --text:          #111111;
-    --text-muted:    #5a5a5a;
-    --accent:        #1db954;
-    --nowplaying-h:  90px;
-    --sidebar-w:     220px;
-    --mobile-nav-h:    56px;
-    --mobile-nav-overscan: 96px;
-    --mobile-header-h: 56px;
-    --content-w:     720px;
-    --font:          -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-mono:     'SFMono-Regular', Consolas, monospace;
+    /* Core colors */
+    --color-canvas:          #ffffff;
+    --color-surface:         #f6f6f6;
+    --color-surface-hover:   #efefef;
+    --color-surface-selected: #e8e8e8;
+    --color-border:          #e0e0e0;
+    --color-text:            #111111;
+    --color-text-muted:      #5a5a5a;
+    --color-accent:          #1db954;
+    --color-accent-text:     #147a37;
+    --color-on-strong:       #ffffff;
+    --color-overlay:         rgb(0 0 0 / 20%);
+
+    /* Content colors */
+    --color-link:            #333333;
+    --color-link-underline:  #b8b8b8;
+    --color-code-surface:    #f6f8fa;
+    --color-code-border:     #d0d7de;
+    --color-data-past:       #d8d8d8;
+    --color-alert-note:      #0969da;
+    --color-alert-tip:       #1a7f37;
+    --color-alert-important: #8250df;
+    --color-alert-warning:   #9a6700;
+    --color-alert-caution:   #cf222e;
+
+    /* Home feature theme */
+    --color-feature-surface:     #ffffff;
+    --color-feature-text:        #17242d;
+    --color-feature-text-muted:  rgb(23 36 45 / 65%);
+    --color-feature-border:      rgb(23 36 45 / 14%);
+    --color-feature-hover:       rgb(23 36 45 / 7%);
+    --color-feature-selected:    rgb(23 36 45 / 9%);
+
+    /* Typography */
+    --font-sans: 'Source Sans 3 Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-heading: 'Libertinus Serif', Georgia, serif;
+    --font-mono: 'SFMono-Regular', Consolas, monospace;
+
+    --text-base: 14px;
+    --text-md:   14.5px;
+    --text-lg:   16.5px;
+    --text-xl:   18.5px;
+    --text-2xl:  23px;
+    --text-3xl:  29px;
+    --text-4xl:  33px;
+    --text-5xl:  37.5px;
+    --text-7xl:  56px;
+
+    --leading-display: 1.01;
+    --leading-tight:   1.1;
+    --leading-heading: 1.16;
+    --leading-snug:    1.3;
+    --leading-normal:  1.45;
+    --leading-relaxed: 1.65;
+
+    --tracking-wide:   0.06em;
+    --tracking-wider:  0.08em;
 
     /* Spacing scale */
+    --space-px:  1px;
+    --space-0-5: 2px;
     --space-1:   4px;
     --space-1-5: 6px;
     --space-2:   8px;
@@ -135,45 +182,84 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     --space-10:  40px;
 
     /* Radius scale */
-    --radius-sm:     4px;
-    --radius-md:     6px;
-    --radius-lg:     8px;
-    --radius-avatar: 10px;
+    --corner-shape: squircle;
+    /* Circular fallbacks use 60% of the squircle radius for an optical match. */
+    --radius-s:    14.4px;
+    --radius-m:    21.6px;
+    --radius-lg:   28.8px;
+    --radius-pill: 999px;
+
+    /* Borders, elevation, and motion */
+    --border-width: 1px;
+    --focus-ring-width: 2px;
+    --shadow-floating:
+      0 18px 48px rgb(0 0 0 / 12%),
+      0 2px 6px rgb(0 0 0 / 6%);
+    --shadow-feature-action:       0 10px 28px rgb(0 0 0 / 18%);
+    --shadow-feature-action-hover: 0 14px 34px rgb(0 0 0 / 22%);
+    --shadow-feature-text:         0 1px 20px rgb(255 255 255 / 72%);
+    --shadow-feature-card:
+      0 1px 2px rgb(23 36 45 / 4%),
+      0 10px 28px rgb(23 36 45 / 6%);
+    --shadow-accent-glow:          2px 0 8px rgb(29 185 84 / 60%);
+
+    --duration-fast: 100ms;
+    --duration-base: 150ms;
+    --duration-slow: 200ms;
+    --ease-standard: ease;
+    --ease-out: ease-out;
+
+    /* Control and layout sizes */
+    --control-size-sm: 40px;
+    --control-size-md: 44px;
+    --nowplaying-h: 64px;
+    --sidebar-w: 220px;
+    --mobile-nav-h: 56px;
+    --mobile-dock-bottom: max(var(--space-3), env(safe-area-inset-bottom));
+    --mobile-player-extension: var(--space-6);
+    --content-w: 720px;
 
     --page-gutter: var(--space-8);
     --list-gutter: var(--space-4);
 
-    /* Typography scale */
-    --text-xs:   11px;
-    --text-sm:   12px;
-    --text-base: 13px;
-    --text-md:   14px;
-    --text-lg:   16px;
-    --text-xl:   22px;
-    --text-2xl:  28px;
-    --text-4xl:  42px;
-
     /* Z-index scale */
     --z-nowplaying: 100;
-    --z-sheet:      105;
-    --z-mobile-nav: 110;
+    --z-mobile-nav: 105;
 
     /* Track grid */
     --grid-cols-track:        40px 1fr 60px;
     --grid-cols-track-mobile: 32px 1fr 50px;
   }
 
+  @supports (corner-shape: squircle) {
+    :root {
+      --radius-s:  24px;
+      --radius-m:  36px;
+      --radius-lg: 48px;
+    }
+  }
+
   html {
     scroll-behavior: smooth;
     touch-action: manipulation;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font);
-    font-size: 14px;
+    background: var(--color-canvas);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: var(--text-md);
     overscroll-behavior: none;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    text-wrap: balance;
   }
 
   a {
@@ -219,18 +305,18 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     position: absolute;
     top: -40px;
     left: var(--space-2);
-    background: var(--text);
-    color: var(--bg);
+    background: var(--color-text);
+    color: var(--color-canvas);
     padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-s);
     font-size: var(--text-base);
-    font-weight: 600;
+    font-weight: 700;
     z-index: 1000;
-    transition: top 0.15s ease;
+    transition: top var(--duration-base) var(--ease-standard);
   }
   .skip-link:focus {
     top: var(--space-2);
-    outline: 2px solid var(--accent);
+    outline: var(--focus-ring-width) solid var(--color-accent-text);
     outline-offset: 2px;
   }
 
@@ -239,9 +325,9 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
   a:focus-visible,
   [role='button']:focus-visible,
   input:focus-visible {
-    outline: 2px solid var(--accent);
+    outline: var(--focus-ring-width) solid var(--color-accent-text);
     outline-offset: 2px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-s);
   }
 
   .layout {
@@ -255,7 +341,7 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
   .main-panel {
     grid-area: main;
     min-width: 0;
-    background: var(--bg);
+    background: var(--color-canvas);
     padding-block-start: var(--space-8);
     padding-block-end: calc(var(--nowplaying-h) + var(--space-10));
   }
@@ -276,19 +362,27 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
 
     .layout {
       grid-template-columns: 1fr;
-      grid-template-areas:
-        "mobile-header"
-        "main";
+      grid-template-areas: "main";
       max-width: 100%;
     }
 
     .main-panel {
       padding-block-start: var(--space-4);
-      padding-block-end: calc(var(--nowplaying-h) + var(--mobile-nav-h) + var(--space-6));
+      padding-block-end: calc(
+        var(--nowplaying-h) +
+        var(--mobile-player-extension) +
+        (var(--mobile-nav-h) / 2) +
+        var(--mobile-dock-bottom) +
+        var(--space-6)
+      );
     }
 
     body:not([data-nowplaying]) .main-panel {
-      padding-block-end: calc(var(--mobile-nav-h) + var(--space-6));
+      padding-block-end: calc(
+        var(--mobile-nav-h) +
+        var(--mobile-dock-bottom) +
+        var(--space-6)
+      );
     }
   }
 </style>

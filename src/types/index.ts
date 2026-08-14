@@ -16,8 +16,6 @@ export interface Post {
 export interface NavLink {
   href: string;
   label: string;
-  /** Path under /public for an image icon. If omitted, falls back to `iconChar`. */
-  iconSrc?: string;
-  /** Text glyph fallback when no image is provided. */
-  iconChar?: string;
+  /** Phosphor icon class without the `ph-` prefix. */
+  icon: string;
 }

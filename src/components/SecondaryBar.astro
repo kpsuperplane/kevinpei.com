@@ -1,0 +1,295 @@
+---
+import { mobileSocialLinks } from '../utils/navigation';
+
+interface Props {
+  hasNowPlaying?: boolean;
+}
+
+const { hasNowPlaying = false } = Astro.props;
+---
+
+<footer
+  class:list={['secondary-bar', { 'has-nowplaying': hasNowPlaying }]}
+  id="secondary-bar"
+>
+  <div
+    class="secondary-nowplaying-view"
+    id="secondary-nowplaying-view"
+    aria-hidden={!hasNowPlaying ? 'true' : 'false'}
+    inert={!hasNowPlaying ? true : undefined}
+  >
+    <slot />
+  </div>
+
+  <nav
+    class="secondary-social-view"
+    id="secondary-social-view"
+    aria-label="Social links"
+    aria-hidden="true"
+    inert
+  >
+    <ul class="secondary-social-list">
+      {mobileSocialLinks.map((link) => (
+        <li>
+          <a
+            href={link.href}
+            class="secondary-social-link"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class:list={['ph-fill', `ph-${link.icon}`, 'secondary-social-icon']} aria-hidden="true"></i>
+            <span>{link.label}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+</footer>
+
+<script>
+  let _secondaryBarController: AbortController | null = null;
+
+  function initSecondaryBar(): void {
+    _secondaryBarController?.abort();
+    _secondaryBarController = new AbortController();
+    const { signal } = _secondaryBarController;
+
+    const bar = document.getElementById('secondary-bar');
+    const btnSocial = document.getElementById('btn-social') as HTMLButtonElement | null;
+    const nowPlayingView = document.getElementById('secondary-nowplaying-view') as HTMLElement | null;
+    const socialView = document.getElementById('secondary-social-view') as HTMLElement | null;
+    if (!bar || !btnSocial || !nowPlayingView || !socialView) return;
+
+    const hasNowPlaying = bar.classList.contains('has-nowplaying');
+    let usingKeyboard = false;
+
+    document.addEventListener('keydown', () => { usingKeyboard = true; }, { capture: true, signal });
+    document.addEventListener('pointerdown', () => { usingKeyboard = false; }, { capture: true, signal });
+
+    const setSocialOpen = (open: boolean, restoreFocus = false): void => {
+      bar.classList.toggle('social-open', open);
+      btnSocial.classList.toggle('active', open);
+      btnSocial.setAttribute('aria-expanded', String(open));
+
+      socialView.inert = !open;
+      socialView.setAttribute('aria-hidden', String(!open));
+      nowPlayingView.inert = open || !hasNowPlaying;
+      nowPlayingView.setAttribute('aria-hidden', String(open || !hasNowPlaying));
+
+      if (open && usingKeyboard) {
+        socialView.querySelector<HTMLElement>('.secondary-social-link')?.focus();
+      } else if (!open && restoreFocus) {
+        btnSocial.focus();
+      }
+    };
+
+    btnSocial.addEventListener('click', () => {
+      setSocialOpen(!bar.classList.contains('social-open'));
+    }, { signal });
+
+    document.addEventListener('keydown', (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || !bar.classList.contains('social-open')) return;
+      event.preventDefault();
+      setSocialOpen(false, true);
+    }, { signal });
+
+    const mobileQuery = window.matchMedia('(max-width: 768px)');
+    mobileQuery.addEventListener('change', (event) => {
+      if (!event.matches) setSocialOpen(false);
+    }, { signal });
+
+    setSocialOpen(false);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSecondaryBar, { once: true });
+  } else {
+    initSecondaryBar();
+  }
+</script>
+
+<style>
+  .secondary-bar {
+    position: fixed;
+    bottom: var(--space-5);
+    left: 50%;
+    transform: translateX(calc(-50% + var(--sidebar-w) / 2));
+    width: min(
+      calc(var(--content-w) - var(--space-6) - var(--space-6)),
+      calc(100% - var(--sidebar-w) - var(--space-6) - var(--space-6))
+    );
+    height: var(--nowplaying-h);
+    background: color-mix(in srgb, var(--color-canvas) 80%, transparent);
+    -webkit-backdrop-filter: blur(16px) brightness(1.08);
+    backdrop-filter: blur(16px) brightness(1.08);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: calc(var(--nowplaying-h) / 2);
+    corner-shape: round;
+    box-shadow: var(--shadow-floating);
+    overflow: hidden;
+    z-index: var(--z-nowplaying);
+  }
+
+  .secondary-bar:not(.has-nowplaying) {
+    display: none;
+  }
+
+  .secondary-nowplaying-view {
+    width: 100%;
+    height: 100%;
+  }
+
+  .secondary-social-view {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .secondary-bar,
+    .secondary-bar:not(.has-nowplaying) {
+      display: block;
+      left: var(--space-3);
+      right: var(--space-3);
+      bottom: calc(var(--mobile-dock-bottom) + (var(--mobile-nav-h) / 2));
+      width: auto;
+      height: calc(var(--nowplaying-h) + var(--mobile-player-extension));
+      transform: none;
+      border-end-start-radius: 0;
+      border-end-end-radius: 0;
+      transition:
+        height 380ms cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .secondary-bar:not(.has-nowplaying):not(.social-open) {
+      height: 0;
+      border-color: transparent;
+      box-shadow: none;
+      pointer-events: none;
+    }
+
+    .secondary-bar.social-open {
+      height: 192px;
+    }
+
+    .secondary-nowplaying-view {
+      position: absolute;
+      inset: 0 0 auto;
+      height: var(--nowplaying-h);
+      opacity: 1;
+      visibility: visible;
+      transition:
+        opacity var(--duration-base) var(--ease-out) 100ms,
+        visibility 0s linear;
+    }
+
+    .secondary-bar.social-open .secondary-nowplaying-view {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition-delay: 0s, var(--duration-base);
+    }
+
+    .secondary-social-view {
+      position: absolute;
+      inset: 0;
+      display: block;
+      padding: var(--space-3) var(--space-3) calc(var(--mobile-player-extension) + var(--space-4));
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        opacity var(--duration-base) var(--ease-out),
+        visibility 0s linear var(--duration-base);
+    }
+
+    .secondary-bar.social-open .secondary-social-view {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition-delay: 100ms, 0s;
+    }
+
+    .secondary-social-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(3, 44px);
+      gap: var(--space-1) var(--space-2);
+    }
+
+    .secondary-social-link {
+      display: flex;
+      align-items: center;
+      height: 44px;
+      gap: var(--space-2);
+      padding-inline: var(--space-2-5);
+      border-radius: var(--radius-s);
+      color: var(--color-text);
+      font-size: var(--text-base);
+      font-weight: 600;
+      transition: background-color var(--duration-fast) var(--ease-standard);
+    }
+
+    .secondary-social-link:hover,
+    .secondary-social-link:focus-visible {
+      background: color-mix(in srgb, var(--color-canvas) 58%, transparent);
+    }
+
+    .secondary-social-link:active {
+      background: var(--color-surface-hover);
+    }
+
+    .secondary-social-icon {
+      flex: 0 0 24px;
+      width: 24px;
+      text-align: center;
+      font-size: var(--text-2xl);
+      color: var(--icon-color);
+      filter: saturate(0.8);
+    }
+
+    @supports ((background-clip: text) or (-webkit-background-clip: text)) {
+      .secondary-social-icon {
+        background-image: var(--icon-gradient);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+      }
+    }
+
+    .ph-github-logo,
+    .ph-threads-logo {
+      --icon-color: #111111;
+      --icon-gradient: linear-gradient(135deg, #111111, #6b7280);
+    }
+
+    .ph-x-logo {
+      --icon-color: #111111;
+      --icon-gradient: linear-gradient(135deg, #111111, #64748b);
+    }
+
+    .ph-linkedin-logo {
+      --icon-color: #0a66c2;
+      --icon-gradient: linear-gradient(135deg, #0a66c2, #38bdf8);
+    }
+
+    .ph-instagram-logo {
+      --icon-color: #c13584;
+      --icon-gradient: linear-gradient(135deg, #f9ce34, #ee2a7b 52%, #6228d7);
+    }
+
+    .ph-paper-plane-tilt {
+      --icon-color: #f97316;
+      --icon-gradient: linear-gradient(135deg, #ea580c, #fbbf24);
+    }
+  }
+
+  @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+    .secondary-bar,
+    .secondary-nowplaying-view,
+    .secondary-social-view {
+      transition-duration: 0s;
+      transition-delay: 0s;
+    }
+  }
+</style>

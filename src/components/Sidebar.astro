@@ -1,22 +1,15 @@
 ---
-import type { NavLink } from '../types';
+import { primaryLinks, socialLinks } from '../utils/navigation';
 
 interface Props {
   currentPath?: string;
 }
 const { currentPath = '/' } = Astro.props;
 
-const socialLinks: NavLink[] = [
-  { href: 'https://github.com/kpsuperplane',            label: 'GitHub',   iconSrc: '/icons/github.png' },
-  { href: 'https://linkedin.com/in/kpsuperplane',       label: 'LinkedIn', iconSrc: '/icons/linkedin.png' },
-  { href: 'https://www.threads.net/@kpsuperplane',      label: 'Threads',  iconSrc: '/icons/threads.png' },
-  { href: 'mailto:hello@kevinpei.com',                  label: 'Email',    iconSrc: '/icons/email.png' },
-  { href: '/kevin-pei-resume-19-06-2026.pdf',           label: 'Resume',   iconSrc: '/icons/resume.png' },
-];
 ---
 
 <aside class="sidebar">
-  <a href="/" class="profile" style="display: flex;">
+  <a href="/" class="profile">
     <img class="avatar" src="/icon.png" alt="Kevin Pei" width="40" height="40" decoding="async" />
     <div class="profile-info">
       <span class="name">Kevin Pei</span>
@@ -25,15 +18,21 @@ const socialLinks: NavLink[] = [
   </a>
 
   <nav>
-    <p class="section-label">Social</p>
+    <ul class="nav-list">
+      {primaryLinks.map(link => (
+        <li>
+          <a href={link.href} class="nav-item" target="_blank" rel="noopener noreferrer">
+            <i class:list={['ph-fill', `ph-${link.icon}`, 'nav-icon']} aria-hidden="true"></i>
+            {link.label}
+          </a>
+        </li>
+      ))}
+    </ul>
     <ul class="nav-list">
       {socialLinks.map(link => (
         <li>
           <a href={link.href} class="nav-item" target="_blank" rel="noopener noreferrer">
-            {link.iconSrc
-              ? <img class="nav-icon-img" src={link.iconSrc} alt="" width="22" height="22" loading="eager" />
-              : <span class="nav-icon">{link.iconChar ?? '→'}</span>
-            }
+            <i class:list={['ph-fill', `ph-${link.icon}`, 'nav-icon']} aria-hidden="true"></i>
             {link.label}
           </a>
         </li>
@@ -42,146 +41,32 @@ const socialLinks: NavLink[] = [
   </nav>
 </aside>
 
-<!-- Mobile sheets -->
-<div class="mobile-sheet" id="sheet-social" role="dialog" aria-modal="true" aria-labelledby="sheet-social-label" aria-hidden="true">
-  <div class="sheet-backdrop"></div>
-  <div class="sheet-content">
-    <p class="sheet-label" id="sheet-social-label">Social</p>
-    <ul class="sheet-list">
-      {socialLinks.filter(link => link.label !== 'Resume').map(link => (
-        <li>
-          <a href={link.href} class="sheet-item" target="_blank" rel="noopener noreferrer">
-            {link.iconSrc
-              ? <img class="nav-icon-img" src={link.iconSrc} alt="" width="26" height="26" loading="lazy" decoding="async" />
-              : <span class="nav-icon">{link.iconChar ?? '→'}</span>
-            }
-            {link.label}
-          </a>
-        </li>
-      ))}
-    </ul>
-  </div>
-</div>
-
-<header class="mobile-header">
-  <a href="/" class="mobile-profile">
-    <img class="mobile-avatar" src="/icon.png" alt="Kevin Pei" width="32" height="32" decoding="async" />
+<nav class="mobile-nav">
+  <a
+    href="/"
+    class="mobile-profile"
+    aria-current={currentPath === '/' ? 'page' : undefined}
+  >
+    <img class="mobile-avatar" src="/icon.png" alt="" width="32" height="32" decoding="async" />
     <div class="mobile-profile-info">
       <span class="mobile-name">Kevin Pei</span>
       <span class="mobile-subtitle">Let's build awesome</span>
     </div>
   </a>
-</header>
-
-<nav class="mobile-nav">
-  <a href="/" class:list={['mobile-nav-item', { active: currentPath === '/' }]}>
-    <img class="mobile-nav-icon" src="/icons/home.png" alt="" width="22" height="22" loading="eager" />
-    <span>Home</span>
-  </a>
-  <button class="mobile-nav-item" id="btn-social" aria-expanded="false">
-    <img class="mobile-nav-icon" src="/icons/email.png" alt="" width="22" height="22" loading="eager" />
-    <span>Social</span>
-  </button>
   <a href="/kevin-pei-resume-19-06-2026.pdf" class="mobile-nav-item" target="_blank" rel="noopener noreferrer">
-    <img class="mobile-nav-icon" src="/icons/resume.png" alt="" width="22" height="22" loading="eager" />
+    <i class="ph-fill ph-read-cv-logo mobile-nav-icon" aria-hidden="true"></i>
     <span>Resume</span>
   </a>
+  <button
+    class="mobile-nav-item"
+    id="btn-social"
+    aria-expanded="false"
+    aria-controls="secondary-social-view"
+  >
+    <i class="ph-bold ph-at mobile-nav-icon" aria-hidden="true"></i>
+    <span>Social</span>
+  </button>
 </nav>
-
-<script>
-  let _sidebarInitialized = false;
-
-  function initSidebar(): void {
-    if (_sidebarInitialized) return;
-    _sidebarInitialized = true;
-    const controller = new AbortController();
-    const { signal } = controller;
-
-    const btnSocial   = document.getElementById('btn-social')   as HTMLButtonElement | null;
-    const sheetSocial = document.getElementById('sheet-social') as HTMLElement | null;
-    if (!btnSocial || !sheetSocial) return;
-
-    let openSheetEl: HTMLElement | null = null;
-    let openBtnEl:   HTMLElement | null = null;
-    let usingKeyboard = false;
-    document.addEventListener('keydown', () => { usingKeyboard = true; }, { capture: true, signal });
-    document.addEventListener('pointerdown', () => { usingKeyboard = false; }, { capture: true, signal });
-
-    function openSheet(sheet: HTMLElement, btn: HTMLElement): void {
-      sheet.classList.remove('closing');
-      sheet.classList.add('open');
-      sheet.setAttribute('aria-hidden', 'false');
-      btn.setAttribute('aria-expanded', 'true');
-      btn.classList.add('active');
-      openSheetEl = sheet;
-      openBtnEl   = btn;
-      // Move focus to the first link only for keyboard users, not touch
-      if (usingKeyboard) {
-        const firstItem = sheet.querySelector<HTMLElement>('.sheet-item');
-        firstItem?.focus();
-      }
-    }
-
-    function closeSheet(sheet: HTMLElement, btn: HTMLElement, restoreFocus = true): void {
-      if (!sheet.classList.contains('open') || sheet.classList.contains('closing')) return;
-      sheet.classList.add('closing');
-      sheet.setAttribute('aria-hidden', 'true');
-      btn.setAttribute('aria-expanded', 'false');
-      btn.classList.remove('active');
-      sheet.querySelector<HTMLElement>('.sheet-content')?.addEventListener('animationend', () => {
-        sheet.classList.remove('open', 'closing');
-      }, { once: true });
-      if (restoreFocus) btn.focus();
-      if (openSheetEl === sheet) { openSheetEl = null; openBtnEl = null; }
-    }
-
-    function toggleSheet(sheet: HTMLElement, btn: HTMLElement): void {
-      if (sheet.classList.contains('open') && !sheet.classList.contains('closing')) {
-        closeSheet(sheet, btn);
-      } else {
-        openSheet(sheet, btn);
-      }
-    }
-
-    btnSocial.addEventListener('click', () =>
-      toggleSheet(sheetSocial, btnSocial)
-    );
-
-    // Close on backdrop click
-    sheetSocial.querySelector<HTMLElement>('.sheet-backdrop')?.addEventListener('click', () =>
-      closeSheet(sheetSocial, btnSocial)
-    );
-
-    // Escape closes the open sheet; Tab traps focus inside
-    document.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (!openSheetEl || !openBtnEl) return;
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        closeSheet(openSheetEl, openBtnEl);
-        return;
-      }
-      if (e.key === 'Tab') {
-        const focusables = openSheetEl.querySelectorAll<HTMLElement>('.sheet-item');
-        if (focusables.length === 0) return;
-        const first = focusables[0];
-        const last  = focusables[focusables.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    }, { signal });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initSidebar, { once: true });
-  } else {
-    initSidebar();
-  }
-</script>
 
 <style>
   .sidebar {
@@ -191,10 +76,10 @@ const socialLinks: NavLink[] = [
     height: 100vh;
     overflow-y: auto;
     scrollbar-gutter: stable;
-    padding: var(--space-8) var(--space-3);
+    padding: calc(var(--space-8) + var(--space-3)) var(--space-3) var(--space-8);
     display: flex;
     flex-direction: column;
-    gap: var(--space-6);
+    gap: var(--space-3);
   }
 
   .profile {
@@ -202,14 +87,14 @@ const socialLinks: NavLink[] = [
     align-items: center;
     gap: var(--space-3);
     padding: 0 var(--space-2) var(--space-1-5);
-    border-radius: var(--radius-md);
-    transition: background 0.1s;
+    border-radius: var(--radius-s);
+    transition: background-color var(--duration-fast) var(--ease-standard);
   }
 
   .avatar {
     width: 40px;
     height: 40px;
-    border-radius: var(--radius-avatar);
+    border-radius: var(--radius-m);
     object-fit: cover;
     display: block;
     flex-shrink: 0;
@@ -218,7 +103,6 @@ const socialLinks: NavLink[] = [
   .profile-info {
     display: flex;
     flex-direction: column;
-    gap: 2px;
     overflow: hidden;
   }
 
@@ -231,8 +115,8 @@ const socialLinks: NavLink[] = [
   }
 
   .subtitle {
-    font-size: var(--text-xs);
-    color: var(--text-muted);
+    font-size: var(--text-base);
+    color: var(--color-text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -244,58 +128,106 @@ const socialLinks: NavLink[] = [
     gap: var(--space-1);
   }
 
-  .section-label {
-    font-size: var(--text-xs);
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: var(--space-2) var(--space-2) var(--space-1);
-  }
-
   .nav-list {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: var(--space-px);
   }
 
   .nav-item {
     display: flex;
     align-items: center;
-    gap: var(--space-2-5);
-    padding: 7px var(--space-2);
-    border-radius: var(--radius-md);
+    gap: var(--space-3);
+    min-height: var(--control-size-sm);
+    padding: var(--space-2);
+    border-radius: var(--radius-s);
     font-size: var(--text-base);
-    color: var(--text-muted);
-    transition: background 0.1s, color 0.1s;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    transition:
+      background-color var(--duration-fast) var(--ease-standard),
+      color var(--duration-fast) var(--ease-standard);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .nav-item:hover {
-    background: var(--bg-hover);
-    color: var(--text);
+    background: var(--color-surface-hover);
+    color: var(--color-text);
   }
 
   .nav-item.active {
-    background: var(--bg-selected);
-    color: var(--text);
+    background: var(--color-surface-selected);
+    color: var(--color-text);
   }
 
   .nav-icon {
     flex-shrink: 0;
-    width: 16px;
+    width: 40px;
     text-align: center;
-    font-size: 12px;
+    font-size: var(--text-2xl);
   }
 
-  .nav-icon-img {
-    flex-shrink: 0;
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
-    display: block;
+  .nav-icon,
+  .mobile-nav-icon {
+    color: var(--icon-color);
+    filter: saturate(0.75);
+    transition: filter var(--duration-fast) var(--ease-standard);
+  }
+
+  .nav-item:hover .nav-icon,
+  .nav-item:focus-visible .nav-icon,
+  .mobile-nav-item:hover .mobile-nav-icon,
+  .mobile-nav-item:focus-visible .mobile-nav-icon {
+    filter: saturate(1);
+  }
+
+  @supports ((background-clip: text) or (-webkit-background-clip: text)) {
+    .nav-icon,
+    .mobile-nav-icon {
+      background-image: var(--icon-gradient);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+
+  .ph-github-logo,
+  .ph-threads-logo {
+    --icon-color: #111111;
+    --icon-gradient: linear-gradient(135deg, #111111, #6b7280);
+  }
+
+  .ph-x-logo {
+    --icon-color: #111111;
+    --icon-gradient: linear-gradient(135deg, #111111, #64748b);
+  }
+
+  .ph-linkedin-logo {
+    --icon-color: #0a66c2;
+    --icon-gradient: linear-gradient(135deg, #0a66c2, #38bdf8);
+  }
+
+  .ph-instagram-logo {
+    --icon-color: #c13584;
+    --icon-gradient: linear-gradient(135deg, #f9ce34, #ee2a7b 52%, #6228d7);
+  }
+
+  .ph-paper-plane-tilt {
+    --icon-color: #f97316;
+    --icon-gradient: linear-gradient(135deg, #ea580c, #fbbf24);
+  }
+
+  .ph-read-cv-logo {
+    --icon-color: #166534;
+    --icon-gradient: linear-gradient(135deg, #14532d, #22c55e);
+  }
+
+  .ph-at {
+    --icon-color: #7c3aed;
+    --icon-gradient: linear-gradient(135deg, #7c3aed, #ec4899);
   }
 
   @media (max-width: 768px) {
@@ -304,27 +236,19 @@ const socialLinks: NavLink[] = [
     }
   }
 
-  .mobile-header,
-  .mobile-nav,
-  .mobile-sheet {
+  .mobile-nav {
     display: none;
   }
 
   @media (max-width: 768px) {
-    .mobile-header {
-      display: flex;
-      grid-area: mobile-header;
-      height: var(--mobile-header-h);
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-      align-items: center;
-      padding-inline: var(--page-gutter);
-    }
-
     .mobile-profile {
+      flex: 1 1 auto;
+      min-width: 0;
       display: flex;
       align-items: center;
-      gap: var(--space-2-5);
+      gap: var(--space-2);
+      padding-inline-start: calc((var(--mobile-nav-h) - 32px) / 2);
+      padding-inline-end: var(--space-2);
     }
 
     .mobile-avatar {
@@ -336,149 +260,71 @@ const socialLinks: NavLink[] = [
     }
 
     .mobile-profile-info {
+      min-width: 0;
       display: flex;
       flex-direction: column;
-      gap: 1px;
     }
 
     .mobile-name {
       font-weight: 600;
       font-size: var(--text-md);
-      color: var(--text);
+      color: var(--color-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .mobile-subtitle {
-      font-size: var(--text-xs);
-      color: var(--text-muted);
+      font-size: var(--text-base);
+      color: var(--color-text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .mobile-nav {
       display: flex;
       flex-direction: row;
+      gap: 0;
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: var(--mobile-dock-bottom);
+      left: var(--space-3);
+      right: var(--space-3);
       height: var(--mobile-nav-h);
-      background: var(--bg);
-      border-top: 1px solid var(--border);
+      padding-inline: var(--space-2) var(--space-3);
+      background: var(--color-canvas);
+      border: var(--border-width) solid var(--color-border);
+      border-radius: calc(var(--mobile-nav-h) / 2);
+      corner-shape: round;
+      box-shadow: var(--shadow-floating);
+      overflow: hidden;
       z-index: var(--z-mobile-nav);
     }
 
-    .mobile-nav::after {
-      content: "";
-      position: absolute;
-      top: 100%;
-      right: 0;
-      left: 0;
-      height: var(--mobile-nav-overscan);
-      background: var(--bg);
-      pointer-events: none;
-    }
-
     .mobile-nav-item {
-      flex: 1;
+      flex: 0 0 calc(var(--mobile-nav-h) - var(--space-2));
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 3px;
-      font-size: var(--text-xs);
-      color: var(--text-muted);
-      transition: color 0.1s;
+      font-size: var(--text-base);
+      color: var(--color-text-muted);
+      transition: color var(--duration-fast) var(--ease-standard);
     }
 
     .mobile-nav-item.active {
-      color: var(--text);
+      color: var(--color-text);
       font-weight: 700;
     }
 
     .mobile-nav-icon {
-      width: 22px;
-      height: 22px;
-      object-fit: contain;
-      display: block;
+      font-size: var(--text-2xl);
     }
 
-    /* ── Sheets ── */
-    .mobile-sheet {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: var(--z-sheet);
-      pointer-events: none;
-    }
-
-    .mobile-sheet.open {
-      display: block;
-      pointer-events: auto;
-    }
-
-    .sheet-backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.2);
-    }
-
-    .sheet-content {
-      position: absolute;
-      bottom: var(--mobile-nav-h);
-      left: 0;
-      right: 0;
-      background: var(--bg);
-      border-top: 1px solid var(--border);
-      padding: var(--space-2) 0 var(--space-1);
-      animation: sheet-up 0.2s ease;
-    }
-
-    .mobile-sheet.closing .sheet-content {
-      animation: sheet-down 0.2s ease forwards;
-    }
-
-    .mobile-sheet.closing .sheet-backdrop {
-      animation: fade-out 0.2s ease forwards;
-    }
-
-    @keyframes fade-out {
-      from { opacity: 1; }
-      to   { opacity: 0; }
-    }
-
-    @keyframes sheet-up {
-      from { transform: translateY(100%); }
-      to   { transform: translateY(0); }
-    }
-
-    @keyframes sheet-down {
-      from { transform: translateY(0); }
-      to   { transform: translateY(100%); }
-    }
-
-    .sheet-label {
-      font-size: var(--text-xs);
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding: var(--space-1) var(--page-gutter) var(--space-2);
-    }
-
-    .sheet-list {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .sheet-item {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      padding: var(--space-3) var(--page-gutter);
-      font-size: var(--text-lg);
-      color: var(--text);
-    }
-
-    .sheet-item:active {
-      background: var(--bg-hover);
+    .mobile-nav-item > span {
+      font-size: 12px;
+      font-weight: 500;
+      color: color-mix(in srgb, var(--color-text-muted) 84%, var(--color-canvas));
     }
 
   }

@@ -1,14 +1,12 @@
 ---
 interface Props {
   title?: string;
-  prevSlug?: string;
-  nextSlug?: string;
   active?: boolean;
   firstHref?: string;
   audioSrc?: string;
   timingSrc?: string;
 }
-const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
+const { title, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
 ---
 
 <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -29,18 +27,13 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
   </defs>
 </svg>
 
-<footer
-  class:list={['nowplaying', { active }]}
-  data-prev={prevSlug ? `/posts/${prevSlug}` : undefined}
-  data-next={nextSlug ? `/posts/${nextSlug}` : undefined}
+<div
+  class:list={['nowplaying-content', { active }]}
   data-first={firstHref ?? undefined}
   data-audio={audioSrc ?? undefined}
   data-timing={timingSrc ?? undefined}
 >
   <audio id="np-audio" preload="metadata"></audio>
-  <div class="progress-bar" aria-hidden="true">
-    <div class="progress-fill"></div>
-  </div>
   <input
     type="range"
     class="scrubber"
@@ -59,15 +52,13 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
   <span class="time" id="time-elapsed">0:00</span>
   <span class="time" id="time-total">0:00</span>
   <div class="transport">
-    <button class="btn-prev" aria-label="Previous post" disabled={!prevSlug}>
-      &#9664;&#9664;
-    </button>
     <button class="btn-play" aria-label="Toggle reading" aria-pressed="false" disabled={!active && !firstHref}>
-      <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5l15 8.5-15 8.5V3.5z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
-      <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="4" width="4" height="16" rx="1.5"/><rect x="15" y="4" width="4" height="16" rx="1.5"/></svg>
-    </button>
-    <button class="btn-next" aria-label="Next post" disabled={!nextSlug}>
-      &#9654;&#9654;
+      <svg class="progress-ring" viewBox="0 0 44 44" aria-hidden="true">
+        <circle class="progress-ring-track" cx="22" cy="22" r="20" pathLength="100" />
+        <circle class="progress-ring-value" cx="22" cy="22" r="20" pathLength="100" />
+      </svg>
+      <i class="ph-fill ph-play icon-play" aria-hidden="true"></i>
+      <i class="ph-fill ph-pause icon-pause" aria-hidden="true"></i>
     </button>
   </div>
 
@@ -84,7 +75,7 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
 
   <div class="art">
     {active ? (
-      <svg class="vinyl-svg" viewBox="2 3 36 36" width="46" height="46" aria-hidden="true">
+      <svg class="vinyl-svg" viewBox="2 3 36 36" width="36" height="36" aria-hidden="true">
             <defs>
               {/* Overall disc shine — upper-left hot spot */}
               <radialGradient id="vinyl-shine" cx="34%" cy="28%" r="60%">
@@ -149,7 +140,7 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
                 filter="url(#vinyl-specular-blur)"/>
 
               {/* Label */}
-              <circle cx="20" cy="21" r="6.5" fill="var(--accent)"/>
+              <circle cx="20" cy="21" r="6.5" fill="var(--color-accent)"/>
               <circle cx="20" cy="21" r="6.5" fill="url(#vinyl-label-grad)"/>
               <circle cx="20" cy="21" r="6.5" fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="0.75"/>
               <circle cx="20" cy="21" r="5.1" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="0.5"/>
@@ -165,9 +156,9 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
             </g>
 
           </svg>
-        ) : '♫'}
+        ) : <i class="ph-fill ph-music-notes" aria-hidden="true"></i>}
   </div>
-</footer>
+</div>
 
 <script>
   type TimingSentence = {
@@ -215,28 +206,15 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
     _controller = new AbortController();
     const { signal } = _controller;
 
-  const footer     = document.querySelector('.nowplaying') as HTMLElement | null;
+  const footer     = document.querySelector('.nowplaying-content') as HTMLElement | null;
   const scrubber   = document.getElementById('scrubber')   as HTMLInputElement | null;
   const elapsedEl  = document.getElementById('time-elapsed');
   const totalEl    = document.getElementById('time-total');
   const btnPlay    = document.querySelector('.btn-play')   as HTMLButtonElement | null;
-  const btnPrev    = document.querySelector('.btn-prev')   as HTMLButtonElement | null;
-  const btnNext    = document.querySelector('.btn-next')   as HTMLButtonElement | null;
   const readLabel  = document.getElementById('read-label') as HTMLElement | null;
   const playStatus = document.getElementById('play-status') as HTMLElement | null;
   const audio      = document.getElementById('np-audio')   as HTMLAudioElement | null;
   const hasAudio   = !!(footer?.dataset.audio && audio);
-
-  // Prev/next always wire up (cheap), but everything else only on post pages
-  btnPrev?.addEventListener('click', () => {
-    if (window.scrollY > 0) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      const h = footer?.dataset.prev;
-      if (h) window.location.href = h;
-    }
-  });
-  btnNext?.addEventListener('click', () => { const h = footer?.dataset.next; if (h) window.location.href = h; });
 
   // On non-post pages, play button navigates to the first post
   const isPostPage = footer?.classList.contains('active') && scrubber;
@@ -746,7 +724,7 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
 
     if (scrubber) {
       scrubber.value = String(pct * 100);
-      footer?.style.setProperty('--pct', `${pct * 100}%`);
+      footer?.style.setProperty('--progress', String(pct * 100));
     }
     if (elapsedEl) elapsedEl.textContent = formatTime(pct);
     if (Math.abs(pct - lastAriaPct) > 0.05) {
@@ -910,7 +888,7 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
       if (scrollable <= 0 || !scrubber) return;
       const pct = Math.min(1, Math.max(0, window.scrollY / scrollable));
       scrubber.value = String(pct * 100);
-      footer.style.setProperty('--pct', `${pct * 100}%`);
+      footer.style.setProperty('--progress', String(pct * 100));
       if (hasAudio && audio && audio.duration > 0) audio.currentTime = pct * audio.duration;
       if (elapsedEl) elapsedEl.textContent = formatTime(pct);
       if (Math.abs(pct - lastAriaPct) > 0.05) {
@@ -922,7 +900,7 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
     // Scrubber drag
     scrubber.addEventListener('input', () => {
       const pct = Number(scrubber.value) / 100;
-      footer.style.setProperty('--pct', `${pct * 100}%`);
+      footer.style.setProperty('--progress', String(pct * 100));
       if (elapsedEl) elapsedEl.textContent = formatTime(pct);
       updateScrubberAria(pct);
       lastAriaPct = pct;
@@ -962,7 +940,7 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
       } else {
         if (scrubber && Number(scrubber.value) >= 100) {
           scrubber.value = '0';
-          footer.style.setProperty('--pct', '0%');
+          footer.style.setProperty('--progress', '0');
           window.scrollTo(0, 0);
           clearLyrics();
         }
@@ -1013,7 +991,7 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
     position: absolute;
     inset: 0.08em -5px 0.02em;
     background: rgba(255, 100, 180, var(--line-opacity, 0.45));
-    border-radius: 3px;
+    border-radius: var(--radius-s);
     transform: skewX(var(--line-skew, -7deg));
     --sweep-pct: 0%;
     /* --js-sweep is an unregistered var (inherits: true by default), set by JS on the
@@ -1036,7 +1014,7 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
     left: var(--after-left, -5px);
     width: 4px;
     background: rgba(200, 30, 120, 0.75);
-    border-radius: 2px;
+    border-radius: var(--radius-s);
     transform-origin: left center;
     transform: skewX(var(--line-skew, -7deg));
     opacity: 0;
@@ -1133,63 +1111,69 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
 </style>
 
 <style>
-  .nowplaying {
-    position: fixed;
-    bottom: var(--space-5);
-    left: 50%;
-    transform: translateX(calc(-50% + var(--sidebar-w) / 2));
-    width: calc(var(--content-w) - var(--space-6) - var(--space-6));
-    background: var(--bg);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    border: 1px solid var(--border);
-    box-shadow:
-      0 18px 48px rgba(0, 0, 0, 0.12),
-      0 2px 6px rgba(0, 0, 0, 0.06);
+  .nowplaying-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: row;
     align-items: center;
-    padding-inline: var(--space-5);
+    padding-inline-start: calc((var(--nowplaying-h) - var(--control-size-md)) / 2);
+    padding-inline-end: calc((var(--nowplaying-h) - 36px) / 2);
     gap: var(--space-5);
-    height: var(--nowplaying-h);
-    z-index: var(--z-nowplaying);
   }
 
   /* ── Transport ── */
   .transport {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
     flex-shrink: 0;
   }
 
-  .btn-prev,
-  .btn-next {
-    font-size: 15px;
-    color: var(--text-muted);
-    transition: color 0.1s;
-  }
-
-  .btn-prev:hover:not(:disabled),
-  .btn-next:hover:not(:disabled) { color: var(--text); }
-
-  .btn-prev:disabled,
-  .btn-next:disabled { opacity: 0.3; cursor: default; }
-
   .btn-play {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    color: var(--text);
-    transition: transform 0.1s, color 0.1s;
+    width: var(--control-size-md);
+    height: var(--control-size-md);
+    color: var(--color-text);
+    transition:
+      transform var(--duration-fast) var(--ease-standard),
+      color var(--duration-fast) var(--ease-standard);
     flex-shrink: 0;
   }
 
-  .btn-play svg {
-    width: 32px;
-    height: 32px;
+  .btn-play i {
+    position: relative;
+    z-index: 1;
+    font-size: var(--text-2xl);
+  }
+
+  .progress-ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+    transform: rotate(-90deg);
+  }
+
+  .progress-ring-track,
+  .progress-ring-value {
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .progress-ring-track {
+    stroke: color-mix(in srgb, var(--color-text) 12%, transparent);
+  }
+
+  .progress-ring-value {
+    stroke: var(--color-accent);
+    stroke-linecap: round;
+    stroke-dasharray: var(--progress, 0) 100;
   }
 
   .icon-pause { display: none; }
@@ -1198,7 +1182,11 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
 
   .btn-play:hover:not(:disabled) {
     transform: scale(1.1);
-    color: var(--accent);
+    color: var(--color-accent-text);
+  }
+
+  .btn-play:active:not(:disabled) {
+    transform: scale(0.96);
   }
 
   .btn-play:disabled {
@@ -1217,19 +1205,19 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
   }
 
   .art {
-    width: 40px;
-    height: 40px;
-    background: var(--bg-selected);
-    border-radius: var(--radius-sm);
+    width: 36px;
+    height: 36px;
+    background: var(--color-surface-selected);
+    border-radius: var(--radius-s);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: var(--text-lg);
     flex-shrink: 0;
-    color: var(--text-muted);
+    color: var(--color-text-muted);
   }
 
-  .nowplaying.active .art {
+  .nowplaying-content.active .art {
     background: transparent;
     overflow: visible;
     margin-inline-end: var(--space-1);
@@ -1238,8 +1226,8 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
   /* ── Vinyl ── */
   .vinyl-svg {
     display: block;
-    width: 46px;
-    height: 46px;
+    width: 36px;
+    height: 36px;
     flex-shrink: 0;
   }
 
@@ -1265,46 +1253,30 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
   .meta {
     display: flex;
     flex-direction: column;
-    gap: 1px;
     min-width: 0;
   }
 
   .track-title {
     font-size: var(--text-base);
-    font-weight: 500;
-    color: var(--text);
+    font-weight: 600;
+    color: var(--color-text);
   }
 
-  .nowplaying:not(.active) .track-title { color: var(--text-muted); }
+  .nowplaying-content:not(.active) .track-title { color: var(--color-text-muted); }
 
   .track-subtitle {
-    font-size: var(--text-xs);
-    color: var(--text-muted);
+    font-size: var(--text-base);
+    color: var(--color-text-muted);
   }
 
-  .nowplaying:not(.active) .progress-bar,
-  .nowplaying:not(.active) .scrubber,
-  .nowplaying:not(.active) .time {
+  .nowplaying-content:not(.active) .progress-ring,
+  .nowplaying-content:not(.active) .scrubber,
+  .nowplaying-content:not(.active) .time {
     display: none;
   }
 
-  .progress-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: rgba(0,0,0,0.08);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    overflow: hidden;
-    z-index: 1;
-  }
-
-  .progress-fill {
-    height: 100%;
-    width: var(--pct, 0%);
-    background: var(--accent);
-    box-shadow: 2px 0 8px rgba(29, 185, 84, 0.6);
+  .time {
+    display: none;
   }
 
   .scrubber {
@@ -1319,21 +1291,9 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
     cursor: pointer;
     opacity: 0;
     z-index: 2;
-    --pct: 0%;
   }
 
   .scrubber:disabled { cursor: default; }
-
-  .time {
-    position: absolute;
-    top: 6px;
-    font-size: 10px;
-    color: var(--text-muted);
-    font-variant-numeric: tabular-nums;
-  }
-
-  #time-elapsed { left: var(--space-4); }
-  #time-total   { right: var(--space-4); }
 
   /* ── Extras ── */
   .extras {
@@ -1344,22 +1304,17 @@ const { title, prevSlug, nextSlug, active = false, firstHref, audioSrc, timingSr
   }
 
   .read-label {
-    font-size: 11px;
-    color: var(--text-muted);
+    font-size: var(--text-base);
+    color: var(--color-text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tracking-wide);
     font-weight: 600;
   }
 
   @media (max-width: 768px) {
-    .nowplaying {
-      left: var(--space-3);
-      right: var(--space-3);
-      bottom: calc(var(--mobile-nav-h) + var(--space-3));
-      width: auto;
-      transform: none;
-      padding-inline: 14px;
-      gap: var(--space-3);
+    .nowplaying-content {
+      height: var(--nowplaying-h);
+      gap: var(--space-1-5);
     }
     .extras { display: none; }
   }
