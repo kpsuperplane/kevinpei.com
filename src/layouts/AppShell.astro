@@ -228,6 +228,7 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     /* Z-index scale */
     --z-nowplaying: 100;
     --z-mobile-nav: 105;
+    --z-safe-area-scrim: 110;
 
     /* Track grid */
     --grid-cols-track:        40px 1fr 60px;
@@ -255,6 +256,25 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     font-family: var(--font-sans);
     font-size: var(--text-md);
     overscroll-behavior: none;
+  }
+
+  @media (max-width: 768px) {
+    body::before {
+      background: linear-gradient(
+        to bottom,
+        var(--color-canvas) 0%,
+        var(--color-canvas) 60%,
+        color-mix(in srgb, var(--color-canvas) 94%, transparent) 76%,
+        color-mix(in srgb, var(--color-canvas) 68%, transparent) 88%,
+        transparent 100%
+      );
+      content: "";
+      height: env(safe-area-inset-top, 0px);
+      inset: 0 0 auto;
+      pointer-events: none;
+      position: fixed;
+      z-index: var(--z-safe-area-scrim);
+    }
   }
 
   h1,

@@ -54,8 +54,16 @@ const { title, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
   <div class="transport">
     <button class="btn-play" aria-label="Toggle reading" aria-pressed="false" disabled={!active && !firstHref}>
       <svg class="progress-ring" viewBox="0 0 44 44" aria-hidden="true">
+        <defs>
+          <radialGradient id="player-accent-gradient" cx="30%" cy="25%" r="85%">
+            <stop offset="0%" stop-color="var(--player-gradient-start)" />
+            <stop offset="42%" stop-color="var(--player-gradient-start)" />
+            <stop offset="72%" stop-color="var(--player-gradient-mid)" />
+            <stop offset="100%" stop-color="var(--player-gradient-end)" />
+          </radialGradient>
+        </defs>
         <circle class="progress-ring-track" cx="22" cy="22" r="20" pathLength="100" />
-        <circle class="progress-ring-value" cx="22" cy="22" r="20" pathLength="100" />
+        <circle class="progress-ring-value" cx="22" cy="22" r="20" pathLength="100" stroke="url(#player-accent-gradient)" />
       </svg>
       <i class="ph-fill ph-play icon-play" aria-hidden="true"></i>
       <i class="ph-fill ph-pause icon-pause" aria-hidden="true"></i>
@@ -1112,6 +1120,16 @@ const { title, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
 
 <style>
   .nowplaying-content {
+    --player-gradient-start: #3b82f6;
+    --player-gradient-mid: #14b8a6;
+    --player-gradient-end: var(--color-accent);
+    --player-accent-gradient: radial-gradient(
+      circle at 30% 25%,
+      var(--player-gradient-start) 0%,
+      var(--player-gradient-start) 42%,
+      var(--player-gradient-mid) 72%,
+      var(--player-gradient-end) 100%
+    );
     position: relative;
     width: 100%;
     height: 100%;
@@ -1171,7 +1189,6 @@ const { title, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
   }
 
   .progress-ring-value {
-    stroke: var(--color-accent);
     stroke-linecap: round;
     stroke-dasharray: var(--progress, 0) 100;
   }
@@ -1182,7 +1199,17 @@ const { title, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
 
   .btn-play:hover:not(:disabled) {
     transform: scale(1.1);
-    color: var(--color-accent-text);
+    color: var(--color-accent);
+  }
+
+  @supports ((background-clip: text) or (-webkit-background-clip: text)) {
+    .btn-play:hover:not(:disabled) i {
+      background-image: var(--player-accent-gradient);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
   }
 
   .btn-play:active:not(:disabled) {
