@@ -34,8 +34,8 @@ const { hasNowPlaying = false } = Astro.props;
           <a
             href={link.href}
             class="secondary-social-link"
-            target="_blank"
-            rel="noopener noreferrer"
+            target={link.label === 'Email' ? undefined : '_blank'}
+            rel={link.label === 'Email' ? undefined : 'noopener noreferrer'}
           >
             <i class:list={['ph-fill', `ph-${link.icon}`, 'secondary-social-icon']} aria-hidden="true"></i>
             <span>{link.label}</span>

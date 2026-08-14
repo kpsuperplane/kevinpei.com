@@ -32,7 +32,12 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
     <ul class="nav-list">
       {primaryLinks.map(link => (
         <li>
-          <a href={link.href} class="nav-item" target="_blank" rel="noopener noreferrer">
+          <a
+            href={link.href}
+            class="nav-item"
+            target={link.label === 'Email' ? undefined : '_blank'}
+            rel={link.label === 'Email' ? undefined : 'noopener noreferrer'}
+          >
             <i class:list={['ph-fill', `ph-${link.icon}`, 'nav-icon']} aria-hidden="true"></i>
             {link.label}
           </a>
@@ -79,8 +84,8 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
     <a
       href={link.href}
       class="mobile-nav-item tablet-nav-item"
-      target="_blank"
-      rel="noopener noreferrer"
+      target={link.label === 'Email' ? undefined : '_blank'}
+      rel={link.label === 'Email' ? undefined : 'noopener noreferrer'}
       aria-label={link.label}
       title={link.label}
     >
