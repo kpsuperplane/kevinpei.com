@@ -119,9 +119,9 @@ const { hasNowPlaying = false } = Astro.props;
       calc(100% - var(--sidebar-w) - var(--space-6) - var(--space-6))
     );
     height: var(--nowplaying-h);
-    background: color-mix(in srgb, var(--color-canvas) 80%, transparent);
-    -webkit-backdrop-filter: blur(16px) brightness(1.08);
-    backdrop-filter: blur(16px) brightness(1.08);
+    background: color-mix(in srgb, var(--color-canvas) 70%, transparent);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
     border: var(--border-width) solid var(--color-border);
     border-radius: calc(var(--nowplaying-h) / 2);
     corner-shape: round;
