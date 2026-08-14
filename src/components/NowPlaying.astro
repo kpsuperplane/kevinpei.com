@@ -11,15 +11,6 @@ const { title, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
 
 <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
   <defs>
-    <filter id="lyric-roughen-accent" x="-500%" y="-30%" width="1100%" height="160%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.15 0.4" numOctaves="2" seed="3" result="noise"/>
-      <feColorMatrix type="matrix" in="noise" result="noiseMask"
-        values="0 0 0 0 0
-                0 0 0 0 0
-                0 0 0 0 0
-                3 0 0 0 -0.8"/>
-      <feComposite in="SourceGraphic" in2="noiseMask" operator="in"/>
-    </filter>
     <filter id="lyric-roughen" x="-5%" y="-10%" width="110%" height="120%">
       <feTurbulence type="fractalNoise" baseFrequency="0.04 0.08" numOctaves="4" seed="7" result="noise"/>
       <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" xChannelSelector="R" yChannelSelector="G"/>
@@ -422,6 +413,7 @@ const { title, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
   let postBody: HTMLElement | null = null;
   let highlightLayer: HTMLElement | null = null;
   let highlightLines: HTMLElement[] = [];
+  const highlightExitMs = 250;
 
   function ensureHighlightLayer(): HTMLElement | null {
     postBody ??= document.querySelector('.post-body') as HTMLElement | null;
@@ -440,13 +432,21 @@ const { title, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
     highlightLines = [];
   }
 
+  function retireHighlightLines(): void {
+    const exitingLines = highlightLines;
+    highlightLines = [];
+
+    exitingLines.forEach(line => {
+      line.classList.add('is-exiting');
+      window.setTimeout(() => line.remove(), highlightExitMs);
+    });
+  }
+
   function randomHighlightVars(el: HTMLElement): void {
     const skew    = -(5 + Math.random() * 4);    // -5 to -9 deg
     const opacity = 0.38 + Math.random() * 0.14; // 0.38 to 0.52
-    const left    = -6 + Math.random() * 2;      // -6 to -4 px
     el.style.setProperty('--line-skew', `${skew.toFixed(1)}deg`);
     el.style.setProperty('--line-opacity', opacity.toFixed(3));
-    el.style.setProperty('--after-left', `${left.toFixed(1)}px`);
   }
 
   function getSentenceLineRects(sentenceEl: HTMLElement): DOMRect[] {
@@ -559,8 +559,7 @@ const { title, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
     const wordTimes = rawWordTimes?.split(',').map(Number).filter(Number.isFinite) ?? [];
     const timedWordCount = Math.max(0, wordTimes.length - 1);
 
-    layer.replaceChildren();
-    highlightLines = [];
+    retireHighlightLines();
 
     lineMetrics.forEach(metrics => {
       const line = document.createElement('span');
@@ -1013,24 +1012,6 @@ const { title, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
     pointer-events: none;
   }
 
-  /* Pen-pressure accent: narrow darker strip at the left edge */
-  .lyric-highlight-line::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: var(--after-left, -5px);
-    width: 4px;
-    background: rgba(200, 30, 120, 0.75);
-    border-radius: var(--radius-s);
-    transform-origin: left center;
-    transform: skewX(var(--line-skew, -7deg));
-    opacity: 0;
-    transition: opacity 0.25s ease;
-    filter: url(#lyric-roughen-accent) blur(0.8px);
-    pointer-events: none;
-  }
-
   /* While playing: dim unread/done sentences */
   body.playing .post-body .lyric-sentence:not(.lyric-active) {
     opacity: 0.45;
@@ -1048,10 +1029,6 @@ const { title, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
     transform: skewX(var(--line-skew, -7deg));
   }
 
-  .lyric-highlight-line.is-visible::after {
-    opacity: 0.8;
-  }
-
   @media (prefers-reduced-motion: no-preference) {
     /* Default (simulation mode): CSS-animated sweep */
     .lyric-highlight-line.is-visible:not([data-line-start])::before {
@@ -1059,29 +1036,11 @@ const { title, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
         lyric-sweep var(--line-dur, 2s) cubic-bezier(0.4, 0, 0.8, 1) var(--line-delay, 0s) forwards,
         lyric-fade-in 0.25s ease var(--line-delay, 0s) both;
     }
-
-    .lyric-highlight-line.is-visible:not([data-line-start])::after {
-      animation: lyric-accent-in 0.25s ease var(--line-delay, 0s) both;
-    }
   }
 
   /* Audio-driven lines: JS sweeps --js-sweep each frame; just fade the opacity in quickly */
   .lyric-highlight-line.is-visible[data-line-start]::before {
     animation: lyric-fade-in 0.05s ease both;
-  }
-
-  .lyric-highlight-line.is-visible[data-line-start]::after {
-    animation: none;
-    opacity: 0;
-  }
-
-  .lyric-highlight-line.is-visible[data-line-start][data-line-active]::after {
-    opacity: 0.8;
-  }
-
-  .lyric-highlight-line.is-visible[data-done]::after {
-    animation: none;
-    opacity: 0.8;
   }
 
   /* Done: full opacity, no highlight (::before reverts to collapsed when animation removed) */
@@ -1093,6 +1052,13 @@ const { title, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
     animation: none;
     --sweep-pct: 110%;
     opacity: 1;
+  }
+
+  /* Keep the previous line mounted long enough for its marker stroke to fade. */
+  .lyric-highlight-line.is-visible.is-exiting::before {
+    animation: none;
+    opacity: 0;
+    transition-timing-function: ease-out;
   }
 
   @property --sweep-pct {
@@ -1110,12 +1076,6 @@ const { title, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
     from { opacity: 0; }
     to   { opacity: 1; }
   }
-
-  @keyframes lyric-accent-in {
-    from { opacity: 0; }
-    to   { opacity: 0.8; }
-  }
-
 </style>
 
 <style>
