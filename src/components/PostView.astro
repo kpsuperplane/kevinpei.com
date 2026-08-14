@@ -223,7 +223,7 @@ const formattedDate = date?.toLocaleDateString('en-US', {
     font-size: var(--text-lg);
     color: var(--color-text-muted);
     line-height: var(--leading-normal);
-    text-wrap: pretty;
+    text-wrap: var(--text-wrap-prose);
     margin-block-end: var(--space-4);
   }
 
@@ -263,7 +263,7 @@ const formattedDate = date?.toLocaleDateString('en-US', {
 
   .post-body > :global(p) {
     margin-block-end: var(--space-5);
-    text-wrap: pretty;
+    text-wrap: var(--text-wrap-prose);
   }
 
   .post-body :global(strong) {

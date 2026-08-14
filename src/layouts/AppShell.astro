@@ -166,6 +166,7 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
 
     --tracking-wide:   0.06em;
     --tracking-wider:  0.08em;
+    --text-wrap-prose: pretty;
 
     /* Spacing scale */
     --space-px:  1px;
@@ -239,6 +240,12 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
       --radius-s:  24px;
       --radius-m:  36px;
       --radius-lg: 48px;
+    }
+  }
+
+  @supports (font: -apple-system-body) {
+    :root {
+      --text-wrap-prose: wrap;
     }
   }
 
