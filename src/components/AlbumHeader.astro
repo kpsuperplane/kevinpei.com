@@ -149,6 +149,14 @@ const {
     box-shadow: var(--shadow-feature-action-hover);
   }
 
+
+  /* Tablet: the compact nav moves to the top, so reserve space there instead. */
+  @media (min-width: 551px) and (max-width: 768px) {
+    .album-header {
+      padding: var(--space-8) var(--space-10) var(--space-2);
+    }
+  }
+
   @media (max-width: 550px) {
     .album-header {
       min-height: 390px;
