@@ -245,7 +245,7 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
   /* iOS safari shenanigans */
   @supports (hanging-punctuation: first) and (font: -apple-system-body) and (-webkit-touch-callout: none) {
     :root {
-      --mobile-dock-bottom: max(var(--space-1), env(safe-area-inset-bottom));
+      --mobile-dock-bottom: max(var(--space-2), env(safe-area-inset-bottom));
     }
   }
 
