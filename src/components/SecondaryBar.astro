@@ -113,10 +113,21 @@ const { hasNowPlaying = false } = Astro.props;
     position: fixed;
     bottom: var(--space-5);
     left: 50%;
+    left: calc(
+      50% +
+      (var(--safe-area-inset-left) - var(--safe-area-inset-right)) / 2
+    );
     transform: translateX(calc(-50% + var(--sidebar-w) / 2));
     width: min(
       calc(var(--content-w) - var(--space-6) - var(--space-6)),
-      calc(100% - var(--sidebar-w) - var(--space-6) - var(--space-6))
+      calc(
+        100% -
+        var(--sidebar-w) -
+        var(--safe-area-inset-left) -
+        var(--safe-area-inset-right) -
+        var(--space-6) -
+        var(--space-6)
+      )
     );
     height: var(--nowplaying-h);
     background: color-mix(in srgb, var(--color-canvas) 70%, transparent);
@@ -148,8 +159,8 @@ const { hasNowPlaying = false } = Astro.props;
     .secondary-bar,
     .secondary-bar:not(.has-nowplaying) {
       display: block;
-      left: var(--space-3);
-      right: var(--space-3);
+      left: max(var(--space-3), var(--safe-area-inset-left));
+      right: max(var(--space-3), var(--safe-area-inset-right));
       bottom: calc(var(--mobile-dock-bottom) + (var(--mobile-nav-h) / 2));
       width: auto;
       height: calc(var(--nowplaying-h) + var(--mobile-player-extension));
