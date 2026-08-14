@@ -1275,12 +1275,10 @@ const { title, active = false, firstHref, audioSrc, timingSrc } = Astro.props;
     -webkit-appearance: none;
     appearance: none;
     background: transparent;
-    cursor: pointer;
     opacity: 0;
     z-index: 2;
+    pointer-events: none;
   }
-
-  .scrubber:disabled { cursor: default; }
 
   /* ── Extras ── */
   .extras {
