@@ -18,7 +18,7 @@ const aboutTrack = {
 };
 ---
 
-<AppShell title={`${albumTitle} — Kevin Pei`} description={albumDescription} firstHref="/about" showNowPlaying={false}>
+<AppShell title={`${albumTitle} — Kevin Pei`} description={albumDescription} firstHref="/about" showNowPlaying={false} flushTop>
   <TrackList posts={posts} pinnedTracks={[aboutTrack]}>
     <AlbumHeader
       slot="feature"

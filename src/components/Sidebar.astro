@@ -1,10 +1,21 @@
 ---
-import { primaryLinks, socialLinks } from '../utils/navigation';
+import { mobileSocialLinks, primaryLinks, socialLinks } from '../utils/navigation';
 
 interface Props {
   currentPath?: string;
 }
 const { currentPath = '/' } = Astro.props;
+
+const tabletSocialLinks = [...mobileSocialLinks];
+const twitterIndex = tabletSocialLinks.findIndex((link) => link.label === 'Twitter');
+const instagramIndex = tabletSocialLinks.findIndex((link) => link.label === 'Instagram');
+
+if (twitterIndex !== -1 && instagramIndex !== -1) {
+  [tabletSocialLinks[twitterIndex], tabletSocialLinks[instagramIndex]] = [
+    tabletSocialLinks[instagramIndex],
+    tabletSocialLinks[twitterIndex],
+  ];
+}
 
 ---
 
@@ -53,10 +64,30 @@ const { currentPath = '/' } = Astro.props;
       <span class="mobile-subtitle">Let's build awesome</span>
     </div>
   </a>
-  <a href="/kevin-pei-resume-19-06-2026.pdf" class="mobile-nav-item" target="_blank" rel="noopener noreferrer">
+  <a
+    href="/kevin-pei-resume-19-06-2026.pdf"
+    class="mobile-nav-item"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Resume"
+    title="Resume"
+  >
     <i class="ph-fill ph-read-cv-logo mobile-nav-icon" aria-hidden="true"></i>
     <span>Resume</span>
   </a>
+  {tabletSocialLinks.map((link) => (
+    <a
+      href={link.href}
+      class="mobile-nav-item tablet-nav-item"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={link.label}
+      title={link.label}
+    >
+      <i class:list={['ph-fill', `ph-${link.icon}`, 'mobile-nav-icon']} aria-hidden="true"></i>
+      <span>{link.label}</span>
+    </a>
+  ))}
   <button
     class="mobile-nav-item"
     id="btn-social"
@@ -326,6 +357,40 @@ const { currentPath = '/' } = Astro.props;
       font-weight: 500;
       color: color-mix(in srgb, var(--color-text-muted) 84%, var(--color-canvas));
     }
+  }
 
+  .tablet-nav-item {
+    display: none;
+  }
+
+  /* Tablet: keep the compact nav form, but dock it above the content. */
+  @media (min-width: 551px) and (max-width: 768px) {
+    .mobile-nav {
+      top: var(--tablet-nav-top);
+      bottom: auto;
+      padding-inline: var(--space-2);
+      padding-inline-end: var(--space-3);
+      align-items: center;
+      gap: 2px;
+    }
+
+    .mobile-nav-item {
+      flex-basis: var(--control-size-md);
+      min-width: var(--control-size-md);
+      height: var(--control-size-md);
+      border-radius: var(--radius-s);
+    }
+
+    .tablet-nav-item {
+      display: flex;
+    }
+
+    .mobile-nav-item > span {
+      font-size: 9.5px;
+    }
+
+    #btn-social {
+      display: none;
+    }
   }
 </style>

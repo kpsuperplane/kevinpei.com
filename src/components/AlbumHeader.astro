@@ -116,7 +116,7 @@ const {
     font-size: var(--text-md);
     line-height: var(--leading-normal);
     color: color-mix(in srgb, var(--color-feature-text) 80%, transparent);
-    text-wrap: var(--text-wrap-prose);
+    text-wrap: pretty;
   }
 
   .play-button {
@@ -149,10 +149,10 @@ const {
     box-shadow: var(--shadow-feature-action-hover);
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 550px) {
     .album-header {
       min-height: 390px;
-      padding: var(--space-8) var(--space-2) var(--space-2);
+      padding: var(--space-8) var(--space-5) var(--space-2);
       margin: 0;
     }
 
@@ -171,7 +171,6 @@ const {
       font-weight: 500;
       line-height: var(--leading-normal);
       display: -webkit-box;
-      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
