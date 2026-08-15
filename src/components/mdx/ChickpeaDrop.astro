@@ -1,0 +1,680 @@
+---
+import chickpeaSprite from '../../assets/chickpea-realistic.png';
+
+interface Props {
+  aspectRatio: number;
+  maxPeas?: number;
+  seed?: number;
+  debug?: boolean;
+  class?: string;
+}
+
+const {
+  aspectRatio,
+  maxPeas = 36,
+  seed = 1,
+  debug = false,
+  class: className,
+} = Astro.props;
+
+if (!Number.isFinite(aspectRatio) || aspectRatio <= 0) {
+  throw new Error('ChickpeaDrop aspectRatio must be a positive number.');
+}
+
+if (!Number.isFinite(maxPeas) || maxPeas < 0) {
+  throw new Error('ChickpeaDrop maxPeas must be zero or greater.');
+}
+
+if (!Number.isFinite(seed)) {
+  throw new Error('ChickpeaDrop seed must be a finite number.');
+}
+---
+
+<div
+  class:list={['chickpea-drop', className]}
+  style={`--chickpea-aspect-ratio: ${aspectRatio};`}
+  data-chickpea-drop
+  data-chickpea-aspect-ratio={aspectRatio}
+  data-chickpea-max-peas={Math.floor(maxPeas)}
+  data-chickpea-seed={Math.floor(seed)}
+  data-chickpea-sprite={chickpeaSprite.src}
+  data-chickpea-debug={debug ? 'true' : undefined}
+  data-chickpea-state="idle"
+  data-lyric-skip
+>
+  <div class="chickpea-drop__content">
+    <slot />
+  </div>
+  <span class="chickpea-drop__trigger" data-chickpea-trigger aria-hidden="true"></span>
+  <canvas class="chickpea-drop__canvas" data-chickpea-canvas aria-hidden="true"></canvas>
+  {debug && (
+    <svg
+      class="chickpea-drop__debug"
+      data-chickpea-debug-overlay
+      aria-hidden="true"
+      focusable="false"
+    ></svg>
+  )}
+</div>
+
+<script>
+  import {
+    createParticles,
+    normalizedColliderToBounds,
+    normalizedColliderToSvg,
+    scaleParticles,
+    simulationIsSettled,
+    stepSimulation,
+    type ChickpeaParticle,
+    type CircleCollider,
+    type NormalizedCollider,
+    type SimulationBounds,
+  } from '../../utils/chickpeaPhysics';
+
+  const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+  const FIXED_STEP_SECONDS = 1 / 120;
+  const MAX_FRAME_SECONDS = 0.05;
+  const MAX_SIMULATION_SECONDS = 12;
+  const MAX_POINTER_SPEED = 1_500;
+
+  type ActivePointer = {
+    collider: CircleCollider;
+    pointerType: string;
+    lastX: number;
+    lastY: number;
+    lastTimestamp: number;
+  };
+
+  function numericData(element: HTMLElement, key: string, fallback = 0): number {
+    const value = Number(element.dataset[key]);
+    return Number.isFinite(value) ? value : fallback;
+  }
+
+  function readColliders(root: HTMLElement): NormalizedCollider[] {
+    const colliders: NormalizedCollider[] = [];
+
+    root.querySelectorAll<HTMLElement>('[data-chickpea-collider]').forEach((element) => {
+      const label = element.dataset.label || undefined;
+
+      if (element.dataset.shape === 'circle') {
+        colliders.push({
+          shape: 'circle' as const,
+          cx: numericData(element, 'cx'),
+          cy: numericData(element, 'cy'),
+          radius: numericData(element, 'radius'),
+          label,
+        });
+      }
+
+      if (element.dataset.shape === 'rounded-rect') {
+        colliders.push({
+          shape: 'rounded-rect' as const,
+          x: numericData(element, 'x'),
+          y: numericData(element, 'y'),
+          width: numericData(element, 'width'),
+          height: numericData(element, 'height'),
+          radius: numericData(element, 'radius'),
+          label,
+        });
+      }
+    });
+
+    return colliders;
+  }
+
+  function svgElement<K extends keyof SVGElementTagNameMap>(
+    name: K,
+    attributes: Record<string, string | number> = {},
+  ): SVGElementTagNameMap[K] {
+    const element = document.createElementNS(SVG_NAMESPACE, name);
+    Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, String(value)));
+    return element;
+  }
+
+  function renderDebugOverlay(
+    svg: SVGSVGElement,
+    colliders: NormalizedCollider[],
+    aspectRatio: number,
+  ): void {
+    svg.replaceChildren();
+    svg.setAttribute('viewBox', `0 0 ${aspectRatio} 1`);
+    svg.setAttribute('preserveAspectRatio', 'none');
+
+    const grid = svgElement('g', { class: 'chickpea-debug-grid' });
+    for (let index = 1; index < 10; index += 1) {
+      const fraction = index / 10;
+      grid.append(
+        svgElement('line', { x1: aspectRatio * fraction, y1: 0, x2: aspectRatio * fraction, y2: 1 }),
+        svgElement('line', { x1: 0, y1: fraction, x2: aspectRatio, y2: fraction }),
+      );
+    }
+    svg.append(grid);
+
+    const legend = svgElement('g', { class: 'chickpea-debug-legend' });
+
+    colliders.forEach((normalizedCollider, index) => {
+      const collider = normalizedColliderToSvg(normalizedCollider, aspectRatio);
+      const group = svgElement('g', {
+        class: `chickpea-debug-region chickpea-debug-region--${collider.shape}`,
+      });
+      let centerX: number;
+      let centerY: number;
+
+      if (collider.shape === 'circle') {
+        group.append(svgElement('circle', {
+          class: 'chickpea-debug-shape',
+          cx: collider.cx,
+          cy: collider.cy,
+          r: collider.radius,
+        }));
+        centerX = collider.cx;
+        centerY = collider.cy;
+      } else {
+        group.append(svgElement('rect', {
+          class: 'chickpea-debug-shape',
+          x: collider.x,
+          y: collider.y,
+          width: collider.width,
+          height: collider.height,
+          rx: collider.radius,
+          ry: collider.radius,
+        }));
+        centerX = collider.x + collider.width / 2;
+        centerY = collider.y + collider.height / 2;
+      }
+
+      const markerSize = Math.min(aspectRatio, 1) * 0.009;
+      group.append(
+        svgElement('line', {
+          class: 'chickpea-debug-center',
+          x1: centerX - markerSize,
+          y1: centerY,
+          x2: centerX + markerSize,
+          y2: centerY,
+        }),
+        svgElement('line', {
+          class: 'chickpea-debug-center',
+          x1: centerX,
+          y1: centerY - markerSize,
+          x2: centerX,
+          y2: centerY + markerSize,
+        }),
+      );
+
+      const text = svgElement('text', {
+        class: 'chickpea-debug-label',
+        x: centerX + markerSize * 1.5,
+        y: centerY - markerSize * 1.5,
+      });
+      text.textContent = String(index + 1);
+      const title = svgElement('title');
+      title.textContent = normalizedCollider.label || `Collider ${index + 1}`;
+      group.prepend(title);
+      group.append(text);
+      svg.append(group);
+
+      const legendItem = svgElement('text', {
+        class: 'chickpea-debug-legend-item',
+        x: aspectRatio * 0.012,
+        y: 0.035 + index * 0.032,
+      });
+      legendItem.textContent = `${index + 1} · ${normalizedCollider.label || `Collider ${index + 1}`}`;
+      legend.append(legendItem);
+    });
+
+    svg.append(legend);
+  }
+
+  function drawChickpea(
+    context: CanvasRenderingContext2D,
+    particle: ChickpeaParticle,
+    sprite: HTMLImageElement,
+  ): void {
+    const radius = particle.radius;
+    const squash = [0.96, 1.02, 0.92][particle.variant] ?? 1;
+    const drawSize = radius * 3.15;
+
+    context.save();
+    context.translate(particle.x, particle.y);
+    context.rotate(particle.rotation);
+    context.scale(squash, 1);
+    context.filter = [
+      'saturate(0.92) brightness(1.03)',
+      'saturate(1.04) brightness(0.97)',
+      'saturate(0.98) brightness(1.01)',
+    ][particle.variant] ?? 'none';
+    context.drawImage(sprite, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+    context.restore();
+  }
+
+  function initializeChickpeaDrop(root: HTMLElement): void {
+    if (root.dataset.chickpeaReady === 'true') return;
+    root.dataset.chickpeaReady = 'true';
+
+    const canvasElement = root.querySelector<HTMLCanvasElement>('[data-chickpea-canvas]');
+    const triggerMarker = root.querySelector<HTMLElement>('[data-chickpea-trigger]');
+    const debugOverlay = root.querySelector<SVGSVGElement>('[data-chickpea-debug-overlay]');
+    if (!canvasElement || !triggerMarker) return;
+    const renderingContext = canvasElement.getContext('2d');
+    if (!renderingContext) return;
+    const canvas = canvasElement;
+    const context = renderingContext;
+
+    const aspectRatio = numericData(root, 'chickpeaAspectRatio', 1);
+    const maxPeas = numericData(root, 'chickpeaMaxPeas', 36);
+    const seed = numericData(root, 'chickpeaSeed', 1);
+    const spriteSource = root.dataset.chickpeaSprite;
+    if (!spriteSource) return;
+    const sprite = new Image();
+    sprite.decoding = 'async';
+    const normalizedColliders = readColliders(root);
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    let bounds: SimulationBounds = { width: 0, height: 0 };
+    let colliders = normalizedColliders.map((collider) => normalizedColliderToBounds(collider, bounds));
+    let particles: ChickpeaParticle[] = [];
+    let frameId: number | null = null;
+    let lastTimestamp = 0;
+    let accumulator = 0;
+    let elapsed = 0;
+    let activeRunElapsed = 0;
+    let visible = false;
+    let centered = false;
+    let triggered = false;
+    let finished = false;
+    let spriteReady = false;
+    let middleObserver: IntersectionObserver | null = null;
+    const activePointers = new Map<number, ActivePointer>();
+
+    if (reducedMotion.matches) root.dataset.chickpeaState = 'disabled';
+    if (debugOverlay) renderDebugOverlay(debugOverlay, normalizedColliders, aspectRatio);
+
+    function draw(): void {
+      context.clearRect(0, 0, bounds.width, bounds.height);
+      particles.forEach((particle) => {
+        if (spriteReady && particle.active && particle.alive) drawChickpea(context, particle, sprite);
+      });
+    }
+
+    function cancelFrame(): void {
+      if (frameId !== null) cancelAnimationFrame(frameId);
+      frameId = null;
+      lastTimestamp = 0;
+      if (triggered && !finished && !reducedMotion.matches) root.dataset.chickpeaState = 'paused';
+    }
+
+    function canAnimate(): boolean {
+      return triggered
+        && visible
+        && !finished
+        && !reducedMotion.matches
+        && document.visibilityState === 'visible';
+    }
+
+    function scheduleFrame(): void {
+      if (frameId === null && canAnimate()) {
+        root.dataset.chickpeaState = 'running';
+        frameId = requestAnimationFrame(tick);
+      }
+    }
+
+    function tick(timestamp: number): void {
+      frameId = null;
+      if (!canAnimate()) {
+        lastTimestamp = 0;
+        return;
+      }
+
+      if (lastTimestamp === 0) lastTimestamp = timestamp;
+      const frameSeconds = Math.min((timestamp - lastTimestamp) / 1_000, MAX_FRAME_SECONDS);
+      lastTimestamp = timestamp;
+      elapsed += frameSeconds;
+      activeRunElapsed += frameSeconds;
+      accumulator += frameSeconds;
+
+      while (accumulator >= FIXED_STEP_SECONDS) {
+        const pointerColliders = Array.from(
+          activePointers.values(),
+          (pointer) => pointer.collider,
+        );
+        stepSimulation(
+          particles,
+          pointerColliders.length > 0 ? [...colliders, ...pointerColliders] : colliders,
+          bounds,
+          FIXED_STEP_SECONDS,
+          elapsed,
+        );
+        activePointers.forEach(({ collider }) => {
+          collider.wakeSettled = false;
+          collider.velocityX = (collider.velocityX ?? 0) * 0.82;
+          collider.velocityY = (collider.velocityY ?? 0) * 0.82;
+        });
+        accumulator -= FIXED_STEP_SECONDS;
+      }
+
+      draw();
+      if (simulationIsSettled(particles, elapsed) || activeRunElapsed >= MAX_SIMULATION_SECONDS) {
+        finished = true;
+        root.dataset.chickpeaState = 'settled';
+        return;
+      }
+
+      scheduleFrame();
+    }
+
+    function trigger(): void {
+      if (triggered || reducedMotion.matches || !spriteReady || bounds.width <= 0) return;
+      triggered = true;
+      middleObserver?.disconnect();
+      root.dataset.chickpeaState = 'running';
+      particles = createParticles(bounds.width, maxPeas, seed);
+      elapsed = 0;
+      activeRunElapsed = 0;
+      accumulator = 0;
+      finished = particles.length === 0;
+      if (finished) root.dataset.chickpeaState = 'settled';
+      draw();
+      scheduleFrame();
+    }
+
+    function resize(): void {
+      const rectangle = root.getBoundingClientRect();
+      const nextBounds = { width: rectangle.width, height: rectangle.height };
+      if (nextBounds.width <= 0 || nextBounds.height <= 0) return;
+
+      if (bounds.width > 0 && bounds.height > 0 && particles.length > 0) {
+        scaleParticles(particles, nextBounds.width / bounds.width, nextBounds.height / bounds.height);
+      }
+
+      if (bounds.width > 0 && bounds.height > 0) {
+        const scaleX = nextBounds.width / bounds.width;
+        const scaleY = nextBounds.height / bounds.height;
+        activePointers.forEach((pointer) => {
+          pointer.collider.cx *= scaleX;
+          pointer.collider.cy *= scaleY;
+          pointer.lastX *= scaleX;
+          pointer.lastY *= scaleY;
+        });
+      }
+
+      bounds = nextBounds;
+      colliders = normalizedColliders.map((collider) => normalizedColliderToBounds(collider, bounds));
+      activePointers.forEach((pointer) => {
+        pointer.collider.radius = pointerRadius(pointer.pointerType);
+      });
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(bounds.width * pixelRatio);
+      canvas.height = Math.round(bounds.height * pixelRatio);
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      draw();
+    }
+
+    function pointerRadius(pointerType: string): number {
+      const widthScale = pointerType === 'touch' ? 0.045 : 0.01;
+      const minimum = pointerType === 'touch' ? 20 : 5;
+      const maximum = pointerType === 'touch' ? 28 : 7;
+      return Math.min(Math.max(bounds.width * widthScale, minimum), maximum);
+    }
+
+    function wakeForInteraction(): void {
+      if (!triggered || particles.length === 0 || reducedMotion.matches) return;
+      activeRunElapsed = 0;
+      if (finished) {
+        finished = false;
+        accumulator = 0;
+      }
+      scheduleFrame();
+    }
+
+    function updatePointer(event: PointerEvent): void {
+      const rectangle = root.getBoundingClientRect();
+      const x = event.clientX - rectangle.left;
+      const y = event.clientY - rectangle.top;
+      const timestamp = performance.now();
+      const current = activePointers.get(event.pointerId);
+
+      if (!current) {
+        activePointers.set(event.pointerId, {
+          collider: {
+            shape: 'circle',
+            cx: x,
+            cy: y,
+            radius: pointerRadius(event.pointerType),
+            interactive: true,
+            wakeSettled: true,
+            velocityX: 0,
+            velocityY: 0,
+          },
+          pointerType: event.pointerType,
+          lastX: x,
+          lastY: y,
+          lastTimestamp: timestamp,
+        });
+        wakeForInteraction();
+        return;
+      }
+
+      const deltaSeconds = Math.max((timestamp - current.lastTimestamp) / 1_000, 1 / 240);
+      const velocityX = Math.min(
+        Math.max((x - current.lastX) / deltaSeconds, -MAX_POINTER_SPEED),
+        MAX_POINTER_SPEED,
+      );
+      const velocityY = Math.min(
+        Math.max((y - current.lastY) / deltaSeconds, -MAX_POINTER_SPEED),
+        MAX_POINTER_SPEED,
+      );
+      current.collider.cx = x;
+      current.collider.cy = y;
+      current.collider.radius = pointerRadius(current.pointerType);
+      current.collider.wakeSettled = true;
+      current.collider.velocityX = (current.collider.velocityX ?? 0) * 0.35 + velocityX * 0.65;
+      current.collider.velocityY = (current.collider.velocityY ?? 0) * 0.35 + velocityY * 0.65;
+      current.lastX = x;
+      current.lastY = y;
+      current.lastTimestamp = timestamp;
+      wakeForInteraction();
+    }
+
+    function removePointer(event: PointerEvent): void {
+      activePointers.delete(event.pointerId);
+    }
+
+    resize();
+
+    sprite.addEventListener('load', () => {
+      spriteReady = true;
+      draw();
+      if (visible && centered && !triggered) trigger();
+    }, { once: true });
+    sprite.addEventListener('error', () => {
+      root.dataset.chickpeaState = 'asset-error';
+    }, { once: true });
+    sprite.src = spriteSource;
+    if (sprite.complete && sprite.naturalWidth > 0) spriteReady = true;
+
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(root);
+
+    const visibilityObserver = new IntersectionObserver((entries) => {
+      const entry = entries[entries.length - 1];
+      visible = Boolean(entry?.isIntersecting);
+
+      if (visible) scheduleFrame();
+      else cancelFrame();
+    }, { threshold: 0 });
+    visibilityObserver.observe(root);
+
+    middleObserver = new IntersectionObserver((entries) => {
+      const entry = entries[entries.length - 1];
+      centered = Boolean(entry?.isIntersecting);
+      if (centered && !triggered) trigger();
+    }, {
+      rootMargin: '-45% 0px -45% 0px',
+      threshold: 0,
+    });
+    middleObserver.observe(triggerMarker);
+
+    root.addEventListener('pointerenter', updatePointer, { passive: true });
+    root.addEventListener('pointermove', updatePointer, { passive: true });
+    root.addEventListener('pointerdown', updatePointer, { passive: true });
+    root.addEventListener('pointerleave', removePointer, { passive: true });
+    root.addEventListener('pointerup', (event) => {
+      if (event.pointerType === 'touch') removePointer(event);
+    }, { passive: true });
+    root.addEventListener('pointercancel', removePointer, { passive: true });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') scheduleFrame();
+      else cancelFrame();
+    });
+
+    reducedMotion.addEventListener('change', () => {
+      if (reducedMotion.matches) {
+        cancelFrame();
+        particles = [];
+        finished = triggered;
+        root.dataset.chickpeaState = 'disabled';
+        draw();
+      } else if (visible && centered && !triggered) {
+        trigger();
+      }
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-chickpea-drop]').forEach(initializeChickpeaDrop);
+</script>
+
+<style is:global>
+  .chickpea-drop {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: var(--chickpea-aspect-ratio);
+    overflow: hidden;
+    margin: var(--space-6) 0;
+    border-radius: var(--radius-s);
+    isolation: isolate;
+    touch-action: pan-y pinch-zoom;
+  }
+
+  .chickpea-drop::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    border: 1px solid oklch(0 0 0 / 0.12);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .chickpea-drop__trigger {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+
+  .chickpea-drop__content,
+  .chickpea-drop__canvas,
+  .chickpea-drop__debug {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .chickpea-drop__content {
+    z-index: 0;
+  }
+
+  .chickpea-drop__content > img,
+  .chickpea-drop__content > video,
+  .chickpea-drop__content > svg,
+  .chickpea-drop__content > canvas,
+  .chickpea-drop__content > picture,
+  .chickpea-drop__content > picture > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    margin: 0;
+    border-radius: inherit;
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  .chickpea-drop__canvas {
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .chickpea-drop__debug {
+    z-index: 2;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .chickpea-debug-grid line {
+    stroke: rgb(17 17 17 / 18%);
+    stroke-width: 0.75;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .chickpea-debug-shape,
+  .chickpea-debug-center {
+    vector-effect: non-scaling-stroke;
+  }
+
+  .chickpea-debug-shape {
+    stroke-width: 1.5;
+    stroke-dasharray: 5 4;
+  }
+
+  .chickpea-debug-region--rounded-rect .chickpea-debug-shape {
+    fill: rgb(217 70 239 / 18%);
+    stroke: #a21caf;
+  }
+
+  .chickpea-debug-region--circle .chickpea-debug-shape {
+    fill: rgb(6 182 212 / 20%);
+    stroke: #0e7490;
+  }
+
+  .chickpea-debug-center {
+    stroke: #111111;
+    stroke-width: 1;
+  }
+
+  .chickpea-debug-label {
+    fill: #111111;
+    stroke: rgb(255 255 255 / 92%);
+    stroke-width: 3px;
+    paint-order: stroke fill;
+    font-family: var(--font-mono);
+    font-size: 0.026px;
+    font-weight: 700;
+    letter-spacing: 0;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .chickpea-debug-legend-item {
+    fill: #111111;
+    stroke: rgb(255 255 255 / 95%);
+    stroke-width: 3px;
+    paint-order: stroke fill;
+    font-family: var(--font-mono);
+    font-size: 0.024px;
+    font-weight: 700;
+    letter-spacing: 0;
+    vector-effect: non-scaling-stroke;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chickpea-drop__canvas {
+      display: none;
+    }
+  }
+</style>

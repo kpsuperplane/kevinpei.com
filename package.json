@@ -12,6 +12,7 @@
     "astro": "astro",
     "align": "python3 scripts/align.py",
     "transcribe": "python3 scripts/transcribe.py",
+    "test:chickpeas": "bun test src/utils/chickpeaPhysics.test.ts",
     "test:lyrics": "bun scripts/test-lyrics.mjs"
   },
   "dependencies": {

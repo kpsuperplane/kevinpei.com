@@ -1,0 +1,57 @@
+---
+type RoundedRectProps = {
+  shape: 'rounded-rect';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  radius?: number;
+  label?: string;
+};
+
+type CircleProps = {
+  shape: 'circle';
+  cx: number;
+  cy: number;
+  radius: number;
+  label?: string;
+};
+
+type Props = RoundedRectProps | CircleProps;
+
+const props = Astro.props as Props;
+
+function assertPercentage(name: string, value: number, allowOverflow = false): void {
+  const maximum = allowOverflow ? Number.POSITIVE_INFINITY : 100;
+  if (!Number.isFinite(value) || value < 0 || value > maximum) {
+    throw new Error(`ChickpeaCollider ${name} must be between 0 and ${allowOverflow ? '∞' : '100'}.`);
+  }
+}
+
+if (props.shape === 'circle') {
+  assertPercentage('cx', props.cx);
+  assertPercentage('cy', props.cy, true);
+  assertPercentage('radius', props.radius);
+} else {
+  assertPercentage('x', props.x);
+  assertPercentage('y', props.y, true);
+  assertPercentage('width', props.width, true);
+  assertPercentage('height', props.height, true);
+  assertPercentage('radius', props.radius ?? 0);
+}
+---
+
+<span
+  hidden
+  aria-hidden="true"
+  data-chickpea-collider
+  data-shape={props.shape}
+  data-label={props.label}
+  data-x={props.shape === 'rounded-rect' ? props.x : undefined}
+  data-y={props.shape === 'rounded-rect' ? props.y : undefined}
+  data-width={props.shape === 'rounded-rect' ? props.width : undefined}
+  data-height={props.shape === 'rounded-rect' ? props.height : undefined}
+  data-cx={props.shape === 'circle' ? props.cx : undefined}
+  data-cy={props.shape === 'circle' ? props.cy : undefined}
+  data-radius={props.radius ?? 0}
+></span>

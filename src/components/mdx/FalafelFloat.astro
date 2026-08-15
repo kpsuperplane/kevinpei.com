@@ -1,0 +1,45 @@
+---
+import { Image } from 'astro:assets';
+import falafelBowl from '../../assets/falafel-bowl.png';
+---
+
+<span
+  class="falafel-float"
+  aria-hidden="true"
+  data-lyric-skip
+>
+  <Image
+    src={falafelBowl}
+    alt=""
+    loading="lazy"
+    decoding="async"
+    draggable="false"
+  />
+</span>
+
+<style>
+  .falafel-float {
+    float: right;
+    inline-size: 184px;
+    margin-block: 4px var(--space-2);
+    margin-inline: 0;
+    shape-outside: ellipse(49% 49% at 50% 50%) border-box;
+    shape-margin: 12px;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .falafel-float :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 3px 4px rgb(0 0 0 / 14%));
+    -webkit-user-drag: none;
+  }
+
+  @media (max-width: 768px) {
+    .falafel-float {
+      margin-inline-end: calc(0px - var(--page-gutter) - 20px);
+    }
+  }
+</style>
