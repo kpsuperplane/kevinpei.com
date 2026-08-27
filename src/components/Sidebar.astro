@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets';
+import profilePhoto from '../assets/kevin-pei-profile.png';
 import { mobileSocialLinks, primaryLinks, socialLinks } from '../utils/navigation';
 
 interface Props {
@@ -21,7 +23,16 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
 
 <aside class="sidebar">
   <a href="/" class="profile">
-    <img class="avatar" src="/icon.png" alt="Kevin Pei" width="40" height="40" decoding="async" />
+    <Image
+      class="avatar"
+      src={profilePhoto}
+      alt="Kevin Pei"
+      width={40}
+      height={40}
+      densities={[1.5, 2]}
+      loading="eager"
+      decoding="async"
+    />
     <div class="profile-info">
       <span class="name">Kevin Pei</span>
       <span class="subtitle">Let's build awesome</span>
@@ -63,7 +74,16 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
     class="mobile-profile"
     aria-current={currentPath === '/' ? 'page' : undefined}
   >
-    <img class="mobile-avatar" src="/icon.png" alt="" width="32" height="32" decoding="async" />
+    <Image
+      class="mobile-avatar"
+      src={profilePhoto}
+      alt=""
+      width={40}
+      height={40}
+      densities={[1.5, 2]}
+      loading="eager"
+      decoding="async"
+    />
     <div class="mobile-profile-info">
       <span class="mobile-name">Kevin Pei</span>
       <span class="mobile-subtitle">Let's build awesome</span>
@@ -133,10 +153,13 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
   .avatar {
     width: 40px;
     height: 40px;
-    border-radius: var(--radius-m);
+    border-radius: 50%;
+    corner-shape: round;
     object-fit: cover;
     display: block;
     flex-shrink: 0;
+    outline: 1px solid oklch(0 0 0 / 0.1);
+    outline-offset: -1px;
   }
 
   .profile-info {
@@ -286,16 +309,19 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
       display: flex;
       align-items: center;
       gap: var(--space-2);
-      padding-inline-start: calc((var(--mobile-nav-h) - 32px) / 2);
+      padding-inline-start: 0;
       padding-inline-end: var(--space-2);
     }
 
     .mobile-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: var(--radius-lg);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      corner-shape: round;
       object-fit: cover;
       flex-shrink: 0;
+      outline: 1px solid oklch(0 0 0 / 0.1);
+      outline-offset: -1px;
     }
 
     .mobile-profile-info {
@@ -330,7 +356,7 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
       left: max(var(--space-3), var(--safe-area-inset-left));
       right: max(var(--space-3), var(--safe-area-inset-right));
       height: var(--mobile-nav-h);
-      padding-inline: var(--space-2) var(--space-3);
+      padding-inline: calc(var(--space-2) - var(--border-width)) var(--space-3);
       background: var(--color-canvas);
       border: var(--border-width) solid var(--color-border);
       border-radius: calc(var(--mobile-nav-h) / 2);
@@ -376,7 +402,7 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
     .mobile-nav {
       top: var(--tablet-nav-top);
       bottom: auto;
-      padding-inline: var(--space-2);
+      padding-inline: calc(var(--space-2) - var(--border-width));
       padding-inline-end: var(--space-3);
       align-items: center;
       gap: 2px;

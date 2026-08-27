@@ -1,0 +1,32 @@
+---
+import signatureImage from '../assets/kevin-signature.png';
+---
+
+<footer class="signature-footer">
+  <img
+    class="signature"
+    src={signatureImage.src}
+    width="237"
+    height="237"
+    alt="Kevin Pei's signature"
+    loading="lazy"
+    decoding="async"
+  />
+</footer>
+
+<style>
+  .signature-footer {
+    display: flex;
+    justify-content: center;
+    padding:
+      30px
+      var(--page-gutter)
+      var(--space-5);
+  }
+
+  .signature {
+    display: block;
+    width: 64px;
+    height: auto;
+  }
+</style>
