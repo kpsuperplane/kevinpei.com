@@ -2,7 +2,7 @@
 import signatureImage from '../assets/kevin-signature.png';
 ---
 
-<footer class="signature-footer">
+<footer class="signature-footer" data-signature-footer>
   <img
     class="signature"
     src={signatureImage.src}
@@ -13,6 +13,53 @@ import signatureImage from '../assets/kevin-signature.png';
     decoding="async"
   />
 </footer>
+
+<script>
+  const footer = document.querySelector<HTMLElement>('[data-signature-footer]');
+  const signature = footer?.querySelector<HTMLElement>('.signature');
+  const playerBar = document.getElementById('secondary-bar');
+
+  if (footer && signature && playerBar) {
+    const playerRect = playerBar.getBoundingClientRect();
+    const playerIsVisible = playerBar.classList.contains('has-nowplaying')
+      && getComputedStyle(playerBar).display !== 'none'
+      && playerRect.height > 0;
+
+    if (playerIsVisible) {
+      footer.classList.add('is-reveal-ready');
+
+      const controller = new AbortController();
+      const resizeObserver = new ResizeObserver(scheduleCheck);
+      let frameId = 0;
+
+      function checkPosition(): void {
+        frameId = 0;
+        const signatureBottom = signature.getBoundingClientRect().bottom;
+        const playerTop = playerBar.getBoundingClientRect().top;
+
+        if (signatureBottom > playerTop) return;
+
+        footer?.classList.add('is-visible');
+        controller.abort();
+        resizeObserver.disconnect();
+      }
+
+      function scheduleCheck(): void {
+        if (frameId) return;
+        frameId = requestAnimationFrame(checkPosition);
+      }
+
+      window.addEventListener('scroll', scheduleCheck, {
+        passive: true,
+        signal: controller.signal,
+      });
+      window.addEventListener('resize', scheduleCheck, { signal: controller.signal });
+      resizeObserver.observe(playerBar);
+      resizeObserver.observe(signature);
+      scheduleCheck();
+    }
+  }
+</script>
 
 <style>
   .signature-footer {
@@ -28,5 +75,20 @@ import signatureImage from '../assets/kevin-signature.png';
     display: block;
     width: 64px;
     height: auto;
+  }
+
+  .signature-footer.is-reveal-ready .signature {
+    opacity: 0;
+    transition: opacity 300ms var(--ease-out);
+  }
+
+  .signature-footer.is-visible .signature {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .signature-footer.is-reveal-ready .signature {
+      transition: none;
+    }
   }
 </style>
