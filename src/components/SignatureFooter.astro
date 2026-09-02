@@ -1,8 +1,18 @@
 ---
 import signatureImage from '../assets/kevin-signature.png';
+
+interface Props {
+  revealAboveMobileNav?: boolean;
+}
+
+const { revealAboveMobileNav = false } = Astro.props;
 ---
 
-<footer class="signature-footer" data-signature-footer>
+<footer
+  class="signature-footer"
+  data-signature-footer
+  data-reveal-above-mobile-nav={revealAboveMobileNav ? '' : undefined}
+>
   <img
     class="signature"
     src={signatureImage.src}
@@ -18,46 +28,68 @@ import signatureImage from '../assets/kevin-signature.png';
   const footer = document.querySelector<HTMLElement>('[data-signature-footer]');
   const signature = footer?.querySelector<HTMLElement>('.signature');
   const playerBar = document.getElementById('secondary-bar');
+  const mobileNav = document.querySelector<HTMLElement>('.mobile-nav');
+  const mobileQuery = window.matchMedia('(max-width: 550px)');
 
-  if (footer && signature && playerBar) {
-    const playerRect = playerBar.getBoundingClientRect();
-    const playerIsVisible = playerBar.classList.contains('has-nowplaying')
-      && getComputedStyle(playerBar).display !== 'none'
-      && playerRect.height > 0;
+  if (footer && signature) {
+    const controller = new AbortController();
+    const resizeObserver = new ResizeObserver(scheduleCheck);
+    let frameId = 0;
 
-    if (playerIsVisible) {
+    function isVisible(element: HTMLElement): boolean {
+      const rect = element.getBoundingClientRect();
+      return getComputedStyle(element).display !== 'none' && rect.height > 0;
+    }
+
+    function getRevealThreshold(): HTMLElement | null {
+      if (playerBar?.classList.contains('has-nowplaying') && isVisible(playerBar)) {
+        return playerBar;
+      }
+
+      const shouldUseMobileNav = footer.hasAttribute('data-reveal-above-mobile-nav')
+        && mobileQuery.matches
+        && mobileNav
+        && isVisible(mobileNav);
+
+      return shouldUseMobileNav ? mobileNav : null;
+    }
+
+    function checkPosition(): void {
+      frameId = 0;
+      const threshold = getRevealThreshold();
+
+      if (!threshold) {
+        footer.classList.remove('is-reveal-ready');
+        return;
+      }
+
       footer.classList.add('is-reveal-ready');
 
-      const controller = new AbortController();
-      const resizeObserver = new ResizeObserver(scheduleCheck);
-      let frameId = 0;
+      const signatureBottom = signature.getBoundingClientRect().bottom;
+      const thresholdTop = threshold.getBoundingClientRect().top;
 
-      function checkPosition(): void {
-        frameId = 0;
-        const signatureBottom = signature.getBoundingClientRect().bottom;
-        const playerTop = playerBar.getBoundingClientRect().top;
+      if (signatureBottom > thresholdTop) return;
 
-        if (signatureBottom > playerTop) return;
-
-        footer?.classList.add('is-visible');
-        controller.abort();
-        resizeObserver.disconnect();
-      }
-
-      function scheduleCheck(): void {
-        if (frameId) return;
-        frameId = requestAnimationFrame(checkPosition);
-      }
-
-      window.addEventListener('scroll', scheduleCheck, {
-        passive: true,
-        signal: controller.signal,
-      });
-      window.addEventListener('resize', scheduleCheck, { signal: controller.signal });
-      resizeObserver.observe(playerBar);
-      resizeObserver.observe(signature);
-      scheduleCheck();
+      footer.classList.add('is-visible');
+      controller.abort();
+      resizeObserver.disconnect();
     }
+
+    function scheduleCheck(): void {
+      if (frameId) return;
+      frameId = requestAnimationFrame(checkPosition);
+    }
+
+    window.addEventListener('scroll', scheduleCheck, {
+      passive: true,
+      signal: controller.signal,
+    });
+    window.addEventListener('resize', scheduleCheck, { signal: controller.signal });
+    mobileQuery.addEventListener('change', scheduleCheck, { signal: controller.signal });
+    if (playerBar) resizeObserver.observe(playerBar);
+    if (mobileNav) resizeObserver.observe(mobileNav);
+    resizeObserver.observe(signature);
+    scheduleCheck();
   }
 </script>
 

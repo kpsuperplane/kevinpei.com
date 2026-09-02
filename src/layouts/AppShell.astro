@@ -88,7 +88,7 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
       <Sidebar currentPath={currentPath} />
       <main id="main" class="main-panel">
         <slot />
-        <SignatureFooter />
+        <SignatureFooter revealAboveMobileNav={currentPath === '/'} />
       </main>
     </div>
     <SecondaryBar hasNowPlaying={showNowPlaying}>
