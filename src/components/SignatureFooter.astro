@@ -2,15 +2,17 @@
 import signatureImage from '../assets/kevin-signature.png';
 
 interface Props {
+  revealAbovePlayer?: boolean;
   revealAboveMobileNav?: boolean;
 }
 
-const { revealAboveMobileNav = false } = Astro.props;
+const { revealAbovePlayer = false, revealAboveMobileNav = false } = Astro.props;
 ---
 
 <footer
   class="signature-footer"
   data-signature-footer
+  data-reveal-above-player={revealAbovePlayer ? '' : undefined}
   data-reveal-above-mobile-nav={revealAboveMobileNav ? '' : undefined}
 >
   <img
@@ -109,13 +111,26 @@ const { revealAboveMobileNav = false } = Astro.props;
     height: auto;
   }
 
-  .signature-footer.is-reveal-ready .signature {
+  .signature-footer[data-reveal-above-player] .signature {
     opacity: 0;
+  }
+
+  .signature-footer.is-reveal-ready .signature {
     transition: opacity 300ms var(--ease-out);
   }
 
   .signature-footer.is-visible .signature {
     opacity: 1;
+  }
+
+  @media (max-width: 550px) {
+    .signature-footer[data-reveal-above-mobile-nav] .signature {
+      opacity: 0;
+    }
+
+    .signature-footer.is-visible .signature {
+      opacity: 1;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
