@@ -263,14 +263,15 @@ const { currentPath = '/' } = Astro.props;
     --icon-color: #166534;
     --icon-gradient: linear-gradient(135deg, #14532d, #22c55e);
     line-height: 1;
+    display: flex;
+    justify-content: center;
   }
 
   .resume-icon::before {
     content: '';
-    display: inline-block;
+    display: block;
     width: 1em;
     height: 1em;
-    vertical-align: -0.125em;
     background: var(--icon-gradient);
     mask: url('/resume-cv.svg') center / contain no-repeat;
   }
