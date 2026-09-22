@@ -66,10 +66,37 @@ const {
     position: absolute;
     inset: 0;
     z-index: 1;
+    /* Offset, overlapping fades soften the silhouette without a uniform halo. */
     background:
+      radial-gradient(
+        ellipse 38% 48% at 0% 8%,
+        var(--color-feature-surface) 0%,
+        color-mix(in srgb, var(--color-feature-surface) 65%, transparent) 30%,
+        transparent 100%
+      ),
+      radial-gradient(
+        ellipse 28% 40% at 100% 64%,
+        color-mix(in srgb, var(--color-feature-surface) 85%, transparent) 0%,
+        transparent 100%
+      ),
+      radial-gradient(
+        ellipse 56% 64% at 55% 38%,
+        transparent 38%,
+        color-mix(in srgb, var(--color-feature-surface) 18%, transparent) 60%,
+        color-mix(in srgb, var(--color-feature-surface) 72%, transparent) 82%,
+        var(--color-feature-surface) 100%
+      ),
+      linear-gradient(
+        90deg,
+        var(--color-feature-surface) 0%,
+        transparent 12%,
+        transparent 89%,
+        var(--color-feature-surface) 100%
+      ),
       linear-gradient(
         180deg,
-        color-mix(in srgb, var(--color-feature-surface) 0%, transparent) 0%,
+        var(--color-feature-surface) 0%,
+        transparent 14%,
         color-mix(in srgb, var(--color-feature-surface) 3%, transparent) 32%,
         color-mix(in srgb, var(--color-feature-surface) 16%, transparent) 52%,
         color-mix(in srgb, var(--color-feature-surface) 50%, transparent) 70%,
@@ -150,14 +177,14 @@ const {
   }
 
 
-  /* Tablet: the compact nav moves to the top, so reserve space there instead. */
-  @media (min-width: 551px) and (max-width: 768px) {
+  @media (min-width: 481px) and (max-width: 768px) {
     .album-header {
-      padding: var(--space-8) var(--space-10) var(--space-2);
+      padding: var(--space-8) var(--space-6) var(--space-2);
+      padding-inline-start: var(--space-8);
     }
   }
 
-  @media (max-width: 550px) {
+  @media (max-width: 480px) {
     .album-header {
       min-height: 390px;
       padding: var(--space-8) var(--space-5) var(--space-2);

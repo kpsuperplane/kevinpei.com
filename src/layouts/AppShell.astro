@@ -231,7 +231,6 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     --safe-area-inset-top: env(safe-area-inset-top, 0px);
     --safe-area-inset-left: env(safe-area-inset-left, 0px);
     --safe-area-inset-right: env(safe-area-inset-right, 0px);
-    --tablet-nav-top: max(var(--space-3), var(--safe-area-inset-top));
     --mobile-player-extension: var(--space-6);
     --content-w: 720px;
 
@@ -243,7 +242,7 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     --z-mobile-nav: 105;
 
     /* Track grid */
-    --grid-cols-track:        40px 1fr 60px;
+    --grid-cols-track:        24px 1fr 60px;
     --grid-cols-track-mobile: 32px 1fr 50px;
   }
 
@@ -387,7 +386,13 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     padding-block-end: var(--space-10);
   }
 
-  @media (max-width: 768px) {
+  @media (min-width: 769px) {
+    body[data-flush-top] .main-panel {
+      padding-block-start: var(--safe-area-inset-top);
+    }
+  }
+
+  @media (max-width: 480px) {
     html,
     body {
       overflow-x: clip;
@@ -423,29 +428,24 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     }
   }
 
-  @media (max-width: 550px) {
+  @media (max-width: 480px) {
     body[data-flush-top] .main-panel {
       padding-block-start: var(--safe-area-inset-top);
     }
   }
 
-  /* Tablet: the compact nav moves to the top, so reserve space there instead. */
-  @media (min-width: 551px) and (max-width: 768px) {
-    .main-panel {
-      padding-block-start: calc(
-        var(--tablet-nav-top) +
-        var(--mobile-nav-h) +
-        var(--space-6)
-      );
-      padding-block-end: calc(var(--nowplaying-h) + var(--space-10));
+  @media (min-width: 481px) and (max-width: 768px) {
+    :root {
+      --sidebar-w: 96px;
+      --page-gutter: var(--space-4);
     }
 
-    body:not([data-nowplaying]) .main-panel {
-      padding-block-end: var(--space-10);
+    .main-panel {
+      padding-block-start: var(--space-4);
     }
 
     body[data-flush-top] .main-panel {
-      padding-block-start: var(--safe-area-inset-top);
+      padding-block-start: 0;
     }
   }
 </style>

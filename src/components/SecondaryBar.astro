@@ -93,7 +93,7 @@ const { hasNowPlaying = false } = Astro.props;
       setSocialOpen(false, true);
     }, { signal });
 
-    const mobileQuery = window.matchMedia('(max-width: 550px)');
+    const mobileQuery = window.matchMedia('(max-width: 480px)');
     mobileQuery.addEventListener('change', (event) => {
       if (!event.matches) setSocialOpen(false);
     }, { signal });
@@ -155,7 +155,7 @@ const { hasNowPlaying = false } = Astro.props;
   }
 
   /* Mobile: attach the player to the bottom navigation dock. */
-  @media (max-width: 550px) {
+  @media (max-width: 480px) {
     .secondary-bar,
     .secondary-bar:not(.has-nowplaying) {
       display: block;
@@ -181,7 +181,7 @@ const { hasNowPlaying = false } = Astro.props;
     }
   }
 
-  @media (max-width: 550px) {
+  @media (max-width: 480px) {
     .secondary-bar.social-open {
       height: 192px;
     }
@@ -299,25 +299,7 @@ const { hasNowPlaying = false } = Astro.props;
     }
   }
 
-  /* Tablet: retain the desktop player form without the desktop sidebar offset. */
-  @media (min-width: 551px) and (max-width: 768px) {
-    .secondary-bar {
-      left: 50%;
-      right: auto;
-      bottom: var(--space-5);
-      width: min(
-        calc(var(--content-w) - var(--space-6) - var(--space-6)),
-        calc(100% - var(--space-6) - var(--space-6))
-      );
-      height: var(--nowplaying-h);
-      transform: translateX(-50%);
-      border-end-start-radius: calc(var(--nowplaying-h) / 2);
-      border-end-end-radius: calc(var(--nowplaying-h) / 2);
-      box-shadow: var(--shadow-floating);
-    }
-  }
-
-  @media (max-width: 550px) and (prefers-reduced-motion: reduce) {
+  @media (max-width: 480px) and (prefers-reduced-motion: reduce) {
     .secondary-bar,
     .secondary-nowplaying-view,
     .secondary-social-view {

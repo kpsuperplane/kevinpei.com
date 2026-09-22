@@ -125,7 +125,14 @@ const trackHref = href ?? `/posts/${slug}`;
     50%       { transform: scaleY(0.3); }
   }
 
-  @media (max-width: 768px) {
+  @media (min-width: 481px) {
+    .track-num {
+      text-align: left;
+      padding-inline-end: 0;
+    }
+  }
+
+  @media (max-width: 480px) {
     .track-row a {
       grid-template-columns: var(--grid-cols-track-mobile);
       padding: var(--space-2) var(--list-gutter);

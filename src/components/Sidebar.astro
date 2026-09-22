@@ -1,23 +1,12 @@
 ---
 import { Image } from 'astro:assets';
 import profilePhoto from '../assets/kevin-pei-profile.png';
-import { mobileSocialLinks, primaryLinks, socialLinks } from '../utils/navigation';
+import { primaryLinks, socialLinks } from '../utils/navigation';
 
 interface Props {
   currentPath?: string;
 }
 const { currentPath = '/' } = Astro.props;
-
-const tabletSocialLinks = [...mobileSocialLinks];
-const twitterIndex = tabletSocialLinks.findIndex((link) => link.label === 'Twitter');
-const instagramIndex = tabletSocialLinks.findIndex((link) => link.label === 'Instagram');
-
-if (twitterIndex !== -1 && instagramIndex !== -1) {
-  [tabletSocialLinks[twitterIndex], tabletSocialLinks[instagramIndex]] = [
-    tabletSocialLinks[instagramIndex],
-    tabletSocialLinks[twitterIndex],
-  ];
-}
 
 ---
 
@@ -35,7 +24,7 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
     />
     <div class="profile-info">
       <span class="name">Kevin Pei</span>
-      <span class="subtitle">Let's build awesome</span>
+      <span class="subtitle">Let’s build awesome</span>
     </div>
   </a>
 
@@ -49,8 +38,8 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
             target={link.label === 'Email' ? undefined : '_blank'}
             rel={link.label === 'Email' ? undefined : 'noopener noreferrer'}
           >
-            <i class:list={['ph-fill', `ph-${link.icon}`, 'nav-icon']} aria-hidden="true"></i>
-            {link.label}
+            <i class:list={['nav-icon', link.icon === 'read-cv-logo' ? 'resume-icon' : ['ph-fill', `ph-${link.icon}`]]} aria-hidden="true"></i>
+            <span>{link.label}</span>
           </a>
         </li>
       ))}
@@ -60,7 +49,7 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
         <li>
           <a href={link.href} class="nav-item" target="_blank" rel="noopener noreferrer">
             <i class:list={['ph-fill', `ph-${link.icon}`, 'nav-icon']} aria-hidden="true"></i>
-            {link.label}
+            <span>{link.label}</span>
           </a>
         </li>
       ))}
@@ -86,7 +75,7 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
     />
     <div class="mobile-profile-info">
       <span class="mobile-name">Kevin Pei</span>
-      <span class="mobile-subtitle">Let's build awesome</span>
+      <span class="mobile-subtitle">Let’s build awesome</span>
     </div>
   </a>
   <a
@@ -97,30 +86,17 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
     aria-label="Resume"
     title="Resume"
   >
-    <i class="ph-fill ph-read-cv-logo mobile-nav-icon" aria-hidden="true"></i>
-    <span>Resume</span>
+    <i class="mobile-nav-icon resume-icon" aria-hidden="true"></i>
   </a>
-  {tabletSocialLinks.map((link) => (
-    <a
-      href={link.href}
-      class="mobile-nav-item tablet-nav-item"
-      target={link.label === 'Email' ? undefined : '_blank'}
-      rel={link.label === 'Email' ? undefined : 'noopener noreferrer'}
-      aria-label={link.label}
-      title={link.label}
-    >
-      <i class:list={['ph-fill', `ph-${link.icon}`, 'mobile-nav-icon']} aria-hidden="true"></i>
-      <span>{link.label}</span>
-    </a>
-  ))}
   <button
     class="mobile-nav-item"
     id="btn-social"
+    aria-label="Social"
+    title="Social"
     aria-expanded="false"
     aria-controls="secondary-social-view"
   >
-    <i class="ph-bold ph-at mobile-nav-icon" aria-hidden="true"></i>
-    <span>Social</span>
+    <i class="ph-fill ph-address-book-tabs mobile-nav-icon" aria-hidden="true"></i>
   </button>
 </nav>
 
@@ -177,7 +153,8 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
   }
 
   .subtitle {
-    font-size: var(--text-base);
+    font-size: 12px;
+    font-weight: 500;
     color: var(--color-text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -246,8 +223,8 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
   }
 
   @supports ((background-clip: text) or (-webkit-background-clip: text)) {
-    .nav-icon,
-    .mobile-nav-icon {
+    .nav-icon:not(.resume-icon),
+    .mobile-nav-icon:not(.resume-icon) {
       background-image: var(--icon-gradient);
       background-clip: text;
       -webkit-background-clip: text;
@@ -282,17 +259,28 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
     --icon-gradient: linear-gradient(135deg, #ea580c, #fbbf24);
   }
 
-  .ph-read-cv-logo {
+  .resume-icon {
     --icon-color: #166534;
     --icon-gradient: linear-gradient(135deg, #14532d, #22c55e);
+    line-height: 1;
   }
 
-  .ph-at {
+  .resume-icon::before {
+    content: '';
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+    background: var(--icon-gradient);
+    mask: url('/resume-cv.svg') center / contain no-repeat;
+  }
+
+  .ph-address-book-tabs {
     --icon-color: #7c3aed;
     --icon-gradient: linear-gradient(135deg, #7c3aed, #ec4899);
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 480px) {
     .sidebar {
       display: none;
     }
@@ -302,7 +290,7 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
     display: none;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 480px) {
     .mobile-profile {
       flex: 1 1 auto;
       min-width: 0;
@@ -340,7 +328,8 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
     }
 
     .mobile-subtitle {
-      font-size: var(--text-base);
+      font-size: 12px;
+      font-weight: 500;
       color: var(--color-text-muted);
       white-space: nowrap;
       overflow: hidden;
@@ -383,48 +372,75 @@ if (twitterIndex !== -1 && instagramIndex !== -1) {
     }
 
     .mobile-nav-icon {
-      font-size: var(--text-2xl);
+      font-size: 32px;
+    }
+  }
+
+  @media (min-width: 481px) and (max-width: 768px) {
+    .sidebar {
+      padding: calc(var(--space-4) + var(--safe-area-inset-top)) var(--space-2) var(--space-4);
+      scrollbar-gutter: auto;
     }
 
-    .mobile-nav-item > span {
+    .profile {
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      text-align: center;
+      padding-inline: 0;
+    }
+
+    .profile-info {
+      max-width: 100%;
+    }
+
+    .subtitle {
+      white-space: normal;
+    }
+
+    .name {
+      white-space: normal;
+    }
+
+    .nav-item {
+      flex-direction: column;
+      justify-content: center;
+      gap: 0;
+      min-height: var(--mobile-nav-h);
+      padding: var(--space-1);
+    }
+
+    .nav-icon {
+      font-size: 28px;
+    }
+
+    .nav-item:hover {
+      background: transparent;
+    }
+
+    .nav-item > span {
       font-size: 12px;
+      line-height: 18px;
       font-weight: 500;
       color: color-mix(in srgb, var(--color-text-muted) 84%, var(--color-canvas));
-    }
-  }
-
-  .tablet-nav-item {
-    display: none;
-  }
-
-  /* Tablet: keep the compact nav form, but dock it above the content. */
-  @media (min-width: 551px) and (max-width: 768px) {
-    .mobile-nav {
-      top: var(--tablet-nav-top);
-      bottom: auto;
-      padding-inline: calc(var(--space-2) - var(--border-width));
-      padding-inline-end: var(--space-3);
-      align-items: center;
-      gap: 2px;
+      opacity: 0;
+      transform: translateY(-3px);
+      transition:
+        opacity var(--duration-base) var(--ease-out),
+        transform var(--duration-base) var(--ease-out);
     }
 
-    .mobile-nav-item {
-      flex-basis: var(--control-size-md);
-      min-width: var(--control-size-md);
-      height: var(--control-size-md);
-      border-radius: var(--radius-s);
+    .nav-item:hover > span,
+    .nav-item:focus-visible > span {
+      opacity: 1;
+      transform: translateY(0);
     }
 
-    .tablet-nav-item {
-      display: flex;
-    }
-
-    .mobile-nav-item > span {
-      font-size: 9.5px;
-    }
-
-    #btn-social {
-      display: none;
+    @media (prefers-reduced-motion: reduce) {
+      .nav-item > span {
+        transform: none;
+        transition: none;
+      }
     }
   }
 </style>
