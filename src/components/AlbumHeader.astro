@@ -1,4 +1,6 @@
 ---
+import { primaryLinks } from '../utils/navigation';
+
 interface Props {
   title: string;
   description?: string;
@@ -10,6 +12,7 @@ const {
   description,
   playHref,
 } = Astro.props;
+const resumeLink = primaryLinks.find(link => link.label === 'Resume')!;
 ---
 
 <section class="album-header" aria-labelledby="album-title">
@@ -27,10 +30,16 @@ const {
   <div class="album-info">
     <h1 class="album-title" id="album-title">{title}</h1>
     {description && <p class="album-description">{description}</p>}
-    <a class="play-button" href={playHref} aria-label="About Me">
-      <i class="ph-fill ph-play play-icon" aria-hidden="true"></i>
-      <span>About Me</span>
-    </a>
+    <div class="hero-actions">
+      <a class="play-button" href={playHref} aria-label="About Me">
+        <i class="ph-fill ph-play play-icon" aria-hidden="true"></i>
+        <span>About Me</span>
+      </a>
+      <a class="play-button resume-button" href={resumeLink.href} target="_blank" rel="noopener noreferrer">
+        <i class="resume-icon" aria-hidden="true"></i>
+        <span>Resume</span>
+      </a>
+    </div>
   </div>
 </section>
 
@@ -146,6 +155,22 @@ const {
     text-wrap: pretty;
   }
 
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block-start: var(--space-1);
+  }
+
+  .resume-icon {
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+    font-size: var(--text-lg);
+    background: currentColor;
+    mask: url('/resume-cv.svg') center / contain no-repeat;
+  }
+
   .play-button {
     display: inline-flex;
     align-items: center;
@@ -160,7 +185,6 @@ const {
     font-weight: 700;
     text-shadow: none;
     box-shadow: var(--shadow-feature-action);
-    margin-block-start: var(--space-1);
     transition:
       transform var(--duration-base) var(--ease-out),
       box-shadow var(--duration-base) var(--ease-out);
@@ -174,6 +198,19 @@ const {
   .play-button:hover {
     transform: translateY(-1px);
     box-shadow: var(--shadow-feature-action-hover);
+  }
+
+  .resume-button {
+    background: transparent;
+    color: var(--color-feature-text);
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-feature-text) 30%, transparent);
+    transition: box-shadow var(--duration-base) var(--ease-out);
+  }
+
+  .resume-button:hover {
+    transform: none;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-feature-text) 50%, transparent);
   }
 
 
@@ -195,6 +232,10 @@ const {
       gap: var(--space-2);
       text-align: center;
       align-items: center;
+    }
+
+    .hero-actions {
+      justify-content: center;
     }
 
     .album-title {
