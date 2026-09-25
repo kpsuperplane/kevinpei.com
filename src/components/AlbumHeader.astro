@@ -50,14 +50,15 @@ const resumeLink = primaryLinks.find(link => link.label === 'Resume')!;
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    padding: var(--space-10) var(--space-8) var(--space-2);
-    margin: 0 calc(-1 * var(--list-gutter));
+    padding-block: var(--space-10) var(--space-2);
+    margin-block-end: var(--space-2);
     background: var(--color-feature-surface);
   }
 
   .album-art-wrap {
     position: absolute;
     inset: 0;
+    inset-inline: calc(-1 * var(--page-gutter));
     display: block;
     z-index: 0;
   }
@@ -74,6 +75,7 @@ const resumeLink = primaryLinks.find(link => link.label === 'Resume')!;
     content: '';
     position: absolute;
     inset: 0;
+    inset-inline: calc(-1 * var(--page-gutter));
     z-index: 1;
     /* Offset, overlapping fades soften the silhouette without a uniform halo. */
     background:
@@ -216,16 +218,14 @@ const resumeLink = primaryLinks.find(link => link.label === 'Resume')!;
 
   @media (min-width: 481px) and (max-width: 768px) {
     .album-header {
-      padding: var(--space-8) var(--space-6) var(--space-2);
-      padding-inline-start: var(--space-8);
+      padding-block-start: var(--space-8);
     }
   }
 
   @media (max-width: 480px) {
     .album-header {
       min-height: 390px;
-      padding: var(--space-8) var(--space-5) var(--space-2);
-      margin: 0;
+      padding-block-start: var(--space-8);
     }
 
     .album-info {

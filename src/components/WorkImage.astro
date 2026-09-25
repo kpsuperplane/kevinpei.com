@@ -1,0 +1,100 @@
+---
+import { Image } from 'astro:assets';
+import glasses from '../assets/smart-glasses-cropped.png';
+---
+
+<div class="work-image">
+  <div class="work-image-media">
+    <svg class="lens-definitions" aria-hidden="true" width="0" height="0">
+      <defs>
+        <clipPath id="right-lens-clip" clipPathUnits="objectBoundingBox">
+          <path transform="matrix(1.15 0 0 2.3 -0.025 -0.9)" d="M .280 .694 C .268 .661 .303 .574 .332 .523 C .378 .429 .401 .408 .474 .410 C .547 .410 .617 .422 .685 .433 L .674 .471 L .720 .545 C .667 .608 .568 .705 .501 .746 C .454 .780 .325 .724 .280 .694 Z" />
+        </clipPath>
+      </defs>
+    </svg>
+    <Image src={glasses} alt="Angled smart glasses with a video display in the lens" widths={[400, 800, 1077]} sizes="100vw" format="webp" loading="lazy" decoding="async" />
+    <div class="lens-display" aria-hidden="true">
+      <div class="lens-projection">
+        <video src="/smart-glasses-display.mp4?v=2" poster="/smart-glasses-display.webp?v=2" autoplay loop muted playsinline preload="metadata"></video>
+      </div>
+    </div>
+  </div>
+  <div class="work-caption">
+    <p>META RAY-BAN DISPLAY</p>
+  </div>
+</div>
+
+<style>
+  .work-image {
+    margin-block: var(--space-6);
+    --glasses-background: #303030;
+    position: relative;
+    aspect-ratio: 1077 / 551;
+    overflow: hidden;
+    width: 100%;
+    border-radius: var(--radius-s);
+    background: var(--glasses-background);
+    container-type: inline-size;
+  }
+
+  .work-caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    padding: clamp(16px, 4cqw, 40px);
+    color: #fff;
+    pointer-events: none;
+  }
+
+  .work-caption p {
+    margin: 0;
+    font-size: clamp(10px, 1.6cqw, 16px);
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: 0.12em;
+  }
+
+  .work-image-media {
+    position: absolute;
+    inset: 0;
+    container-type: inline-size;
+    background: var(--glasses-background);
+  }
+
+  .work-image :global(img) {
+    filter: saturate(1) brightness(0.5);
+    display: block;
+    width: 100%;
+    height: 100%;
+
+  }
+
+  .lens-definitions {
+    position: absolute;
+  }
+
+  .lens-display {
+    position: absolute;
+    inset: 0;
+    clip-path: url(#right-lens-clip);
+    mix-blend-mode: plus-lighter;
+  }
+
+  .lens-projection {
+    position: absolute;
+    left: 36.8875%;
+    top: 10.625%;
+    width: 30.475%;
+    height: 60.95%;
+    transform-origin: center;
+    transform: perspective(69cqw) rotateZ(15deg) rotateY(-22deg) rotateX(18deg) skewX(-20deg);
+  }
+
+  .lens-projection video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+</style>

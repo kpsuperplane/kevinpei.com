@@ -54,7 +54,6 @@ const trackItems = tracks ?? [
 <div class="track-list-wrap">
   <div class="track-list-header">
     {heading && <h1 class="heading">{heading}</h1>}
-    <slot name="feature" />
     <div class="col-headers">
       <span class="col-num">#</span>
       <span class="col-title">Title</span>
@@ -80,10 +79,9 @@ const trackItems = tracks ?? [
 <style>
   .track-list-wrap {
     background: var(--color-feature-surface);
-    margin-inline: var(--page-gutter);
-    margin-block-end: var(--space-6);
-    padding-inline: var(--list-gutter);
-    padding-block-end: var(--space-6);
+    /* Let row backgrounds extend beyond the content edge without adding a gutter. */
+    margin-inline: calc(-1 * var(--list-gutter));
+    padding-block: var(--space-6);
     overflow: visible;
   }
 
@@ -102,7 +100,7 @@ const trackItems = tracks ?? [
     display: grid;
     grid-template-columns: var(--grid-cols-track);
     gap: var(--space-2);
-    padding: calc(var(--space-4) + var(--space-4)) var(--list-gutter) var(--space-1);
+    padding: 0 var(--list-gutter) var(--space-1);
     margin-block-end: var(--space-1);
     color: var(--color-feature-text-muted);
   }
@@ -110,8 +108,7 @@ const trackItems = tracks ?? [
   .col-num {
     font-size: var(--text-base);
     color: var(--color-feature-text-muted);
-    text-align: right;
-    padding-inline-end: var(--space-2);
+    text-align: left;
   }
 
   .col-title,
@@ -138,29 +135,9 @@ const trackItems = tracks ?? [
     flex-direction: column;
   }
 
-  @media (min-width: 481px) {
-    .col-num {
-      text-align: left;
-      padding-inline-end: 0;
-    }
-
-    .track-list-wrap {
-      padding-inline-start: 0;
-    }
-  }
-
-  @media (min-width: 481px) and (max-width: 768px) {
-    .track-list-wrap {
-      margin-inline-start: 0;
-      margin-inline-end: 0;
-    }
-  }
-
   @media (max-width: 480px) {
     .track-list-wrap {
-      margin-inline: 0;
       margin-block-end: 0;
-      padding-inline: 0;
       padding-block-end: var(--space-6);
     }
 

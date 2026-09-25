@@ -6,8 +6,8 @@ import { getPostsReverseChronological } from '../utils/posts';
 import { frontmatter as aboutFrontmatter } from '../content/about.mdx';
 import aboutTimingData from '../content/about.json';
 
-const albumTitle = "Hey, I'm Kevin.";
-const albumDescription = "From mountain trails to pixel-perfect interfaces, Kevin's debut album features tracks on UX craft, engineering philosophy, and the quiet joy of a good powder day.";
+const albumTitle = "Hey, I’m Kevin";
+const albumDescription = "From mountain trails to pixel-perfect interfaces, Kevin’s debut album features tracks on UX craft, engineering philosophy, and the quiet joy of a good powder day.";
 
 const posts = await getPostsReverseChronological();
 const aboutTrack = {
@@ -26,12 +26,10 @@ const aboutTrack = {
   showNowPlaying={false}
   flushTop
 >
-  <TrackList posts={posts} pinnedTracks={[aboutTrack]}>
-    <AlbumHeader
-      slot="feature"
-      title={albumTitle}
-      description={albumDescription}
-      playHref="/about"
-    />
-  </TrackList>
+  <AlbumHeader
+    title={albumTitle}
+    description={albumDescription}
+    playHref="/about"
+  />
+  <TrackList posts={posts} pinnedTracks={[aboutTrack]} />
 </AppShell>
