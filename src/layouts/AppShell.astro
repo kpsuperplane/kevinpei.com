@@ -2,7 +2,6 @@
 import Sidebar from '../components/Sidebar.astro';
 import NowPlaying from '../components/NowPlaying.astro';
 import SecondaryBar from '../components/SecondaryBar.astro';
-import SignatureFooter from '../components/SignatureFooter.astro';
 import { absoluteUrl, SITE } from '../utils/site';
 import '@phosphor-icons/web/fill';
 import '@fontsource-variable/source-sans-3/wght.css';
@@ -88,10 +87,6 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
       <Sidebar currentPath={currentPath} />
       <main id="main" class="main-panel">
         <slot />
-        <SignatureFooter
-          revealAbovePlayer={showNowPlaying}
-          revealAboveMobileNav={currentPath === '/'}
-        />
       </main>
     </div>
     <SecondaryBar hasNowPlaying={showNowPlaying}>
