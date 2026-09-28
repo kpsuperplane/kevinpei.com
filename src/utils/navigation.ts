@@ -1,7 +1,7 @@
 import type { NavLink } from '../types';
 
 export const primaryLinks: NavLink[] = [
-  { href: '/kevin-pei-resume-19-06-2026.pdf', label: 'Resume', icon: 'read-cv-logo' },
+  { href: '/kevin-pei-resume-2026-09-28.pdf', label: 'Resume', icon: 'read-cv-logo' },
   { href: 'mailto:hello@kevinpei.com', label: 'Email', icon: 'paper-plane-tilt' },
   { href: 'https://github.com/kpsuperplane', label: 'GitHub', icon: 'github-logo' },
   { href: 'https://linkedin.com/in/kpsuperplane', label: 'LinkedIn', icon: 'linkedin-logo' },
