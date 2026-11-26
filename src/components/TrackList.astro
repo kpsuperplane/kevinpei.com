@@ -52,7 +52,7 @@ const trackItems = tracks ?? [
 ---
 
 <div class="track-list-wrap">
-  <div class="track-list-header">
+  <div class="track-list-header" data-page-stage="details">
     {heading && <h1 class="heading">{heading}</h1>}
     <div class="col-headers">
       <span class="col-num">#</span>
@@ -62,7 +62,7 @@ const trackItems = tracks ?? [
     <hr class="divider" />
   </div>
 
-  <ul class="track-list" data-hover-group>
+  <ul class="track-list" data-hover-group data-page-stage="body">
     {trackItems.map((track, i) => (
       <TrackRow
         index={i + 1}

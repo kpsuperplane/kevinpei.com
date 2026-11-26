@@ -1,0 +1,113 @@
+<script is:inline>
+  (() => {
+    const motion = matchMedia('(prefers-reduced-motion: no-preference)');
+    const root = document.documentElement;
+    const showIntro = () => {
+      if (motion.matches) root.dataset.pageMotion = 'intro';
+      else delete root.dataset.pageMotion;
+    };
+
+    showIntro();
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) showIntro();
+    });
+
+    const clearIntro = (event) => {
+      if (event.animationName === 'page-in' && root.dataset.pageMotion === 'intro'
+        && !document.getAnimations().some((animation) => animation.animationName === 'page-in')) {
+        delete root.dataset.pageMotion;
+      }
+    };
+    document.addEventListener('animationend', clearIntro);
+    document.addEventListener('animationcancel', clearIntro);
+  })();
+</script>
+
+<script>
+  const motion = matchMedia('(prefers-reduced-motion: no-preference)');
+  const root = document.documentElement;
+  let destination: string | null = null;
+
+  document.addEventListener('click', (event) => {
+    if (!motion.matches || event.defaultPrevented || event.button !== 0
+      || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
+      || !(event.target instanceof Element)) return;
+
+    const link = event.target.closest<HTMLAnchorElement>('a[data-page-link]');
+    if (!link || (link.target && link.target !== '_self') || link.hasAttribute('download')) return;
+
+    const next = new URL(link.href);
+    if (next.origin !== location.origin
+      || (next.pathname === location.pathname && next.search === location.search)) return;
+
+    event.preventDefault();
+    if (destination) {
+      destination = next.href;
+      return;
+    }
+
+    destination = next.href;
+    root.dataset.pageMotion = 'leaving';
+
+    const navigate = () => {
+      if (!destination) return;
+      const href = destination;
+      destination = null;
+      clearTimeout(failsafe);
+      location.assign(href);
+    };
+    const failsafe = window.setTimeout(navigate, 500);
+
+    requestAnimationFrame(() => {
+      const fades = document.getAnimations()
+        .filter((animation) => 'animationName' in animation && animation.animationName === 'page-out');
+      if (!fades.length) navigate();
+      else {
+        // Let the browser paint the fully faded page before loading the next document.
+        Promise.allSettled(fades.map((animation) => animation.finished))
+          .then(() => requestAnimationFrame(() => requestAnimationFrame(navigate)));
+      }
+    });
+  });
+</script>
+
+<style is:global>
+  @media (prefers-reduced-motion: no-preference) {
+    :root {
+      --page-in-stagger: 60ms;
+      --page-out-stagger: 45ms;
+      --page-bar-offset: 0;
+    }
+
+    body[data-nowplaying] {
+      --page-bar-offset: 1;
+    }
+
+    [data-page-stage='lead']    { --page-in-order: var(--page-bar-offset); --page-out-order: 2; }
+    [data-page-stage='details'] { --page-in-order: calc(var(--page-bar-offset) + 1); --page-out-order: 1; }
+    [data-page-stage='body']    { --page-in-order: calc(var(--page-bar-offset) + 2); --page-out-order: 0; }
+    [data-page-stage='bar']     { --page-in-order: 0; --page-out-order: 3; }
+
+    [data-page-motion='intro'] [data-page-stage] {
+      animation: page-in 260ms var(--ease-critical-spring) backwards;
+      animation-delay: calc(var(--page-in-order) * var(--page-in-stagger));
+    }
+
+    [data-page-motion='intro'][data-font-reveal='waiting'] [data-page-stage] {
+      animation-play-state: paused;
+    }
+
+    [data-page-motion='leaving'] [data-page-stage] {
+      animation: page-out var(--duration-base) var(--ease-critical-spring) both;
+      animation-delay: calc(var(--page-out-order) * var(--page-out-stagger));
+    }
+
+    @keyframes page-in {
+      from { opacity: 0; }
+    }
+
+    @keyframes page-out {
+      to { opacity: 0; }
+    }
+  }
+</style>

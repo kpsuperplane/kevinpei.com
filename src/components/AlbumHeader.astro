@@ -15,7 +15,7 @@ const {
 const resumeLink = primaryLinks.find(link => link.label === 'Resume')!;
 ---
 
-<section class="album-header" aria-labelledby="album-title">
+<section class="album-header" aria-labelledby="album-title" data-page-stage="lead">
   <div class="album-art-wrap" aria-hidden="true">
     <video
       class="album-art"
@@ -31,7 +31,7 @@ const resumeLink = primaryLinks.find(link => link.label === 'Resume')!;
     <h1 class="album-title" id="album-title">{title}</h1>
     {description && <p class="album-description">{description}</p>}
     <div class="hero-actions">
-      <a class="play-button" href={playHref} aria-label="About Me">
+      <a class="play-button" href={playHref} aria-label="About Me" data-page-link>
         <i class="ph-fill ph-play play-icon" aria-hidden="true"></i>
         <span>About Me</span>
       </a>

@@ -2,6 +2,7 @@
 import Sidebar from '../components/Sidebar.astro';
 import NowPlaying from '../components/NowPlaying.astro';
 import SecondaryBar from '../components/SecondaryBar.astro';
+import PageMotion from '../components/PageMotion.astro';
 import geistSerifUrl from '../assets/fonts/geist/GeistSerif-Regular.woff2?url';
 import { absoluteUrl, SITE } from '../utils/site';
 import '@phosphor-icons/web/fill';
@@ -93,6 +94,7 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
         }, { once: true });
       }
     </script>
+    <PageMotion />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="/icon.png" sizes="192x192" />
     <link rel="apple-touch-icon" href="/icon.png" />
@@ -165,6 +167,10 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
 
   html[data-font-reveal='waiting'] {
     --font-reveal-opacity: 0;
+  }
+
+  html[data-font-reveal] :is(.sidebar, .mobile-nav) {
+    -webkit-text-fill-color: currentColor;
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -325,6 +331,7 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     --duration-slow: 200ms;
     --ease-standard: ease;
     --ease-out: ease-out;
+    --ease-critical-spring: cubic-bezier(0.2, 0.75, 0.35, 1);
 
     /* Control and layout sizes */
     --control-size-sm: 40px;
@@ -350,6 +357,16 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     /* Track grid */
     --grid-cols-track:        24px 1fr 60px;
     --grid-cols-track-mobile: 32px 1fr 50px;
+  }
+
+  @supports (animation-timing-function: linear(0, 1)) {
+    :root {
+      /* Critically damped response: 1 - (1 + 7t)e^(-7t), normalized at t = 1. */
+      --ease-critical-spring: linear(
+        0, 0.072, 0.220, 0.380, 0.526, 0.647, 0.743, 0.816, 0.870,
+        0.910, 0.939, 0.960, 0.974, 0.985, 0.992, 0.997, 1
+      );
+    }
   }
 
   /* iOS safari shenanigans */
@@ -448,22 +465,11 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     }
 
     [data-hover-slide]::before {
-      --hover-slide-ease: cubic-bezier(0.2, 0.75, 0.35, 1);
       transition:
         opacity var(--duration-fast) var(--ease-out),
-        transform var(--duration-fast) var(--hover-slide-ease),
-        width var(--duration-fast) var(--hover-slide-ease),
-        height var(--duration-fast) var(--hover-slide-ease);
-    }
-
-    @supports (transition-timing-function: linear(0, 1)) {
-      [data-hover-slide]::before {
-        /* Critically damped response: 1 - (1 + 7t)e^(-7t), normalized at t = 1. */
-        --hover-slide-ease: linear(
-          0, 0.072, 0.220, 0.380, 0.526, 0.647, 0.743, 0.816, 0.870,
-          0.910, 0.939, 0.960, 0.974, 0.985, 0.992, 0.997, 1
-        );
-      }
+        transform var(--duration-fast) var(--ease-critical-spring),
+        width var(--duration-fast) var(--ease-critical-spring),
+        height var(--duration-fast) var(--ease-critical-spring);
     }
   }
 

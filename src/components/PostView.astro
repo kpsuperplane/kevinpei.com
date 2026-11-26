@@ -19,9 +19,9 @@ const formattedDate = date?.toLocaleDateString('en-US', {
 <article class="post-view">
   {(title || description || date || readTime) && (
     <header class="post-header">
-      {title && <h1 class="post-title">{title}</h1>}
+      {title && <h1 class="post-title" data-page-stage="lead">{title}</h1>}
       {description && (
-        <p class="post-description">
+        <p class="post-description" data-page-stage="details">
           {description}
           {date && formattedDate && (
             <>
@@ -32,17 +32,19 @@ const formattedDate = date?.toLocaleDateString('en-US', {
         </p>
       )}
       {!description && date && formattedDate && (
-        <time class="post-date" datetime={date.toISOString()}>
+        <time class="post-date" datetime={date.toISOString()} data-page-stage="details">
           {formattedDate}
         </time>
       )}
     </header>
   )}
 
-  {(title || description || date || readTime) && <hr class="post-header-rule" />}
+  <div data-page-stage="body">
+    {(title || description || date || readTime) && <hr class="post-header-rule" />}
 
-  <div class="post-body">
-    <Content />
+    <div class="post-body">
+      <Content />
+    </div>
   </div>
 </article>
 

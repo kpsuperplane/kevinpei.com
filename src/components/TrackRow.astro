@@ -15,7 +15,7 @@ const trackHref = href ?? `/posts/${slug}`;
 ---
 
 <li class:list={['track-row', { active }]}>
-  <a href={trackHref} aria-current={active ? 'true' : undefined} data-hover-item>
+  <a href={trackHref} aria-current={active ? 'true' : undefined} data-hover-item data-page-link>
     <span class="track-num">
       {active
         ? <span class="equalizer" role="img" aria-label="Now playing"><span/><span/><span/></span>

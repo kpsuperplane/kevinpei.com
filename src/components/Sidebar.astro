@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets';
+import NavIcon from './NavIcon.astro';
 import profilePhoto from '../assets/kevin-pei-profile.png';
 import { primaryLinks, socialLinks } from '../utils/navigation';
 
@@ -13,7 +14,7 @@ const taglineWords = [...tagline.matchAll(/\S+/g)];
 ---
 
 <aside class="sidebar">
-  <a href="/" class="profile">
+  <a href="/" class="profile" data-page-link>
     <Image
       class="avatar"
       src={profilePhoto}
@@ -53,7 +54,7 @@ const taglineWords = [...tagline.matchAll(/\S+/g)];
             target={link.label === 'Email' ? undefined : '_blank'}
             rel={link.label === 'Email' ? undefined : 'noopener noreferrer'}
           >
-            <i class:list={['nav-icon', link.icon === 'read-cv-logo' ? 'resume-icon' : ['ph-fill', `ph-${link.icon}`]]} aria-hidden="true"></i>
+            <span class="nav-icon"><NavIcon name={link.icon} /></span>
             <span>{link.label}</span>
           </a>
         </li>
@@ -63,7 +64,7 @@ const taglineWords = [...tagline.matchAll(/\S+/g)];
       {socialLinks.map(link => (
         <li>
           <a href={link.href} class="nav-item" data-hover-item target="_blank" rel="noopener noreferrer">
-            <i class:list={['ph-fill', `ph-${link.icon}`, 'nav-icon']} aria-hidden="true"></i>
+            <span class="nav-icon"><NavIcon name={link.icon} /></span>
             <span>{link.label}</span>
           </a>
         </li>
@@ -76,6 +77,7 @@ const taglineWords = [...tagline.matchAll(/\S+/g)];
   <a
     href="/"
     class="mobile-profile"
+    data-page-link
     aria-current={currentPath === '/' ? 'page' : undefined}
   >
     <Image
@@ -101,7 +103,7 @@ const taglineWords = [...tagline.matchAll(/\S+/g)];
     aria-label="Resume"
     title="Resume"
   >
-    <i class="mobile-nav-icon resume-icon" aria-hidden="true"></i>
+    <span class="mobile-nav-icon"><NavIcon name="read-cv-logo" surface="dock" /></span>
   </a>
   <button
     class="mobile-nav-item"
@@ -111,7 +113,7 @@ const taglineWords = [...tagline.matchAll(/\S+/g)];
     aria-expanded="false"
     aria-controls="secondary-social-view"
   >
-    <i class="ph-fill ph-address-book-tabs mobile-nav-icon" aria-hidden="true"></i>
+    <span class="mobile-nav-icon"><NavIcon name="address-book-tabs" surface="dock" /></span>
   </button>
 </nav>
 
@@ -241,15 +243,15 @@ const taglineWords = [...tagline.matchAll(/\S+/g)];
   }
 
   .nav-icon {
+    display: flex;
+    justify-content: center;
     flex-shrink: 0;
     width: 40px;
-    text-align: center;
     font-size: var(--text-2xl);
   }
 
   .nav-icon,
   .mobile-nav-icon {
-    color: var(--icon-color);
     filter: saturate(0.75);
     transition: filter var(--duration-fast) var(--ease-standard);
   }
@@ -259,65 +261,6 @@ const taglineWords = [...tagline.matchAll(/\S+/g)];
   .mobile-nav-item:hover .mobile-nav-icon,
   .mobile-nav-item:focus-visible .mobile-nav-icon {
     filter: saturate(1);
-  }
-
-  @supports ((background-clip: text) or (-webkit-background-clip: text)) {
-    .nav-icon:not(.resume-icon),
-    .mobile-nav-icon:not(.resume-icon) {
-      background-image: var(--icon-gradient);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-      -webkit-text-fill-color: transparent;
-    }
-  }
-
-  .ph-github-logo,
-  .ph-threads-logo {
-    --icon-color: #111111;
-    --icon-gradient: linear-gradient(135deg, #111111, #6b7280);
-  }
-
-  .ph-x-logo {
-    --icon-color: #111111;
-    --icon-gradient: linear-gradient(135deg, #111111, #64748b);
-  }
-
-  .ph-linkedin-logo {
-    --icon-color: #0a66c2;
-    --icon-gradient: linear-gradient(135deg, #0a66c2, #38bdf8);
-  }
-
-  .ph-instagram-logo {
-    --icon-color: #c13584;
-    --icon-gradient: linear-gradient(135deg, #f9ce34, #ee2a7b 52%, #6228d7);
-  }
-
-  .ph-paper-plane-tilt {
-    --icon-color: #f97316;
-    --icon-gradient: linear-gradient(135deg, #ea580c, #fbbf24);
-  }
-
-  .resume-icon {
-    --icon-color: #166534;
-    --icon-gradient: linear-gradient(135deg, #14532d, #22c55e);
-    line-height: 1;
-    display: flex;
-    justify-content: center;
-  }
-
-  .resume-icon::before {
-    content: '';
-    display: block;
-    width: 1em;
-    height: 1em;
-    background: var(--icon-gradient);
-    mask: url('/resume-cv.svg') center / contain no-repeat;
-  }
-
-  .ph-address-book-tabs {
-    --icon-color: #7c3aed;
-    --icon-gradient: linear-gradient(135deg, #7c3aed, #ec4899);
   }
 
   @media (max-width: 480px) {
@@ -414,6 +357,7 @@ const taglineWords = [...tagline.matchAll(/\S+/g)];
     }
 
     .mobile-nav-icon {
+      display: flex;
       font-size: 32px;
     }
   }
@@ -464,7 +408,7 @@ const taglineWords = [...tagline.matchAll(/\S+/g)];
       --hover-highlight-color: transparent;
     }
 
-    .nav-item > span {
+    .nav-item > span:not(.nav-icon) {
       font-size: 12px;
       line-height: 18px;
       font-weight: 500;
@@ -476,14 +420,14 @@ const taglineWords = [...tagline.matchAll(/\S+/g)];
         transform var(--duration-base) var(--ease-out);
     }
 
-    .nav-item:hover > span,
-    .nav-item:focus-visible > span {
+    .nav-item:hover > span:not(.nav-icon),
+    .nav-item:focus-visible > span:not(.nav-icon) {
       opacity: 1;
       transform: translateY(0);
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .nav-item > span {
+      .nav-item > span:not(.nav-icon) {
         transform: none;
         transition: none;
       }

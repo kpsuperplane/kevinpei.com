@@ -1,0 +1,32 @@
+---
+import paths from '../assets/icons/sidebar/paths.json';
+
+interface Props {
+  name: string;
+  surface?: 'sidebar' | 'dock';
+}
+
+const palette = {
+  'read-cv-logo': ['#14532d', '#22c55e'],
+  'paper-plane-tilt': ['#ea580c', '#fbbf24'],
+  'github-logo': ['#111111', '#6b7280'],
+  'linkedin-logo': ['#0a66c2', '#38bdf8'],
+  'threads-logo': ['#111111', '#6b7280'],
+  'x-logo': ['#111111', '#64748b'],
+  'instagram-logo': ['#f9ce34', '#ee2a7b', '#6228d7'],
+  'address-book-tabs': ['#7c3aed', '#ec4899'],
+} satisfies Record<keyof typeof paths, string[]>;
+
+const name = Astro.props.name as keyof typeof paths;
+const gradientId = `${Astro.props.surface ?? 'sidebar'}-icon-${name}`;
+const colors = palette[name];
+---
+
+<svg viewBox="0 0 1024 1024" width="1em" height="1em" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+      {colors.map((color, index) => <stop offset={index / (colors.length - 1)} stop-color={color} />)}
+    </linearGradient>
+  </defs>
+  <path d={paths[name]} fill={`url(#${gradientId})`} fill-rule={name === 'read-cv-logo' ? 'evenodd' : undefined} />
+</svg>

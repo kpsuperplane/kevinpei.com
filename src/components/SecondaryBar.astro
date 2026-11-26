@@ -11,6 +11,7 @@ const { hasNowPlaying = false } = Astro.props;
 <footer
   class:list={['secondary-bar', { 'has-nowplaying': hasNowPlaying }]}
   id="secondary-bar"
+  data-page-stage={hasNowPlaying ? 'bar' : undefined}
 >
   <div
     class="secondary-nowplaying-view"

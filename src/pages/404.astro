@@ -8,14 +8,16 @@ import AppShell from '../layouts/AppShell.astro';
   showNowPlaying={false}
 >
   <section class="not-found" aria-labelledby="not-found-title">
-    <p class="eyebrow">404</p>
-    <h1 id="not-found-title">This track is not on the album.</h1>
-    <p>
+    <div class="not-found-heading" data-page-stage="lead">
+      <p class="eyebrow">404</p>
+      <h1 id="not-found-title">This track is not on the album.</h1>
+    </div>
+    <p data-page-stage="details">
       The page may have moved, or it may still be waiting for a future release.
     </p>
-    <div class="actions">
-      <a class="primary-link" href="/">Back to the album</a>
-      <a href="/about">About Me</a>
+    <div class="actions" data-page-stage="body">
+      <a class="primary-link" href="/" data-page-link>Back to the album</a>
+      <a href="/about" data-page-link>About Me</a>
     </div>
   </section>
 </AppShell>
@@ -28,6 +30,12 @@ import AppShell from '../layouts/AppShell.astro';
     justify-content: center;
     gap: var(--space-4);
     padding-block: var(--space-10);
+  }
+
+  .not-found-heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
   }
 
   .eyebrow {
