@@ -390,7 +390,9 @@ const taglineWords = [...tagline.matchAll(/\S+/g)];
       border: var(--border-width) solid var(--color-border);
       border-radius: calc(var(--mobile-nav-h) / 2);
       corner-shape: round;
-      box-shadow: var(--shadow-mobile-dock);
+      box-shadow:
+        0 0 var(--mobile-dock-bottom) -3px rgb(0 0 0 / 7%),
+        0 1px 2px -1px rgb(0 0 0 / 4%);
       overflow: hidden;
       z-index: var(--z-mobile-nav);
     }
