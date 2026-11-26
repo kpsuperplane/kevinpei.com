@@ -2,8 +2,10 @@
 import Sidebar from '../components/Sidebar.astro';
 import NowPlaying from '../components/NowPlaying.astro';
 import SecondaryBar from '../components/SecondaryBar.astro';
+import geistSerifUrl from '../assets/fonts/geist/GeistSerif-Regular.woff2?url';
 import { absoluteUrl, SITE } from '../utils/site';
 import '@phosphor-icons/web/fill';
+import sourceSansUrl from '@fontsource-variable/source-sans-3/files/source-sans-3-latin-wght-normal.woff2?url';
 import '@fontsource-variable/source-sans-3/wght.css';
 import '@fontsource-variable/source-sans-3/wght-italic.css';
 import '@phosphor-icons/web/bold';
@@ -49,6 +51,48 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <link rel="preload" href={sourceSansUrl} as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href={geistSerifUrl} as="font" type="font/woff2" crossorigin="anonymous" />
+    <script is:inline>
+      if (document.fonts && CSS.registerProperty && CSS.supports('-webkit-text-fill-color', 'color-mix(in srgb, currentColor, transparent)')) {
+        const root = document.documentElement;
+        root.dataset.fontReveal = 'waiting';
+
+        const reveal = () => delete root.dataset.fontReveal;
+        const failsafe = setTimeout(reveal, 3000);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+          clearTimeout(failsafe);
+          if (root.dataset.fontReveal !== 'waiting') return;
+
+          const fonts = ['400 1em "Geist Serif"', '400 1em "Source Sans 3 Variable"'];
+          const sample = 'Let’s build awesome';
+          const timeout = setTimeout(reveal, 750);
+          let waitedForFrame = false;
+          const frame = requestAnimationFrame(() => { waitedForFrame = true; });
+
+          try {
+            await Promise.all(fonts.map((font) => document.fonts.load(font, sample)));
+          } catch {
+            reveal();
+          } finally {
+            clearTimeout(timeout);
+            cancelAnimationFrame(frame);
+          }
+
+          if (root.dataset.fontReveal !== 'waiting') return;
+          if (!waitedForFrame || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            reveal();
+            return;
+          }
+
+          root.dataset.fontReveal = 'fading';
+          const fade = root.getAnimations().find((animation) => animation.animationName === 'font-text-in');
+          if (fade) fade.finished.then(reveal, reveal);
+          else reveal();
+        }, { once: true });
+      }
+    </script>
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="/icon.png" sizes="192x192" />
     <link rel="apple-touch-icon" href="/icon.png" />
@@ -108,10 +152,65 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
 </script>
 
 <style is:global>
+  @property --font-reveal-opacity {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 1;
+  }
+
+  html[data-font-reveal] body {
+    -webkit-text-fill-color: color-mix(in srgb, currentColor calc(var(--font-reveal-opacity) * 100%), transparent);
+  }
+
+  html[data-font-reveal='waiting'] {
+    --font-reveal-opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html[data-font-reveal='fading'] {
+      animation: font-text-in var(--duration-base) var(--ease-out);
+    }
+  }
+
+  @keyframes font-text-in {
+    from { --font-reveal-opacity: 0; }
+    to { --font-reveal-opacity: 1; }
+  }
+
   @font-face {
     font-family: 'Geist Serif';
     src: url('../assets/fonts/geist/GeistSerif-Regular.woff2') format('woff2');
     font-display: swap;
+  }
+
+  /* Tune fallback metrics against the site's headings and body copy. */
+  @font-face {
+    font-family: 'Geist Serif Fallback';
+    src: local('Georgia');
+    size-adjust: 102.7%;
+    ascent-override: 97.86%;
+    descent-override: 28.72%;
+    line-gap-override: 0%;
+  }
+
+  @font-face {
+    font-family: 'Source Sans Fallback';
+    src: local('Arial'), local('ArialMT'), local('Liberation Sans');
+    font-weight: 100 500;
+    size-adjust: 93.7%;
+    ascent-override: 109.28%;
+    descent-override: 42.69%;
+    line-gap-override: 0%;
+  }
+
+  @font-face {
+    font-family: 'Source Sans Fallback';
+    src: local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold');
+    font-weight: 600 900;
+    size-adjust: 89.4%;
+    ascent-override: 114.54%;
+    descent-override: 44.74%;
+    line-gap-override: 0%;
   }
 
   *, *::before, *::after {
@@ -156,8 +255,8 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     --color-feature-selected:    rgb(23 36 45 / 9%);
 
     /* Typography */
-    --font-sans: 'Source Sans 3 Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-heading: 'Geist Serif', Georgia, serif;
+    --font-sans: 'Source Sans 3 Variable', 'Source Sans Fallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-heading: 'Geist Serif', 'Geist Serif Fallback', Georgia, serif;
     --font-mono: 'SFMono-Regular', Consolas, monospace;
 
     --text-base: 14px;
