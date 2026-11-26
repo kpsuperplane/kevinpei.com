@@ -131,6 +131,7 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
         <slot />
       </main>
     </div>
+    <div class="bottom-edge-fill" aria-hidden="true"></div>
     <SecondaryBar hasNowPlaying={showNowPlaying}>
       {showNowPlaying && (
         <NowPlaying
@@ -329,6 +330,7 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     --control-size-sm: 40px;
     --control-size-md: 44px;
     --nowplaying-h: 64px;
+    --nowplaying-bottom: var(--space-5);
     --sidebar-w: 220px;
     --mobile-nav-h: 56px;
     --mobile-dock-bottom: max(var(--space-3), env(safe-area-inset-bottom));
@@ -548,6 +550,21 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     padding-block-end: var(--space-10);
   }
 
+  .bottom-edge-fill {
+    --bottom-edge-bar-height: var(--nowplaying-h);
+    display: none;
+    position: fixed;
+    inset: auto 0 0;
+    height: calc(var(--nowplaying-bottom) + var(--bottom-edge-bar-height));
+    z-index: calc(var(--z-nowplaying) - 1);
+    pointer-events: none;
+    background: linear-gradient(to bottom, transparent, var(--color-canvas) calc(var(--bottom-edge-bar-height) / 2));
+  }
+
+  body[data-nowplaying] .bottom-edge-fill {
+    display: block;
+  }
+
   @media (min-width: 769px) {
     body[data-flush-top] .main-panel {
       padding-block-start: var(--safe-area-inset-top);
@@ -562,6 +579,12 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
 
     :root {
       --page-gutter: var(--space-4);
+    }
+
+    .bottom-edge-fill {
+      --bottom-edge-bar-height: var(--mobile-nav-h);
+      display: block;
+      height: calc(var(--mobile-dock-bottom) + var(--bottom-edge-bar-height));
     }
 
     .layout {

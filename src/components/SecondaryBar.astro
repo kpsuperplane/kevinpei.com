@@ -111,8 +111,9 @@ const { hasNowPlaying = false } = Astro.props;
 
 <style>
   .secondary-bar {
+    --player-gutter: var(--space-6);
     position: fixed;
-    bottom: var(--space-5);
+    bottom: var(--nowplaying-bottom);
     left: 50%;
     left: calc(
       50% +
@@ -120,14 +121,13 @@ const { hasNowPlaying = false } = Astro.props;
     );
     transform: translateX(calc(-50% + var(--sidebar-w) / 2));
     width: min(
-      calc(var(--content-w) - var(--space-6) - var(--space-6)),
+      calc(var(--content-w) - 2 * var(--player-gutter)),
       calc(
         100% -
         var(--sidebar-w) -
         var(--safe-area-inset-left) -
         var(--safe-area-inset-right) -
-        var(--space-6) -
-        var(--space-6)
+        2 * var(--player-gutter)
       )
     );
     height: var(--nowplaying-h);
@@ -153,6 +153,12 @@ const { hasNowPlaying = false } = Astro.props;
 
   .secondary-social-view {
     display: none;
+  }
+
+  @media (min-width: 481px) and (max-width: 768px) {
+    .secondary-bar {
+      --player-gutter: var(--page-gutter);
+    }
   }
 
   /* Mobile: attach the player to the bottom navigation dock. */

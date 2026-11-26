@@ -20,7 +20,7 @@ import falafelBowl from '../../assets/falafel-bowl.png';
 <style>
   .falafel-float {
     float: right;
-    inline-size: 184px;
+    inline-size: min(184px, 100%);
     margin-block: 4px var(--space-2);
     margin-inline: 0;
     shape-outside: ellipse(49% 49% at 50% 50%) border-box;
@@ -35,11 +35,5 @@ import falafelBowl from '../../assets/falafel-bowl.png';
     height: auto;
     filter: drop-shadow(0 3px 4px rgb(0 0 0 / 14%));
     -webkit-user-drag: none;
-  }
-
-  @media (max-width: 768px) {
-    .falafel-float {
-      margin-inline-end: calc(0px - var(--page-gutter) - 20px);
-    }
   }
 </style>
