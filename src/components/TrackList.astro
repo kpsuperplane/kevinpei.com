@@ -62,7 +62,7 @@ const trackItems = tracks ?? [
     <hr class="divider" />
   </div>
 
-  <ul class="track-list">
+  <ul class="track-list" data-hover-group>
     {trackItems.map((track, i) => (
       <TrackRow
         index={i + 1}
@@ -91,7 +91,6 @@ const trackItems = tracks ?? [
 
   .heading {
     font-size: var(--text-3xl);
-    font-weight: 600;
     margin-block-end: var(--space-6);
     padding-inline: var(--list-gutter);
   }
@@ -131,8 +130,16 @@ const trackItems = tracks ?? [
   }
 
   .track-list {
+    --hover-highlight-color: var(--color-feature-hover);
+    --hover-highlight-radius: var(--radius-lg);
     display: flex;
     flex-direction: column;
+  }
+
+  @media (max-width: 768px) {
+    .track-list-wrap {
+      padding-inline: var(--space-1);
+    }
   }
 
   @media (max-width: 480px) {

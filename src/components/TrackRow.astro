@@ -15,7 +15,7 @@ const trackHref = href ?? `/posts/${slug}`;
 ---
 
 <li class:list={['track-row', { active }]}>
-  <a href={trackHref} aria-current={active ? 'true' : undefined}>
+  <a href={trackHref} aria-current={active ? 'true' : undefined} data-hover-item>
     <span class="track-num">
       {active
         ? <span class="equalizer" role="img" aria-label="Now playing"><span/><span/><span/></span>
@@ -43,7 +43,7 @@ const trackHref = href ?? `/posts/${slug}`;
   }
 
   .track-row a:hover {
-    background: var(--color-feature-hover);
+    background: var(--item-hover-background, var(--color-feature-hover));
   }
 
   .track-row.active a {
@@ -127,8 +127,6 @@ const trackHref = href ?? `/posts/${slug}`;
   @media (max-width: 480px) {
     .track-row a {
       grid-template-columns: var(--grid-cols-track-mobile);
-      padding: var(--space-2) var(--list-gutter);
-      border-radius: 0;
     }
   }
 </style>

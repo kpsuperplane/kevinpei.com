@@ -6,8 +6,6 @@ import { absoluteUrl, SITE } from '../utils/site';
 import '@phosphor-icons/web/fill';
 import '@fontsource-variable/source-sans-3/wght.css';
 import '@fontsource-variable/source-sans-3/wght-italic.css';
-import '@fontsource/libertinus-serif/600.css';
-import '@fontsource/libertinus-serif/700.css';
 import '@phosphor-icons/web/bold';
 
 interface Props {
@@ -103,7 +101,19 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
   </body>
 </html>
 
+<script>
+  import { initHoverHighlights } from '../utils/hoverHighlight';
+
+  initHoverHighlights();
+</script>
+
 <style is:global>
+  @font-face {
+    font-family: 'Geist Serif';
+    src: url('../assets/fonts/geist/GeistSerif-Regular.woff2') format('woff2');
+    font-display: swap;
+  }
+
   *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
@@ -147,7 +157,7 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
 
     /* Typography */
     --font-sans: 'Source Sans 3 Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-heading: 'Libertinus Serif', Georgia, serif;
+    --font-heading: 'Geist Serif', Georgia, serif;
     --font-mono: 'SFMono-Regular', Consolas, monospace;
 
     --text-base: 14px;
@@ -283,7 +293,9 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
   h2,
   h3 {
     font-family: var(--font-heading);
-    font-weight: 600;
+    font-weight: 400;
+    font-synthesis-weight: none;
+    letter-spacing: -0.03em;
     text-wrap: balance;
   }
 
@@ -299,6 +311,59 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
     color: inherit;
     font-family: inherit;
     font-size: inherit;
+  }
+
+  [data-hover-group] {
+    position: relative;
+    isolation: isolate;
+  }
+
+  [data-hover-group]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    pointer-events: none;
+    width: var(--hover-width, 0px);
+    height: var(--hover-height, 0px);
+    border-radius: var(--hover-highlight-radius);
+    background: var(--hover-highlight-color);
+    opacity: 0;
+    transform: translate(var(--hover-x, 0px), var(--hover-y, 0px));
+  }
+
+  [data-hover-active] {
+    --item-hover-background: transparent;
+  }
+
+  [data-hover-active]::before {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    [data-hover-group]::before {
+      transition: opacity var(--duration-fast) var(--ease-out);
+    }
+
+    [data-hover-slide]::before {
+      --hover-slide-ease: cubic-bezier(0.2, 0.75, 0.35, 1);
+      transition:
+        opacity var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--hover-slide-ease),
+        width var(--duration-fast) var(--hover-slide-ease),
+        height var(--duration-fast) var(--hover-slide-ease);
+    }
+
+    @supports (transition-timing-function: linear(0, 1)) {
+      [data-hover-slide]::before {
+        /* Critically damped response: 1 - (1 + 7t)e^(-7t), normalized at t = 1. */
+        --hover-slide-ease: linear(
+          0, 0.072, 0.220, 0.380, 0.526, 0.647, 0.743, 0.816, 0.870,
+          0.910, 0.939, 0.960, 0.974, 0.985, 0.992, 0.997, 1
+        );
+      }
+    }
   }
 
   ul, ol {
