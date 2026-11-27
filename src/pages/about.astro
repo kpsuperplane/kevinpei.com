@@ -27,3 +27,10 @@ const aboutImage = frontmatter.image?.src;
     readTime={duration}
   />
 </AppShell>
+
+<style>
+  :global(.post-view .post-body > .about-skis) {
+    border-radius: 0;
+    border-bottom: var(--border-width) solid color-mix(in srgb, var(--color-border) 55%, transparent);
+  }
+</style>

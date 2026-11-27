@@ -586,6 +586,12 @@ const formattedDate = date?.toLocaleDateString('en-US', {
     margin: var(--space-8) 0;
   }
 
+  @media (max-width: 480px) {
+    .post-header {
+      padding-block-start: var(--space-3);
+    }
+  }
+
   @media (min-width: 481px) and (max-width: 768px) {
     .post-view {
       padding-inline-start: 0;
