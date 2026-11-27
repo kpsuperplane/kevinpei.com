@@ -130,10 +130,18 @@ const trackItems = tracks ?? [
   }
 
   .track-list {
+    /* The row height limits the native squircle to about a 29px radius. */
+    --track-row-radius: 16px;
     --hover-highlight-color: var(--color-feature-hover);
-    --hover-highlight-radius: var(--radius-lg);
+    --hover-highlight-radius: var(--track-row-radius);
     display: flex;
     flex-direction: column;
+  }
+
+  @supports (corner-shape: squircle) {
+    .track-list {
+      --track-row-radius: var(--radius-lg);
+    }
   }
 
   @media (max-width: 768px) {

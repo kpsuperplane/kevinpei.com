@@ -303,10 +303,10 @@ const imageUrl = absoluteUrl(image ?? fallbackImagePath);
 
     /* Radius scale */
     --corner-shape: squircle;
-    /* Circular fallbacks use 60% of the squircle radius for an optical match. */
-    --radius-s:    14.4px;
-    --radius-m:    21.6px;
-    --radius-lg:   28.8px;
+    /* Match the squircle's diagonal inset with roughly 54% of its radius. */
+    --radius-s:    13px;
+    --radius-m:    20px;
+    --radius-lg:   26px;
     --radius-pill: 999px;
 
     /* Borders, elevation, and motion */
