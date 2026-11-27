@@ -16,6 +16,7 @@ const posts = defineCollection({
     date: z.coerce.date(),
     readTime: z.number().optional(),
     description: z.string().optional(),
+    llmsDescription: z.string().optional(),
     image: imageSchema,
   }),
 });
