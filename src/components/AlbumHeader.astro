@@ -19,13 +19,15 @@ const resumeLink = primaryLinks.find(link => link.label === 'Resume')!;
   <div class="album-art-wrap" aria-hidden="true">
     <video
       class="album-art"
-      src="/skiing.mp4"
       poster="/skiing-poster.jpg"
       autoplay
       muted
       playsinline
       preload="auto"
-    ></video>
+    >
+      <source src="/skiing.webm" type='video/webm; codecs="av01.0.05M.08"' />
+      <source src="/skiing.mp4" type="video/mp4" />
+    </video>
   </div>
   <div class="album-info">
     <h1 class="album-title" id="album-title">{title}</h1>
