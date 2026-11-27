@@ -62,14 +62,46 @@ const formattedDate = date?.toLocaleDateString('en-US', {
     }
   }
 
-  const overflowBlocks = Array.from(
-    document.querySelectorAll<HTMLElement>('.post-body > pre, .post-body > table')
-  ).filter((block) => {
-    return !(
+  function maskEdgesBehindLabels(diagram: HTMLElement, maskId: string): void {
+    const svg = diagram.querySelector('svg.pele-flowchart');
+    const edges = svg?.querySelector('.pele-edges');
+    const labels = svg?.querySelectorAll<SVGTextElement>('.pele-edge-label > text');
+    if (!svg || !edges || !labels?.length) return;
+
+    const mask = document.createElementNS(svg.namespaceURI, 'mask');
+    mask.id = maskId;
+    mask.setAttribute('maskUnits', 'userSpaceOnUse');
+
+    const visible = document.createElementNS(svg.namespaceURI, 'rect');
+    visible.setAttribute('width', '100%');
+    visible.setAttribute('height', '100%');
+    visible.setAttribute('fill', 'white');
+    mask.append(visible);
+
+    for (const label of labels) {
+      const { x, y, width, height } = label.getBBox();
+      const gap = document.createElementNS(svg.namespaceURI, 'rect');
+      gap.setAttribute('x', String(x - 3));
+      gap.setAttribute('y', String(y - 2));
+      gap.setAttribute('width', String(width + 6));
+      gap.setAttribute('height', String(height + 4));
+      gap.setAttribute('fill', 'black');
+      mask.append(gap);
+    }
+
+    svg.prepend(mask);
+    edges.setAttribute('mask', `url(#${maskId})`);
+  }
+
+  const mermaidBlocks = new Set(
+    Array.from(document.querySelectorAll<HTMLElement>('.post-body pre')).filter((block) => (
       block.matches('pre[data-language="mermaid"]') ||
       block.querySelector('code.language-mermaid')
-    );
-  });
+    )),
+  );
+  const overflowBlocks = Array.from(
+    document.querySelectorAll<HTMLElement>('.post-body > pre, .post-body > table'),
+  ).filter((block) => !mermaidBlocks.has(block));
 
   const overflowEntries = overflowBlocks.map((block) => {
     const wrapper = document.createElement('div');
@@ -84,110 +116,27 @@ const formattedDate = date?.toLocaleDateString('en-US', {
     return { wrapper, scroller: block };
   });
 
-  const mermaidBlocks = Array.from(
-    document.querySelectorAll<HTMLPreElement>(
-      '.post-body pre[data-language="mermaid"], .post-body pre > code.language-mermaid'
-    )
-  );
+  if (mermaidBlocks.size > 0) {
+    const { mountAsync } = await import('pele/lazy');
 
-  if (mermaidBlocks.length > 0) {
-    const { default: mermaid } = await import('mermaid');
-
-    const diagramEntries = mermaidBlocks.map((block, index) => {
-      const pre = block.tagName.toLowerCase() === 'pre' ? block : block.closest('pre');
-      const lineEls = Array.from(block.querySelectorAll<HTMLElement>('.line'));
-      const source = lineEls.length > 0
-        ? lineEls.map((line) => line.textContent ?? '').join('\n')
+    await Promise.all(Array.from(mermaidBlocks, async (block, index) => {
+      const lines = Array.from(block.querySelectorAll<HTMLElement>('.line'));
+      const source = lines.length > 0
+        ? lines.map((line) => line.textContent ?? '').join('\n')
         : block.textContent ?? '';
-      const wrapper = document.createElement('div');
-      wrapper.className = 'mermaid-diagram';
-      wrapper.setAttribute('role', 'img');
-      const scroller = document.createElement('div');
-      scroller.className = 'mermaid-diagram-scroll';
-      wrapper.append(scroller);
-      pre?.replaceWith(wrapper);
+      const diagram = document.createElement('div');
+      diagram.className = 'mermaid-diagram';
+      block.replaceWith(diagram);
 
-      return { index, source, wrapper, scroller };
-    });
-
-    const mobileDiagramQuery = window.matchMedia('(max-width: 640px)');
-    let renderPass = 0;
-
-    function getMermaidConfig() {
-      const isMobile = mobileDiagramQuery.matches;
-
-      return {
-        startOnLoad: false,
-        look: 'handDrawn',
-        theme: 'base',
-        securityLevel: 'strict',
-        handDrawnSeed: 7,
-        fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        flowchart: {
-          padding: isMobile ? 10 : 14,
-          nodeSpacing: isMobile ? 42 : 68,
-          rankSpacing: isMobile ? 46 : 72,
-          curve: 'basis',
-        },
-        themeVariables: {
-          background: '#fffdf7',
-          mainBkg: '#fff9db',
-          primaryColor: '#fff9db',
-          primaryTextColor: '#1f1f1f',
-          primaryBorderColor: '#1f1f1f',
-          lineColor: '#1f1f1f',
-          secondaryColor: '#e7f5ff',
-          tertiaryColor: '#f8f0fc',
-          clusterBkg: '#f8f9fa',
-          clusterBorder: '#1f1f1f',
-          textColor: '#1f1f1f',
-          edgeLabelBackground: '#fffdf7',
-          nodeBorder: '#1f1f1f',
-        },
-      };
-    }
-
-    function getResponsiveMermaidSource(source: string): { source: string; reflowed: boolean } {
-      return { source, reflowed: false };
-    }
-
-    async function renderDiagrams(): Promise<void> {
-      const currentRenderPass = renderPass++;
-      mermaid.initialize(getMermaidConfig());
-
-      await Promise.all(
-        diagramEntries.map(async ({ index, source, wrapper, scroller }) => {
-          try {
-            const responsiveDiagram = getResponsiveMermaidSource(source);
-            const { svg } = await mermaid.render(
-              `mermaid-diagram-${index}-${currentRenderPass}`,
-              responsiveDiagram.source
-            );
-            scroller.innerHTML = svg;
-            wrapper.classList.remove('mermaid-diagram-error');
-            wrapper.toggleAttribute('data-reflowed', responsiveDiagram.reflowed);
-            updateScrollState(wrapper, scroller);
-            scroller.addEventListener('scroll', () => updateScrollState(wrapper, scroller), { passive: true });
-          } catch (error) {
-            wrapper.classList.add('mermaid-diagram-error');
-            wrapper.removeAttribute('data-reflowed');
-            wrapper.removeAttribute('data-overflow-left');
-            wrapper.removeAttribute('data-overflow-right');
-            scroller.removeAttribute('tabindex');
-            wrapper.textContent = 'Unable to render diagram.';
-            console.error(error);
-          }
-        })
-      );
-    }
-
-    await renderDiagrams();
-    mobileDiagramQuery.addEventListener('change', () => {
-      void renderDiagrams();
-    });
-    window.addEventListener('resize', () => {
-      diagramEntries.forEach(({ wrapper, scroller }) => updateScrollState(wrapper, scroller));
-    });
+      try {
+        await mountAsync(diagram, source, {
+          onRender: () => maskEdgesBehindLabels(diagram, `diagram-label-mask-${index}`),
+        });
+      } catch (error) {
+        diagram.replaceWith(block);
+        console.error(error);
+      }
+    }));
   }
 
   if (overflowEntries.length > 0) {
@@ -355,26 +304,46 @@ const formattedDate = date?.toLocaleDateString('en-US', {
   }
 
   .post-body :global(.mermaid-diagram) {
-    --scrim-bg: var(--color-canvas);
-    box-sizing: border-box;
-    display: block;
-    position: relative;
-    width: 100%;
-    inline-size: min(100%, calc(100vw - (2 * var(--page-gutter))));
-    max-width: 100%;
-    min-width: 0;
-    overflow-x: hidden;
+    --pele-bg: #fffdf7;
+    --pele-fg: var(--color-text);
+    --pele-muted: var(--color-text-muted);
+    --pele-line: #1f1f1f;
+    --pele-surface: #fff9db;
+    --pele-surface-alt: #e7f5ff;
+    --pele-border: var(--pele-line);
+    --pele-accent: var(--color-accent-text);
+    --pele-critical: var(--color-alert-caution);
+    --pele-error: var(--color-alert-caution);
+    --pele-font: var(--font-sans);
+    --pele-font-mono: var(--font-mono);
     margin-block-end: var(--space-5);
   }
 
-  .post-body :global(.mermaid-diagram-scroll) {
-    overflow-x: hidden;
+  .post-body :global(.mermaid-diagram > svg) {
+    display: block;
+    margin-inline: auto;
+  }
+
+  .post-body :global(.pele-flowchart .pele-node > :is(rect, circle, ellipse, polygon, path)),
+  .post-body :global(.pele-flowchart .pele-cluster > rect),
+  .post-body :global(.pele-flowchart .pele-edges) {
+    stroke-width: 1.35;
+  }
+
+  .post-body :global(.pele-flowchart .pele-shape-hex > polygon) {
+    fill: #f8f0fc;
+  }
+
+  .post-body :global(.pele-flowchart .pele-edge-labels) {
+    font-size: 16px;
+  }
+
+  .post-body :global(.pele-flowchart .pele-edge-label > rect) {
+    fill: none;
   }
 
   .post-body :global(.post-overflow::before),
-  .post-body :global(.post-overflow::after),
-  .post-body :global(.mermaid-diagram::before),
-  .post-body :global(.mermaid-diagram::after) {
+  .post-body :global(.post-overflow::after) {
     content: '';
     position: absolute;
     top: 0;
@@ -386,8 +355,7 @@ const formattedDate = date?.toLocaleDateString('en-US', {
     transition: opacity var(--duration-base) var(--ease-standard);
   }
 
-  .post-body :global(.post-overflow::before),
-  .post-body :global(.mermaid-diagram::before) {
+  .post-body :global(.post-overflow::before) {
     left: -6px;
     background: linear-gradient(
       90deg,
@@ -401,8 +369,7 @@ const formattedDate = date?.toLocaleDateString('en-US', {
     );
   }
 
-  .post-body :global(.post-overflow::after),
-  .post-body :global(.mermaid-diagram::after) {
+  .post-body :global(.post-overflow::after) {
     right: -6px;
     background: linear-gradient(
       270deg,
@@ -417,31 +384,8 @@ const formattedDate = date?.toLocaleDateString('en-US', {
   }
 
   .post-body :global(.post-overflow[data-overflow-left]::before),
-  .post-body :global(.post-overflow[data-overflow-right]::after),
-  .post-body :global(.mermaid-diagram[data-overflow-left]::before),
-  .post-body :global(.mermaid-diagram[data-overflow-right]::after) {
+  .post-body :global(.post-overflow[data-overflow-right]::after) {
     opacity: 1;
-  }
-
-  .post-body :global(.mermaid-diagram svg) {
-    display: block;
-    margin-inline: auto;
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-    min-width: 0;
-  }
-
-  .post-body :global(.mermaid-diagram .label),
-  .post-body :global(.mermaid-diagram .edgeLabel),
-  .post-body :global(.mermaid-diagram .nodeLabel) {
-    font-family: var(--font-sans);
-  }
-
-  .post-body :global(.mermaid-diagram-error) {
-    color: var(--color-text-muted);
-    font-family: var(--font-mono);
-    font-size: var(--text-md);
   }
 
   .post-body :global(pre code) {
@@ -605,25 +549,6 @@ const formattedDate = date?.toLocaleDateString('en-US', {
 
     .post-title {
       font-size: var(--text-4xl);
-    }
-
-    .post-body :global(.mermaid-diagram) {
-      inline-size: 100%;
-    }
-
-    .post-body :global(.mermaid-diagram-scroll) {
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-
-    .post-body :global(.mermaid-diagram-scroll::-webkit-scrollbar) {
-      display: none;
-    }
-
-    .post-body :global(.mermaid-diagram svg) {
-      width: 560px;
-      max-width: none;
-      min-width: 560px;
     }
   }
 </style>
